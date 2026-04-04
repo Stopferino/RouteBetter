@@ -251,6 +251,7 @@ async def search_stream(
             if cache_dirty:
                 await loop.run_in_executor(None, save_cache, cache, cache_file)
 
+            logger.warning(f"[DEBUG] Collected {len(all_flights)} flights from {completed_outbound}/{total} combinations  date_window={date_window}")
             yield sse({"type": "log", "message": f"[DEBUG] Collected {len(all_flights)} flights from {completed_outbound}/{total} combinations"})
 
             if not all_flights:
@@ -263,6 +264,7 @@ async def search_stream(
                 lambda: calculate_scores(all_flights, value_of_time=value_of_time),
             )
 
+            logger.warning(f"[DEBUG] After scoring: {len(df)} rows, max_stops={max_stops}")
             yield sse({"type": "log", "message": f"[DEBUG] After scoring: {len(df)} rows, max_stops={max_stops}"})
 
             for _col, _default in [("booking_class", "Economy"), ("currency", "EUR")]:
@@ -282,6 +284,7 @@ async def search_stream(
                 return
             df = df.reset_index(drop=True)
 
+            logger.warning(f"[DEBUG] After filter: {len(df)} rows → effective_top_n={min(top_n, len(df))}")
             yield sse({"type": "log", "message": f"[DEBUG] After filter: {len(df)} rows → effective_top_n={min(top_n, len(df))}"})
 
             effective_top_n = min(top_n, len(df))
