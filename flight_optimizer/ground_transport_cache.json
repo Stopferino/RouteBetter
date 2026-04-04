@@ -1,0 +1,65 @@
+{
+  "shenzhen shuiwan 1979|hemhofen goethestr. 9|CAN,FRA,HKG,MUC,NUE,SZX": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "9, Goethestraße, Zeckern, Hemhofen, Landkreis Erlangen-Höchstadt, Bayern, 91334, Deutschland",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": [
+      49.6937595,
+      10.9350205
+    ],
+    "ai_powered": true,
+    "legs": {
+      "HKG": {
+        "time_minutes": 90.0,
+        "cost_eur": 30.0,
+        "mode": "Didi + border bus + Airport Express",
+        "notes": "Includes time for border crossing and bus transfer.",
+        "cost": 30.0,
+        "duration_minutes": 90.0
+      },
+      "SZX": {
+        "time_minutes": 45.0,
+        "cost_eur": 12.0,
+        "mode": "Shenzhen Metro Airport Express Line",
+        "notes": "Direct metro service with minimal transfers.",
+        "cost": 12.0,
+        "duration_minutes": 45.0
+      },
+      "CAN": {
+        "time_minutes": 60.0,
+        "cost_eur": 25.0,
+        "mode": "Didi",
+        "notes": "Direct Didi ride to the airport.",
+        "cost": 25.0,
+        "duration_minutes": 60.0
+      },
+      "FRA": {
+        "time_minutes": 45.0,
+        "cost_eur": 30.0,
+        "mode": "Deutsche Bahn ICE/RE",
+        "notes": "Fast regional trains from the airport to Nuremberg area.",
+        "cost": 30.0,
+        "duration_minutes": 45.0
+      },
+      "MUC": {
+        "time_minutes": 60.0,
+        "cost_eur": 14.0,
+        "mode": "S-Bahn (S1/S8)",
+        "notes": "S-Bahn service connects airport to Munich and surrounding areas.",
+        "cost": 14.0,
+        "duration_minutes": 60.0
+      },
+      "NUE": {
+        "time_minutes": 75.0,
+        "cost_eur": 20.0,
+        "mode": "U2 metro + regional train",
+        "notes": "Combination of metro and train to reach destination.",
+        "cost": 20.0,
+        "duration_minutes": 75.0
+      }
+    }
+  }
+}
