@@ -66,7 +66,7 @@ def set_cached(
     return_date: str,
     results: list[dict],
 ):
-    """Stores results in the cache dictionary (not yet written to disk)."""
+    """Stores outbound results in the cache dictionary (not yet written to disk)."""
     key = _cache_key(origin, destination, outbound_date, return_date)
     # Strip flight_details (too large, not needed for score calculation)
     slim_results = [
@@ -76,6 +76,27 @@ def set_cached(
     cache[key] = {
         "fetched_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "results": slim_results,
+    }
+
+
+# ── Return-leg cache (keyed by departure_token) ────────────────────────────────
+
+def get_cached_return(cache: dict, departure_token: str) -> dict | None:
+    """Returns cached return-leg detail for a given departure_token, or None."""
+    key = f"return__{departure_token[:32]}"
+    entry = cache.get(key)
+    if entry:
+        logger.debug(f"Return-leg cache hit: {key[:40]}...")
+        return entry["data"]
+    return None
+
+
+def set_cached_return(cache: dict, departure_token: str, return_data: dict):
+    """Stores return-leg detail in the cache dictionary (not yet written to disk)."""
+    key = f"return__{departure_token[:32]}"
+    cache[key] = {
+        "fetched_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "data": return_data,
     }
 
 

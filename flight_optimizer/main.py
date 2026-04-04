@@ -29,7 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from flight_optimizer import config
 from flight_optimizer.date_utils import generate_date_range
-from flight_optimizer.serpapi_client import fetch_all_combinations
+from flight_optimizer.serpapi_client import fetch_all_combinations, enrich_with_return_legs
 from flight_optimizer.scorer import calculate_scores, apply_filters
 from flight_optimizer.printer import print_top_flights, print_summary_table
 from flight_optimizer.exporter import export_to_excel
@@ -94,11 +94,31 @@ def main():
     # Optional post-filter (in case not already applied during API fetch)
     df = apply_filters(df, airline_filter=config.AIRLINE_FILTER, max_stops=config.MAX_STOPS)
 
-    # ── 5. Print results ───────────────────────────────────────────
+    # ── 5. Fetch return leg details for top-N ─────────────────────
+    logger.info(f"Fetching return leg details for top {config.TOP_N} flight(s)...")
+    top_flights_list = df.head(config.TOP_N).to_dict("records")
+    enriched = enrich_with_return_legs(
+        flights=top_flights_list,
+        top_n=config.TOP_N,
+        cache=cache,
+        cache_file=config.CACHE_FILE if config.USE_CACHE else None,
+        currency=config.CURRENCY,
+        hl=config.HL,
+        gl=config.GL,
+    )
+    # Write enriched return data back into the DataFrame
+    import pandas as pd
+    enriched_df = pd.DataFrame(enriched)
+    for col in ("return_segments", "return_layovers", "return_route",
+                "return_duration_minutes", "return_stops"):
+        if col in enriched_df.columns:
+            df.loc[df.index[:config.TOP_N], col] = enriched_df[col].values
+
+    # ── 6. Print results ───────────────────────────────────────────
     print_top_flights(df, top_n=config.TOP_N, value_of_time=config.VALUE_OF_TIME_EUR_PER_HOUR)
     print_summary_table(df, top_n=config.TOP_N)
 
-    # ── 6. Export to Excel ─────────────────────────────────────────
+    # ── 7. Export to Excel ─────────────────────────────────────────
     output_path = export_to_excel(df, output_path=config.EXCEL_OUTPUT_FILE)
     if output_path:
         logger.info(f"Excel file saved: {output_path}")

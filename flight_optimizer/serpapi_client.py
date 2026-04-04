@@ -221,6 +221,8 @@ def fetch_flights(
                     "outbound_route": outbound_route,
                     "outbound_segments": outbound_segments,
                     "outbound_layovers": outbound_layovers,
+                    # Token needed to fetch return leg details (step 2)
+                    "departure_token": itinerary.get("departure_token", ""),
                     "flight_details": itinerary,
                 })
             except (KeyError, TypeError, ValueError) as e:
@@ -309,3 +311,196 @@ def fetch_all_combinations(
         f"(saved: {cache_hits} of {total} searches)"
     )
     return all_results
+
+
+# ─── Return leg helpers ────────────────────────────────────────────────────────
+
+def _parse_segments(flights_legs: list, raw_layovers: list, origin: str, dest: str) -> tuple:
+    """
+    Shared helper: parses a list of flight leg dicts and layover dicts into
+    structured segments, layovers, route string, and total duration.
+    """
+    segments = []
+    for leg in flights_legs:
+        dep = leg.get("departure_airport", {})
+        arr = leg.get("arrival_airport", {})
+        segments.append({
+            "from_airport": dep.get("id", "?"),
+            "from_name": dep.get("name", ""),
+            "from_time": dep.get("time", ""),
+            "to_airport": arr.get("id", "?"),
+            "to_name": arr.get("name", ""),
+            "to_time": arr.get("time", ""),
+            "airline": leg.get("airline", "Unknown"),
+            "flight_number": leg.get("flight_number", ""),
+            "aircraft": leg.get("airplane", ""),
+            "duration_minutes": leg.get("duration", 0),
+            "overnight": leg.get("overnight", False),
+        })
+
+    layovers = []
+    for lay in raw_layovers:
+        layovers.append({
+            "airport": lay.get("name", "?"),
+            "airport_id": lay.get("id", "?"),
+            "duration_minutes": lay.get("duration", 0),
+            "overnight": lay.get("overnight", False),
+        })
+
+    if segments:
+        route_airports = [segments[0]["from_airport"]]
+        for seg in segments:
+            route_airports.append(seg["to_airport"])
+        route = "->".join(route_airports)
+    else:
+        route = f"{origin}->{dest}"
+
+    total_dur = sum(s["duration_minutes"] for s in segments) + sum(l["duration_minutes"] for l in layovers)
+
+    return segments, layovers, route, total_dur
+
+
+def fetch_return_legs(
+    departure_token: str,
+    origin: str,
+    destination: str,
+    outbound_date: str,
+    return_date: str,
+    currency: str = "EUR",
+    hl: str = "en",
+    gl: str = "us",
+) -> Optional[dict]:
+    """
+    Makes the second SerpApi call (using departure_token) to retrieve the return
+    flight leg details for a previously selected outbound itinerary.
+
+    Returns a dict with return_segments, return_layovers, return_route,
+    return_duration_minutes, return_stops — or None on failure.
+    """
+    api_key = os.environ.get("SERPAPI_KEY")
+    if not api_key:
+        raise EnvironmentError("SERPAPI_KEY is not set.")
+
+    params = {
+        "engine": "google_flights",
+        "departure_id": origin,
+        "arrival_id": destination,
+        "outbound_date": outbound_date,
+        "return_date": return_date,
+        "currency": currency,
+        "hl": hl,
+        "gl": gl,
+        "type": "1",
+        "departure_token": departure_token,
+        "api_key": api_key,
+    }
+
+    for attempt in range(1, 4):
+        try:
+            resp = requests.get(SERPAPI_BASE_URL, params=params, timeout=60)
+            data = resp.json()
+            break
+        except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+            logger.warning(f"Return leg fetch timeout (attempt {attempt}/3): {e}")
+            if attempt == 3:
+                return None
+            time.sleep(5)
+        except Exception as e:
+            logger.warning(f"Return leg fetch error: {e}")
+            return None
+
+    if data.get("error"):
+        logger.warning(f"Return leg API error: {data['error']}")
+        return None
+
+    # Take the first best_flights entry as the paired return option
+    best = data.get("best_flights", [])
+    if not best:
+        logger.warning("Return leg: no best_flights in response.")
+        return None
+
+    itinerary = best[0]
+    flights_legs = itinerary.get("flights", [])
+    raw_layovers = itinerary.get("layovers", [])
+
+    segments, layovers, route, total_dur = _parse_segments(
+        flights_legs, raw_layovers, destination, origin
+    )
+
+    return {
+        "return_segments": segments,
+        "return_layovers": layovers,
+        "return_route": route,
+        "return_duration_minutes": itinerary.get("total_duration", total_dur),
+        "return_stops": len(raw_layovers),
+    }
+
+
+def enrich_with_return_legs(
+    flights: list[dict],
+    top_n: int,
+    cache: Optional[dict],
+    cache_file: Optional[str],
+    currency: str = "EUR",
+    hl: str = "en",
+    gl: str = "us",
+    delay_seconds: float = 1.5,
+) -> list[dict]:
+    """
+    For each flight in the top-N (already sorted by score), fetches the
+    return leg details using departure_token. Results are cached by token.
+    Modifies each flight dict in-place and returns the updated list.
+    """
+    from flight_optimizer.cache import get_cached_return, set_cached_return, save_cache
+
+    api_calls = 0
+    cache_hits = 0
+
+    for idx, flight in enumerate(flights[:top_n]):
+        token = flight.get("departure_token", "")
+        if not token:
+            logger.warning(f"  Flight #{idx+1}: no departure_token, skipping return fetch.")
+            continue
+
+        # Already enriched (e.g. from a previous run's cache)
+        if flight.get("return_segments"):
+            continue
+
+        # Check return-leg cache
+        if cache is not None:
+            cached_return = get_cached_return(cache, token)
+            if cached_return is not None:
+                flight.update(cached_return)
+                cache_hits += 1
+                continue
+
+        logger.info(
+            f"  Fetching return leg for flight #{idx+1}: "
+            f"{flight.get('outbound_route', '?')} | {flight['return_date']}"
+        )
+        result = fetch_return_legs(
+            departure_token=token,
+            origin=flight["origin"],
+            destination=flight["destination"],
+            outbound_date=flight["outbound_date"],
+            return_date=flight["return_date"],
+            currency=currency,
+            hl=hl,
+            gl=gl,
+        )
+        api_calls += 1
+
+        if result:
+            flight.update(result)
+            if cache is not None:
+                set_cached_return(cache, token, result)
+                if cache_file:
+                    save_cache(cache, cache_file)
+
+        if idx + 1 < top_n:
+            time.sleep(delay_seconds)
+
+    logger.info(
+        f"Return leg enrichment: {api_calls} API call(s), {cache_hits} from cache"
+    )
+    return flights
