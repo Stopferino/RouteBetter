@@ -183,18 +183,13 @@
               <input type="text" x-model="destAddress" placeholder="e.g. Marienplatz, Munich, Germany"
                      class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" />
             </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-500 mb-1">
-                Cost per km: <span class="text-emerald-700 font-bold" x-text="`${groundCostPerKm.toFixed(2)} EUR/km`"></span>
-              </label>
-              <input type="range" min="0.5" max="5" step="0.1" x-model.number="groundCostPerKm"
-                     class="w-full accent-emerald-600" />
-              <div class="flex justify-between text-xs text-slate-400 mt-0.5">
-                <span>0.50 (own car)</span><span>5.00 (taxi)</span>
-              </div>
+            <div class="text-xs bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 text-emerald-700">
+              <span class="font-semibold">AI-estimated</span> — costs and times are calculated using realistic transport modes
+              (metro, Deutsche Bahn, Didi, bus) for your specific addresses. No API key needed.
             </div>
-            <div x-show="homeAddress || destAddress" class="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2 border border-emerald-200">
-              Both addresses required to enable ground transport scoring.
+            <div x-show="(homeAddress || destAddress) && !(homeAddress && destAddress)"
+                 class="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2 border border-amber-200">
+              ⚠ Enter both addresses to enable ground transport scoring.
             </div>
           </div>
         </div>
@@ -264,17 +259,27 @@
     <!-- Ground transport summary banner -->
     <div x-show="groundInfo"
          class="bg-emerald-50 border border-emerald-200 rounded-xl px-5 py-3 text-xs text-emerald-800 slide-down">
-      <p class="font-semibold mb-1">🚗 Door-to-door ground transport included in scores</p>
+      <div class="flex items-center gap-2 mb-2">
+        <p class="font-semibold">🚗 Door-to-door ground transport included in scores</p>
+        <span x-show="groundInfo && groundInfo.ai_powered"
+              class="bg-emerald-700 text-white text-xs font-bold px-2 py-0.5 rounded">AI-estimated</span>
+        <span x-show="groundInfo && !groundInfo.ai_powered"
+              class="bg-slate-500 text-white text-xs font-bold px-2 py-0.5 rounded">Driving fallback</span>
+      </div>
       <p><strong>Home:</strong> <span x-text="groundInfo && groundInfo.home_display"></span></p>
       <p><strong>Destination:</strong> <span x-text="groundInfo && groundInfo.dest_display"></span></p>
-      <div class="mt-2 flex flex-wrap gap-3" x-show="groundInfo && groundInfo.legs">
-        <template x-for="[code, leg] in Object.entries(groundInfo.legs || {})" :key="code">
-          <span x-show="leg" class="bg-white border border-emerald-200 rounded-lg px-2 py-1">
-            <span class="font-mono font-bold" x-text="code"></span>:
-            <span x-text="leg ? fmtMin(leg.duration_minutes) : '?'"></span>
-            · <span x-text="leg ? leg.distance_km + ' km' : '?'"></span>
-            · <span x-text="leg ? '€' + leg.cost.toFixed(0) : '?'"></span>
-          </span>
+      <div class="mt-3 grid grid-cols-2 gap-2" x-show="groundInfo && groundInfo.legs">
+        <template x-for="[code, leg] in Object.entries((groundInfo && groundInfo.legs) || {})" :key="code">
+          <div x-show="leg" class="bg-white border border-emerald-200 rounded-lg px-3 py-2">
+            <div class="flex items-center justify-between mb-0.5">
+              <span class="font-mono font-bold text-emerald-800" x-text="code"></span>
+              <span class="font-semibold">
+                <span x-text="leg ? fmtMin(leg.time_minutes) : '?'"></span>
+                · €<span x-text="leg ? leg.cost_eur.toFixed(0) : '?'"></span>
+              </span>
+            </div>
+            <div class="text-emerald-600 text-xs" x-text="leg && leg.mode"></div>
+          </div>
         </template>
       </div>
     </div>
@@ -395,30 +400,46 @@
           <div x-show="flight.ground_total_cost != null"
                class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
             <p class="text-xs font-bold text-emerald-800 mb-2 uppercase tracking-wide">Door-to-door journey (round trip)</p>
-            <div class="space-y-1 text-xs text-emerald-700">
-              <div class="flex justify-between">
-                <span>🏠 Home → departure airport</span>
-                <span><strong x-text="fmtMin(flight.ground_dep_minutes)"></strong>
-                  · €<span x-text="(flight.ground_dep_cost || 0).toFixed(2)"></span>/way</span>
+            <div class="space-y-2 text-xs text-emerald-700">
+              <div>
+                <div class="flex justify-between items-start">
+                  <span>🏠 Home → departure airport</span>
+                  <span class="text-right"><strong x-text="fmtMin(flight.ground_dep_minutes)"></strong>
+                    · €<span x-text="(flight.ground_dep_cost || 0).toFixed(0)"></span>/way</span>
+                </div>
+                <div x-show="flight.ground_dep_mode" class="text-emerald-500 pl-5 mt-0.5">
+                  <span x-text="flight.ground_dep_mode"></span>
+                </div>
+                <div x-show="flight.ground_dep_notes" class="text-emerald-400 italic pl-5">
+                  <span x-text="flight.ground_dep_notes"></span>
+                </div>
               </div>
               <div class="flex justify-between text-blue-700">
                 <span>✈ Outbound flight</span>
                 <span><strong x-text="flight.duration_str"></strong></span>
               </div>
-              <div class="flex justify-between">
-                <span>🏨 Arrival airport → destination</span>
-                <span><strong x-text="fmtMin(flight.ground_arr_minutes)"></strong>
-                  · €<span x-text="(flight.ground_arr_cost || 0).toFixed(2)"></span>/way</span>
+              <div>
+                <div class="flex justify-between items-start">
+                  <span>🏨 Arrival airport → destination</span>
+                  <span class="text-right"><strong x-text="fmtMin(flight.ground_arr_minutes)"></strong>
+                    · €<span x-text="(flight.ground_arr_cost || 0).toFixed(0)"></span>/way</span>
+                </div>
+                <div x-show="flight.ground_arr_mode" class="text-emerald-500 pl-5 mt-0.5">
+                  <span x-text="flight.ground_arr_mode"></span>
+                </div>
+                <div x-show="flight.ground_arr_notes" class="text-emerald-400 italic pl-5">
+                  <span x-text="flight.ground_arr_notes"></span>
+                </div>
               </div>
-              <div class="border-t border-emerald-200 pt-1 mt-1">
+              <div class="border-t border-emerald-200 pt-1">
                 <div class="flex justify-between text-blue-700">
                   <span>✈ Return flight</span>
                   <span><strong x-text="fmtMin(flight.return_duration_minutes)"></strong></span>
                 </div>
               </div>
-              <div class="border-t border-emerald-200 pt-1 mt-1 font-semibold flex justify-between text-emerald-800">
-                <span>Total ground transport (×2 both ways)</span>
-                <span>€<span x-text="(flight.ground_total_cost || 0).toFixed(2)"></span></span>
+              <div class="border-t border-emerald-200 pt-1 font-semibold flex justify-between text-emerald-800">
+                <span>Total ground transport (×2 round trip)</span>
+                <span>€<span x-text="(flight.ground_total_cost || 0).toFixed(0)"></span></span>
               </div>
             </div>
           </div>
@@ -548,7 +569,6 @@ function flightApp() {
     showGroundForm: false,
     homeAddress: '',
     destAddress: '',
-    groundCostPerKm: 1.5,
     groundInfo: null,
 
     apiCallEstimate() {
@@ -591,7 +611,6 @@ function flightApp() {
         top_n: this.topN,
         use_cache: this.useCache,
         date_window: this.dateWindow,
-        ground_cost_per_km: this.groundCostPerKm,
       });
       if (this.maxStops !== '') params.set('max_stops', this.maxStops);
       if (this.homeAddress.trim()) params.set('home_address', this.homeAddress.trim());

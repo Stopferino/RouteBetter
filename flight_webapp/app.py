@@ -106,13 +106,14 @@ async def search_stream(
                     ground_transport = None
                 if ground_transport:
                     leg_summary = ", ".join(
-                        f"{k}: {v['duration_minutes']:.0f}min/{v['distance_km']:.0f}km"
+                        f"{k}: {v['time_minutes']:.0f}min/€{v['cost_eur']:.0f}"
                         for k, v in ground_transport["legs"].items() if v
                     )
                     yield sse({"type": "log", "message": f"✓ Ground legs: {leg_summary}"})
                     yield sse({"type": "ground_transport", "data": {
                         "home_display": ground_transport["home_display"][:80],
                         "dest_display": ground_transport["dest_display"][:80],
+                        "ai_powered":   ground_transport.get("ai_powered", False),
                         "legs": ground_transport["legs"],
                     }})
             except Exception as gt_err:
@@ -289,6 +290,10 @@ async def search_stream(
                 f["ground_dep_cost"]    = dep_cost
                 f["ground_arr_cost"]    = arr_cost
                 f["ground_total_cost"]  = round(ground_cost, 2)
+                f["ground_dep_mode"]    = dep_leg.get("mode", "") if dep_leg else ""
+                f["ground_arr_mode"]    = arr_leg.get("mode", "") if arr_leg else ""
+                f["ground_dep_notes"]   = dep_leg.get("notes", "") if dep_leg else ""
+                f["ground_arr_notes"]   = arr_leg.get("notes", "") if arr_leg else ""
                 f["score"] = round(
                     float(f.get("score") or 0) + ground_cost + ground_time_h * value_of_time,
                     2,
@@ -332,12 +337,16 @@ async def search_stream(
                 "booking_class": f.get("booking_class", "Economy"),
                 "fare_brand": f.get("fare_brand"),
                 "currency": f.get("currency", "EUR"),
-                # Ground transport (None fields if not requested)
+                # Ground transport (None/empty when not requested)
                 "ground_dep_minutes": f.get("ground_dep_minutes"),
                 "ground_arr_minutes": f.get("ground_arr_minutes"),
-                "ground_dep_cost": f.get("ground_dep_cost"),
-                "ground_arr_cost": f.get("ground_arr_cost"),
-                "ground_total_cost": f.get("ground_total_cost"),
+                "ground_dep_cost":    f.get("ground_dep_cost"),
+                "ground_arr_cost":    f.get("ground_arr_cost"),
+                "ground_total_cost":  f.get("ground_total_cost"),
+                "ground_dep_mode":    f.get("ground_dep_mode", ""),
+                "ground_arr_mode":    f.get("ground_arr_mode", ""),
+                "ground_dep_notes":   f.get("ground_dep_notes", ""),
+                "ground_arr_notes":   f.get("ground_arr_notes", ""),
             })
 
         import tempfile, uuid
