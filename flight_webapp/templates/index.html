@@ -3,14 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flight Optimizer</title>
+  <title>Flight Optimizer — Find the Best-Value Round-Trip Flights</title>
+  <meta name="description" content="Score and rank round-trip flights by real value: price, travel time, stops, and door-to-door ground transport. HKG, SZX, CAN to FRA, MUC, NUE and more." />
+  <meta property="og:title" content="Flight Optimizer" />
+  <meta property="og:description" content="Find the best-value round-trip flights by scoring price, time, and stops together. Live results from Google Flights." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://og.tailgraph.com/og?fontFamily=Inter&title=Flight+Optimizer&titleTailwind=text-white+font-bold+text-6xl&bgTailwind=bg-blue-700&footer=Best+value+round-trip+flights" />
+  <meta name="theme-color" content="#1e3a5f" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
   <style>
     [x-cloak] { display: none !important; }
     .gradient-header { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); }
-    .card-hover { transition: box-shadow 0.2s, transform 0.2s; }
-    .card-hover:hover { box-shadow: 0 8px 30px rgba(37,99,235,0.15); transform: translateY(-2px); }
+    .card-hover { transition: box-shadow 0.2s; }
+    @media (hover: hover) and (pointer: fine) {
+      .card-hover:hover { box-shadow: 0 8px 30px rgba(37,99,235,0.15); transform: translateY(-2px); }
+    }
     .progress-bar { transition: width 0.5s ease-in-out; }
     .log-scroll { max-height: 160px; overflow-y: auto; scroll-behavior: smooth; }
     .rank-badge-1 { background: linear-gradient(135deg, #f59e0b, #d97706); }
@@ -259,7 +269,15 @@
   </aside>
 
   <!-- ── MAIN CONTENT AREA ─────────────────────────────────────────────────── -->
-  <main class="flex-1 min-w-0 space-y-4">
+  <main id="results-area" class="flex-1 min-w-0 space-y-4">
+
+    <!-- Mobile: "Modify Search" back button — only shown on small screens after search starts -->
+    <div class="lg:hidden" x-show="searching || rawResults.length > 0 || showProgress">
+      <button @click="document.querySelector('aside').scrollIntoView({behavior:'smooth'})"
+              class="w-full flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl py-2.5 text-sm font-semibold text-slate-600 shadow-sm active:bg-slate-50">
+        ↑ Modify Search
+      </button>
+    </div>
 
     <!-- Progress Panel -->
     <div x-show="showProgress" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden slide-down">
@@ -397,21 +415,24 @@
     </div>
 
     <!-- Results Header + Export -->
-    <div x-show="results.length > 0" class="flex items-center justify-between">
+    <div x-show="results.length > 0" class="flex items-center justify-between gap-3 flex-wrap">
       <div>
         <h2 class="text-lg font-bold text-slate-800">
           Top <span x-text="results.length"></span> Flights
         </h2>
-        <p class="text-xs text-slate-400">
-          from <span x-text="totalFound"></span> flights analysed
+        <p class="text-xs text-slate-400 flex items-center gap-1.5 flex-wrap">
+          <span>from <span x-text="totalFound"></span> flights analysed</span>
           <span x-show="rawResults.length > results.length">
             · showing <span x-text="results.length"></span> of <span x-text="rawResults.length"></span>
           </span>
           · sorted by score (lowest = best)
+          <span x-show="cacheAgeLabel"
+                class="bg-amber-50 border border-amber-200 text-amber-700 px-2 py-0.5 rounded-full text-xs font-medium"
+                x-text="`Prices from cache · ${cacheAgeLabel}`"></span>
         </p>
       </div>
       <button x-show="exportId" @click="downloadExcel"
-              class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
+              class="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
         📥 Export Excel
       </button>
     </div>
@@ -882,6 +903,7 @@ function flightApp() {
     apiUsage: { count: 0, month: '', limit: 250, remaining: 250, pct_used: 0, source: '' },
     usageLoading: true,
     rescored: false,
+    cacheAgeLabel: null,
 
     // Progress panel visibility
     showProgress: false,
@@ -993,9 +1015,18 @@ function flightApp() {
       this.exportId = null;
       this.groundInfo = null;
       this.rescored = false;
+      this.cacheAgeLabel = null;
       this.searching = true;
       this.showProgress = true;
       this.logsExpanded = true;
+
+      // On mobile, scroll down to show the progress/results area
+      if (window.innerWidth < 1024) {
+        this.$nextTick(() => {
+          const el = document.getElementById('results-area');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
 
       if (this._es) this._es.close();
 
@@ -1031,6 +1062,7 @@ function flightApp() {
           this.rawResults = msg.flights.map(f => ({ ...f, _open: false }));
           this.totalFound = msg.total_found;
           this.exportId = msg.export_id;
+          this.cacheAgeLabel = msg.cache_age_label || null;
           this.rescored = false;
           this.applyFilters();
           this.fetchUsage();

@@ -5,6 +5,7 @@ FastAPI backend that serves the UI and streams search results via SSE.
 
 import asyncio
 import json
+import logging
 import os
 import sys
 from datetime import date as _date, timedelta
@@ -15,8 +16,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse, StreamingResponse
 
+logger = logging.getLogger(__name__)
+
 app = FastAPI(title="Flight Optimizer")
 _TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), "templates", "index.html")
+
+# ── Concurrency guard: limit simultaneous live searches ────────────────────────
+_active_searches: int = 0
+MAX_CONCURRENT_SEARCHES: int = 3
 
 
 def _date_variants(d: str, window: int) -> list:
@@ -63,9 +70,7 @@ async def api_usage():
                 "source":    "serpapi",
             }
         except Exception as exc:
-            # Log but fall through to local counter
-            import logging
-            logging.getLogger(__name__).warning(f"SerpApi account fetch failed: {exc}")
+            logger.warning(f"SerpApi account fetch failed: {exc}")
 
     local = get_usage()
     local["source"] = "local"
@@ -94,7 +99,6 @@ async def search_stream(
     outbound_variants = _date_variants(outbound_date, date_window)
     return_variants = _date_variants(return_date, date_window)
 
-    # Only keep combos where outbound is strictly before return
     date_combos = [
         (od, rd)
         for od in outbound_variants
@@ -103,331 +107,336 @@ async def search_stream(
     ]
 
     async def event_generator():
-        from flight_optimizer.serpapi_client import fetch_flights, fetch_return_legs
-        from flight_optimizer.scorer import calculate_scores, apply_filters, recalculate_scores_with_return
-        from flight_optimizer.exporter import export_to_excel
-        from flight_optimizer.cache import (
-            load_cache, get_cached, set_cached, save_cache,
-            get_cached_return, set_cached_return,
-        )
-        from flight_optimizer.ground_transport import calculate_ground_transport
-        import pandas as pd
-
-        loop = asyncio.get_event_loop()
+        global _active_searches
 
         def sse(data: dict) -> str:
             return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
 
-        cache_file = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "flight_cache.json"
-        )
-        # Always load the cache so we can write fresh data back into it,
-        # even when the user has "use cache" disabled.
-        cache = await loop.run_in_executor(None, load_cache, cache_file)
-
-        # ── Ground transport geocoding ────────────────────────────────────────
-        ground_transport = None
-        if home_address.strip() and dest_address.strip():
-            yield sse({"type": "progress", "percent": 2, "label": "Geocoding addresses…"})
-            yield sse({"type": "log", "message": f"Geocoding: '{home_address}' & '{dest_address}'"})
-            try:
-                ground_transport = await loop.run_in_executor(
-                    None,
-                    lambda: calculate_ground_transport(
-                        home_address.strip(), dest_address.strip(),
-                        origin_airports=origin_list,
-                        dest_airports=dest_list,
-                    ),
-                )
-                if ground_transport["home_coords"]:
-                    yield sse({"type": "log", "message": f"✓ Home → {ground_transport['home_display'][:60]}"})
-                else:
-                    yield sse({"type": "log", "message": "⚠ Could not geocode home address — ground transport skipped"})
-                    ground_transport = None
-                if ground_transport and ground_transport["dest_coords"]:
-                    yield sse({"type": "log", "message": f"✓ Dest → {ground_transport['dest_display'][:60]}"})
-                else:
-                    yield sse({"type": "log", "message": "⚠ Could not geocode destination address — ground transport skipped"})
-                    ground_transport = None
-                if ground_transport:
-                    leg_summary = ", ".join(
-                        f"{k}: {v['time_minutes']:.0f}min/€{v['cost_eur']:.0f}"
-                        for k, v in ground_transport["legs"].items() if v
-                    )
-                    yield sse({"type": "log", "message": f"✓ Ground legs: {leg_summary}"})
-                    yield sse({"type": "ground_transport", "data": {
-                        "home_display": ground_transport["home_display"][:80],
-                        "dest_display": ground_transport["dest_display"][:80],
-                        "ai_powered":   ground_transport.get("ai_powered", False),
-                        "legs": ground_transport["legs"],
-                    }})
-            except Exception as gt_err:
-                logger.warning(f"Ground transport error: {gt_err}")
-                yield sse({"type": "log", "message": f"⚠ Ground transport unavailable: {gt_err}"})
-                ground_transport = None
-
-        all_flights = []
-        combinations = [
-            (o, d, od, rd)
-            for o in origin_list
-            for d in dest_list
-            for (od, rd) in date_combos
-        ]
-        total = len(combinations)
-
-        yield sse({
-            "type": "log",
-            "message": f"Starting search: {total} combination(s) "
-                       f"({'±1 day window' if date_window else 'exact dates'})",
-        })
-
-        for idx, (origin, dest, od, rd) in enumerate(combinations):
-            label = f"{origin}→{dest}  {od} ↔ {rd}"
+        if _active_searches >= MAX_CONCURRENT_SEARCHES:
             yield sse({
-                "type": "progress",
-                "percent": int((idx / total) * 60),
-                "label": f"Searching {label}…",
+                "type": "error",
+                "message": "Server is busy — too many concurrent searches. Please try again in a moment.",
             })
-
-            cached = get_cached(cache, origin, dest, od, rd) if use_cache else None
-            if cached is not None:
-                yield sse({"type": "log", "message": f"✓ Cache hit: {label}  ({len(cached)} result(s))"})
-                all_flights.extend(cached)
-                continue
-
-            yield sse({"type": "log", "message": f"⟳ Fetching live: {label}"})
-
-            def do_fetch(o=origin, d=dest, outd=od, retd=rd):
-                return fetch_flights(
-                    origin=o, destination=d,
-                    outbound_date=outd, return_date=retd,
-                    currency="EUR", hl="en", gl="us",
-                    max_stops=max_stops,
-                )
-
-            flights = await loop.run_in_executor(None, do_fetch)
-
-            # Always persist fresh data so the next "use cache" search
-            # sees up-to-date results (with all current fields).
-            if flights:
-                set_cached(cache, origin, dest, od, rd, flights)
-                await loop.run_in_executor(None, save_cache, cache, cache_file)
-
-            all_flights.extend(flights)
-            yield sse({"type": "log", "message": f"✓ Found {len(flights)} flight(s) for {label}"})
-
-        if not all_flights:
-            yield sse({"type": "error", "message": "No flights found. Check parameters and API key."})
             return
 
-        yield sse({"type": "progress", "percent": 65, "label": "Calculating scores…"})
-        df = await loop.run_in_executor(
-            None,
-            lambda: calculate_scores(all_flights, value_of_time=value_of_time),
-        )
-
-        # Old cache entries may not have booking_class / fare_brand / currency.
-        # Pandas fills missing columns with NaN, which json.dumps cannot serialize.
-        # Fill those columns with safe defaults before any further processing.
-        for _col, _default in [("booking_class", "Economy"), ("currency", "EUR")]:
-            if _col in df.columns:
-                df[_col] = df[_col].fillna(_default)
-        if "fare_brand" in df.columns:
-            # fare_brand is nullable — store as object column with empty-string default
-            df["fare_brand"] = df["fare_brand"].where(df["fare_brand"].notna(), other="")
-
+        _active_searches += 1
         try:
+            from flight_optimizer.serpapi_client import fetch_flights, fetch_return_legs
+            from flight_optimizer.scorer import calculate_scores, apply_filters, recalculate_scores_with_return
+            from flight_optimizer.exporter import export_to_excel
+            from flight_optimizer.cache import (
+                load_cache, get_cached, get_cache_age_hours, set_cached, save_cache,
+                get_cached_return, set_cached_return,
+            )
+            from flight_optimizer.ground_transport import calculate_ground_transport
+            import pandas as pd
+
+            loop = asyncio.get_event_loop()
+            cache_age_hours_list: list[float] = []
+
+            cache_file = os.path.join(
+                os.path.dirname(os.path.dirname(__file__)), "flight_cache.json"
+            )
+            cache = await loop.run_in_executor(None, load_cache, cache_file)
+
+            # ── Ground transport geocoding ─────────────────────────────────────
+            ground_transport = None
+            if home_address.strip() and dest_address.strip():
+                yield sse({"type": "progress", "percent": 2, "label": "Geocoding addresses…"})
+                yield sse({"type": "log", "message": f"Geocoding: '{home_address}' & '{dest_address}'"})
+                try:
+                    ground_transport = await loop.run_in_executor(
+                        None,
+                        lambda: calculate_ground_transport(
+                            home_address.strip(), dest_address.strip(),
+                            origin_airports=origin_list,
+                            dest_airports=dest_list,
+                        ),
+                    )
+                    if ground_transport["home_coords"]:
+                        yield sse({"type": "log", "message": f"✓ Home → {ground_transport['home_display'][:60]}"})
+                    else:
+                        yield sse({"type": "log", "message": "⚠ Could not geocode home address — ground transport skipped"})
+                        ground_transport = None
+                    if ground_transport and ground_transport["dest_coords"]:
+                        yield sse({"type": "log", "message": f"✓ Dest → {ground_transport['dest_display'][:60]}"})
+                    else:
+                        yield sse({"type": "log", "message": "⚠ Could not geocode destination address — ground transport skipped"})
+                        ground_transport = None
+                    if ground_transport:
+                        leg_summary = ", ".join(
+                            f"{k}: {v['time_minutes']:.0f}min/€{v['cost_eur']:.0f}"
+                            for k, v in ground_transport["legs"].items() if v
+                        )
+                        yield sse({"type": "log", "message": f"✓ Ground legs: {leg_summary}"})
+                        yield sse({"type": "ground_transport", "data": {
+                            "home_display": ground_transport["home_display"][:80],
+                            "dest_display": ground_transport["dest_display"][:80],
+                            "ai_powered":   ground_transport.get("ai_powered", False),
+                            "legs": ground_transport["legs"],
+                        }})
+                except Exception as gt_err:
+                    logger.warning(f"Ground transport error: {gt_err}")
+                    yield sse({"type": "log", "message": f"⚠ Ground transport unavailable: {gt_err}"})
+                    ground_transport = None
+
+            all_flights = []
+            combinations = [
+                (o, d, od, rd)
+                for o in origin_list
+                for d in dest_list
+                for (od, rd) in date_combos
+            ]
+            total = len(combinations)
+
+            yield sse({
+                "type": "log",
+                "message": f"Starting search: {total} combination(s) "
+                           f"({'±1 day window' if date_window else 'exact dates'})",
+            })
+
+            for idx, (origin, dest, od, rd) in enumerate(combinations):
+                label = f"{origin}→{dest}  {od} ↔ {rd}"
+                yield sse({
+                    "type": "progress",
+                    "percent": int((idx / total) * 60),
+                    "label": f"Searching {label}…",
+                })
+
+                cached = get_cached(cache, origin, dest, od, rd) if use_cache else None
+                if cached is not None:
+                    age = get_cache_age_hours(cache, origin, dest, od, rd)
+                    if age is not None:
+                        cache_age_hours_list.append(age)
+                    yield sse({"type": "log", "message": f"✓ Cache hit: {label}  ({len(cached)} result(s))"})
+                    all_flights.extend(cached)
+                    continue
+
+                yield sse({"type": "log", "message": f"⟳ Fetching live: {label}"})
+
+                def do_fetch(o=origin, d=dest, outd=od, retd=rd):
+                    return fetch_flights(
+                        origin=o, destination=d,
+                        outbound_date=outd, return_date=retd,
+                        currency="EUR", hl="en", gl="us",
+                        max_stops=max_stops,
+                    )
+
+                flights = await loop.run_in_executor(None, do_fetch)
+
+                if flights:
+                    set_cached(cache, origin, dest, od, rd, flights)
+                    await loop.run_in_executor(None, save_cache, cache, cache_file)
+
+                all_flights.extend(flights)
+                yield sse({"type": "log", "message": f"✓ Found {len(flights)} flight(s) for {label}"})
+
+            if not all_flights:
+                yield sse({"type": "error", "message": "No flights found. Try different dates or airports, or check your API quota."})
+                return
+
+            yield sse({"type": "progress", "percent": 65, "label": "Calculating scores…"})
             df = await loop.run_in_executor(
                 None,
-                lambda: apply_filters(df, max_stops=max_stops),
+                lambda: calculate_scores(all_flights, value_of_time=value_of_time),
             )
-        except Exception as filter_err:
-            import logging as _log
-            _log.getLogger(__name__).error(f"apply_filters failed: {filter_err}", exc_info=True)
-            yield sse({"type": "error", "message": f"Filter error: {filter_err}"})
-            return
-        df = df.reset_index(drop=True)
 
-        # Enforce top_n — clamp to available rows
-        effective_top_n = min(top_n, len(df))
+            for _col, _default in [("booking_class", "Economy"), ("currency", "EUR")]:
+                if _col in df.columns:
+                    df[_col] = df[_col].fillna(_default)
+            if "fare_brand" in df.columns:
+                df["fare_brand"] = df["fare_brand"].where(df["fare_brand"].notna(), other="")
 
-        # Fetch return legs for a generously-sized pool.
-        # MIN_CANDIDATES ensures that changing top_n (e.g. 3→5) doesn't require
-        # fresh SerpApi tokens — all candidates within this minimum are always
-        # pre-cached on the first live search.
-        CANDIDATE_BUFFER = 3
-        MIN_CANDIDATES = 10
-        candidate_n = min(max(effective_top_n + CANDIDATE_BUFFER, MIN_CANDIDATES), len(df))
+            try:
+                df = await loop.run_in_executor(
+                    None,
+                    lambda: apply_filters(df, max_stops=max_stops),
+                )
+            except Exception as filter_err:
+                logger.error(f"apply_filters failed: {filter_err}", exc_info=True)
+                yield sse({"type": "error", "message": f"Filter error: {filter_err}"})
+                return
+            df = df.reset_index(drop=True)
 
-        yield sse({
-            "type": "log",
-            "message": (
-                f"Scored {len(df)} flights (outbound). "
-                f"Fetching return details for {candidate_n} candidates to enable round-trip re-ranking…"
-            ),
-        })
-        yield sse({"type": "progress", "percent": 70, "label": "Fetching return leg details…"})
+            effective_top_n = min(top_n, len(df))
 
-        candidate_flights = df.head(candidate_n).to_dict("records")
+            CANDIDATE_BUFFER = 3
+            MIN_CANDIDATES = 10
+            candidate_n = min(max(effective_top_n + CANDIDATE_BUFFER, MIN_CANDIDATES), len(df))
 
-        for rank_idx, flight in enumerate(candidate_flights):
-            token = flight.get("departure_token", "")
-            if not token:
-                continue
             yield sse({
-                "type": "progress",
-                "percent": 70 + int((rank_idx / max(candidate_n, 1)) * 22),
-                "label": f"Return leg {rank_idx + 1}/{candidate_n}: {flight.get('outbound_route', '?')}…",
+                "type": "log",
+                "message": (
+                    f"Scored {len(df)} flights (outbound). "
+                    f"Fetching return details for {candidate_n} candidates…"
+                ),
             })
+            yield sse({"type": "progress", "percent": 70, "label": "Fetching return leg details…"})
 
-            cached_ret = get_cached_return(cache, token) if use_cache else None
-            # Note: even when use_cache=False we still write to cache below
-            if cached_ret:
-                flight.update(cached_ret)
-                candidate_flights[rank_idx] = flight
-                yield sse({"type": "log", "message": f"✓ Return leg {rank_idx + 1} from cache"})
-                continue
+            candidate_flights = df.head(candidate_n).to_dict("records")
 
-            def do_return(t=token, f=flight):
-                return fetch_return_legs(
-                    departure_token=t,
-                    origin=f["origin"], destination=f["destination"],
-                    outbound_date=f["outbound_date"], return_date=f["return_date"],
-                    currency="EUR", hl="en", gl="us",
-                )
+            for rank_idx, flight in enumerate(candidate_flights):
+                token = flight.get("departure_token", "")
+                if not token:
+                    continue
+                yield sse({
+                    "type": "progress",
+                    "percent": 70 + int((rank_idx / max(candidate_n, 1)) * 22),
+                    "label": f"Return leg {rank_idx + 1}/{candidate_n}: {flight.get('outbound_route', '?')}…",
+                })
 
-            try:
-                ret = await loop.run_in_executor(None, do_return)
-            except Exception as ret_err:
-                logger.warning(f"Return leg {rank_idx + 1} fetch raised: {ret_err}")
-                ret = None
+                cached_ret = get_cached_return(cache, token) if use_cache else None
+                if cached_ret:
+                    flight.update(cached_ret)
+                    candidate_flights[rank_idx] = flight
+                    yield sse({"type": "log", "message": f"✓ Return leg {rank_idx + 1} from cache"})
+                    continue
 
-            if ret:
-                flight.update(ret)
-                candidate_flights[rank_idx] = flight
-                # Always persist return leg so next cached search benefits too
-                set_cached_return(cache, token, ret)
-                await loop.run_in_executor(None, save_cache, cache, cache_file)
-                yield sse({"type": "log", "message": f"✓ Return leg {rank_idx + 1} fetched"})
-            else:
-                yield sse({"type": "log", "message": f"⚠ Return leg {rank_idx + 1} unavailable — using outbound score"})
+                def do_return(t=token, f=flight):
+                    return fetch_return_legs(
+                        departure_token=t,
+                        origin=f["origin"], destination=f["destination"],
+                        outbound_date=f["outbound_date"], return_date=f["return_date"],
+                        currency="EUR", hl="en", gl="us",
+                    )
 
-            await asyncio.sleep(1.0)
+                try:
+                    ret = await loop.run_in_executor(None, do_return)
+                except Exception as ret_err:
+                    logger.warning(f"Return leg {rank_idx + 1} fetch raised: {ret_err}")
+                    ret = None
 
-        # Re-score using full round-trip duration, then take the true top N
-        yield sse({"type": "progress", "percent": 93, "label": "Re-ranking by round-trip score…"})
-        candidate_flights = recalculate_scores_with_return(
-            candidate_flights, value_of_time, stop_penalty_eur=stop_penalty
-        )
+                if ret:
+                    flight.update(ret)
+                    candidate_flights[rank_idx] = flight
+                    set_cached_return(cache, token, ret)
+                    await loop.run_in_executor(None, save_cache, cache, cache_file)
+                    yield sse({"type": "log", "message": f"✓ Return leg {rank_idx + 1} fetched"})
+                else:
+                    yield sse({"type": "log", "message": f"⚠ Return leg {rank_idx + 1} unavailable — using outbound score"})
 
-        # ── Apply ground transport adjustment ─────────────────────────────────
-        if ground_transport:
-            for f in candidate_flights:
-                dep_leg = ground_transport["legs"].get(f.get("origin", ""))
-                arr_leg = ground_transport["legs"].get(f.get("destination", ""))
-                dep_min  = dep_leg["duration_minutes"] if dep_leg else 0.0
-                arr_min  = arr_leg["duration_minutes"] if arr_leg else 0.0
-                dep_cost = dep_leg["cost"] if dep_leg else 0.0
-                arr_cost = arr_leg["cost"] if arr_leg else 0.0
-                # Round trip: travel each ground leg twice (there and back)
-                ground_time_h = 2.0 * (dep_min + arr_min) / 60.0
-                ground_cost   = 2.0 * (dep_cost + arr_cost)
-                f["ground_dep_minutes"] = dep_min
-                f["ground_arr_minutes"] = arr_min
-                f["ground_dep_cost"]    = dep_cost
-                f["ground_arr_cost"]    = arr_cost
-                f["ground_total_cost"]  = round(ground_cost, 2)
-                f["ground_dep_mode"]    = dep_leg.get("mode", "") if dep_leg else ""
-                f["ground_arr_mode"]    = arr_leg.get("mode", "") if arr_leg else ""
-                f["ground_dep_notes"]   = dep_leg.get("notes", "") if dep_leg else ""
-                f["ground_arr_notes"]   = arr_leg.get("notes", "") if arr_leg else ""
-                f["score"] = round(
-                    float(f.get("score") or 0) + ground_cost + ground_time_h * value_of_time,
-                    2,
-                )
-            # Re-sort by the updated door-to-door score
-            candidate_flights = sorted(candidate_flights, key=lambda x: x.get("score", float("inf")))
-            yield sse({"type": "log", "message": "✓ Scores adjusted for door-to-door ground transport"})
+                await asyncio.sleep(1.0)
 
-        top_flights = candidate_flights[:effective_top_n]
+            yield sse({"type": "progress", "percent": 93, "label": "Re-ranking by round-trip score…"})
+            candidate_flights = recalculate_scores_with_return(
+                candidate_flights, value_of_time, stop_penalty_eur=stop_penalty
+            )
 
-        yield sse({"type": "progress", "percent": 97, "label": "Preparing results…"})
+            if ground_transport:
+                for f in candidate_flights:
+                    dep_leg = ground_transport["legs"].get(f.get("origin", ""))
+                    arr_leg = ground_transport["legs"].get(f.get("destination", ""))
+                    dep_min  = dep_leg["duration_minutes"] if dep_leg else 0.0
+                    arr_min  = arr_leg["duration_minutes"] if arr_leg else 0.0
+                    dep_cost = dep_leg["cost"] if dep_leg else 0.0
+                    arr_cost = arr_leg["cost"] if arr_leg else 0.0
+                    ground_time_h = 2.0 * (dep_min + arr_min) / 60.0
+                    ground_cost   = 2.0 * (dep_cost + arr_cost)
+                    f["ground_dep_minutes"] = dep_min
+                    f["ground_arr_minutes"] = arr_min
+                    f["ground_dep_cost"]    = dep_cost
+                    f["ground_arr_cost"]    = arr_cost
+                    f["ground_total_cost"]  = round(ground_cost, 2)
+                    f["ground_dep_mode"]    = dep_leg.get("mode", "") if dep_leg else ""
+                    f["ground_arr_mode"]    = arr_leg.get("mode", "") if arr_leg else ""
+                    f["ground_dep_notes"]   = dep_leg.get("notes", "") if dep_leg else ""
+                    f["ground_arr_notes"]   = arr_leg.get("notes", "") if arr_leg else ""
+                    f["score"] = round(
+                        float(f.get("score") or 0) + ground_cost + ground_time_h * value_of_time,
+                        2,
+                    )
+                candidate_flights = sorted(candidate_flights, key=lambda x: x.get("score", float("inf")))
+                yield sse({"type": "log", "message": "✓ Scores adjusted for door-to-door ground transport"})
 
-        results_out = []
-        for rank_idx, f in enumerate(top_flights):
-            ret_stops = f.get("return_stops")
-            try:
-                ret_stops_int = int(ret_stops) if ret_stops is not None and str(ret_stops) not in ("nan", "None") else None
-            except (ValueError, TypeError):
-                ret_stops_int = None
+            top_flights = candidate_flights[:effective_top_n]
 
-            results_out.append({
-                "rank": rank_idx + 1,
-                "score": round(float(f.get("score") or 0), 2),
-                "price": float(f.get("price") or 0),
-                "airline": f.get("airline", ""),
-                "origin": f.get("origin", ""),
-                "destination": f.get("destination", ""),
-                "outbound_date": f.get("outbound_date", ""),
-                "return_date": f.get("return_date", ""),
-                "outbound_route": f.get("outbound_route", ""),
-                "return_route": f.get("return_route", ""),
-                "duration_str": f.get("duration_str", ""),
-                "stops": int(f.get("stops") or 0),
-                "return_stops": ret_stops_int,
-                "return_duration_minutes": f.get("return_duration_minutes"),
-                "outbound_segments": f.get("outbound_segments") or [],
-                "outbound_layovers": f.get("outbound_layovers") or [],
-                "return_segments": f.get("return_segments") or [],
-                "return_layovers": f.get("return_layovers") or [],
-                # Booking / fare class (from first outbound leg)
-                "booking_class": f.get("booking_class", "Economy"),
-                "fare_brand": f.get("fare_brand"),
-                "currency": f.get("currency", "EUR"),
-                # Ground transport (None/empty when not requested)
-                "ground_dep_minutes": f.get("ground_dep_minutes"),
-                "ground_arr_minutes": f.get("ground_arr_minutes"),
-                "ground_dep_cost":    f.get("ground_dep_cost"),
-                "ground_arr_cost":    f.get("ground_arr_cost"),
-                "ground_total_cost":  f.get("ground_total_cost"),
-                "ground_dep_mode":    f.get("ground_dep_mode", ""),
-                "ground_arr_mode":    f.get("ground_arr_mode", ""),
-                "ground_dep_notes":   f.get("ground_dep_notes", ""),
-                "ground_arr_notes":   f.get("ground_arr_notes", ""),
-                # Score breakdown components (contextual scoring)
-                "time_cost_base":   f.get("time_cost_base"),
-                "stops_penalty":    f.get("stops_penalty"),
-                "night_penalty":    f.get("night_penalty"),
-                "layover_penalty":  f.get("layover_penalty"),
-                "out_is_night":     f.get("out_is_night", False),
-                "ret_is_night":     f.get("ret_is_night", False),
-                "duration_minutes": int(f.get("duration_minutes") or 0),
-                # Raw VoT-independent fields for client-side re-scoring
-                "total_flight_h":   f.get("total_flight_h", 0),
-                "night_hours":      f.get("night_hours", 0),
-                "excess_layover_h": f.get("excess_layover_h", 0),
-                "ground_time_h":    round(2.0 * ((f.get("ground_dep_minutes") or 0) + (f.get("ground_arr_minutes") or 0)) / 60.0, 4),
-                # Booking deep-link: booking_token for exact flight, google_flights_url for route search
-                "booking_token":      f.get("booking_token", ""),
-                "google_flights_url": f.get("google_flights_url", ""),
+            yield sse({"type": "progress", "percent": 97, "label": "Preparing results…"})
+
+            results_out = []
+            for rank_idx, f in enumerate(top_flights):
+                ret_stops = f.get("return_stops")
+                try:
+                    ret_stops_int = int(ret_stops) if ret_stops is not None and str(ret_stops) not in ("nan", "None") else None
+                except (ValueError, TypeError):
+                    ret_stops_int = None
+
+                results_out.append({
+                    "rank": rank_idx + 1,
+                    "score": round(float(f.get("score") or 0), 2),
+                    "price": float(f.get("price") or 0),
+                    "airline": f.get("airline", ""),
+                    "origin": f.get("origin", ""),
+                    "destination": f.get("destination", ""),
+                    "outbound_date": f.get("outbound_date", ""),
+                    "return_date": f.get("return_date", ""),
+                    "outbound_route": f.get("outbound_route", ""),
+                    "return_route": f.get("return_route", ""),
+                    "duration_str": f.get("duration_str", ""),
+                    "stops": int(f.get("stops") or 0),
+                    "return_stops": ret_stops_int,
+                    "return_duration_minutes": f.get("return_duration_minutes"),
+                    "outbound_segments": f.get("outbound_segments") or [],
+                    "outbound_layovers": f.get("outbound_layovers") or [],
+                    "return_segments": f.get("return_segments") or [],
+                    "return_layovers": f.get("return_layovers") or [],
+                    "booking_class": f.get("booking_class", "Economy"),
+                    "fare_brand": f.get("fare_brand"),
+                    "currency": f.get("currency", "EUR"),
+                    "ground_dep_minutes": f.get("ground_dep_minutes"),
+                    "ground_arr_minutes": f.get("ground_arr_minutes"),
+                    "ground_dep_cost":    f.get("ground_dep_cost"),
+                    "ground_arr_cost":    f.get("ground_arr_cost"),
+                    "ground_total_cost":  f.get("ground_total_cost"),
+                    "ground_dep_mode":    f.get("ground_dep_mode", ""),
+                    "ground_arr_mode":    f.get("ground_arr_mode", ""),
+                    "ground_dep_notes":   f.get("ground_dep_notes", ""),
+                    "ground_arr_notes":   f.get("ground_arr_notes", ""),
+                    "time_cost_base":   f.get("time_cost_base"),
+                    "stops_penalty":    f.get("stops_penalty"),
+                    "night_penalty":    f.get("night_penalty"),
+                    "layover_penalty":  f.get("layover_penalty"),
+                    "out_is_night":     f.get("out_is_night", False),
+                    "ret_is_night":     f.get("ret_is_night", False),
+                    "duration_minutes": int(f.get("duration_minutes") or 0),
+                    "total_flight_h":   f.get("total_flight_h", 0),
+                    "night_hours":      f.get("night_hours", 0),
+                    "excess_layover_h": f.get("excess_layover_h", 0),
+                    "ground_time_h":    round(2.0 * ((f.get("ground_dep_minutes") or 0) + (f.get("ground_arr_minutes") or 0)) / 60.0, 4),
+                    "booking_token":      f.get("booking_token", ""),
+                    "google_flights_url": f.get("google_flights_url", ""),
+                })
+
+            import tempfile, uuid
+            tmp_id = str(uuid.uuid4())[:8]
+            tmp_path = os.path.join(tempfile.gettempdir(), f"flight_results_{tmp_id}.xlsx")
+            remaining = df.iloc[candidate_n:].to_dict("records")
+            final_df = pd.DataFrame(top_flights + remaining)
+            await loop.run_in_executor(None, lambda: export_to_excel(final_df, tmp_path))
+
+            # Compute cache age label for the UI
+            cache_age_label = None
+            if cache_age_hours_list and len(cache_age_hours_list) == total:
+                avg_age = sum(cache_age_hours_list) / len(cache_age_hours_list)
+                if avg_age < 1:
+                    cache_age_label = "< 1 hour ago"
+                elif avg_age < 24:
+                    cache_age_label = f"{avg_age:.0f}h ago"
+                else:
+                    days = avg_age / 24
+                    cache_age_label = f"{days:.0f}d ago"
+
+            yield sse({
+                "type": "results",
+                "flights": results_out,
+                "total_found": len(df),
+                "export_id": tmp_id,
+                "cache_age_label": cache_age_label,
             })
+            yield sse({"type": "progress", "percent": 100, "label": "Done!"})
+            yield sse({"type": "done"})
 
-        import tempfile, uuid
-        tmp_id = str(uuid.uuid4())[:8]
-        tmp_path = os.path.join(tempfile.gettempdir(), f"flight_results_{tmp_id}.xlsx")
-        # Excel: top flights (re-ranked by round-trip score) + remaining flights not in candidate pool
-        remaining = df.iloc[candidate_n:].to_dict("records")
-        final_df = pd.DataFrame(top_flights + remaining)
-        await loop.run_in_executor(None, lambda: export_to_excel(final_df, tmp_path))
-
-        yield sse({
-            "type": "results",
-            "flights": results_out,
-            "total_found": len(df),
-            "export_id": tmp_id,
-        })
-        yield sse({"type": "progress", "percent": 100, "label": "Done!"})
-        yield sse({"type": "done"})
+        finally:
+            _active_searches -= 1
 
     return StreamingResponse(
         event_generator(),
