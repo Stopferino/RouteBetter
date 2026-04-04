@@ -135,10 +135,16 @@ async def search_stream(
             None,
             lambda: calculate_scores(all_flights, value_of_time=value_of_time),
         )
-        df = await loop.run_in_executor(
-            None,
-            lambda: apply_filters(df, max_stops=max_stops),
-        )
+        try:
+            df = await loop.run_in_executor(
+                None,
+                lambda: apply_filters(df, max_stops=max_stops),
+            )
+        except Exception as filter_err:
+            import logging as _log
+            _log.getLogger(__name__).error(f"apply_filters failed: {filter_err}", exc_info=True)
+            yield sse({"type": "error", "message": f"Filter error: {filter_err}"})
+            return
         df = df.reset_index(drop=True)
 
         # Enforce top_n — clamp to available rows

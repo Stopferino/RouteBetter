@@ -15,11 +15,16 @@ _DE_AIRPORTS: frozenset = frozenset({
 })
 
 
-def _count_de_domestic(segments: list) -> int:
-    """Count segments where both endpoints are German airports."""
+def _count_de_domestic(segments) -> int:
+    """Count segments where both endpoints are German airports.
+    Safely handles None, NaN, or any non-list value."""
+    if not isinstance(segments, list):
+        return 0
     return sum(
-        1 for s in (segments or [])
-        if s.get("from_airport") in _DE_AIRPORTS and s.get("to_airport") in _DE_AIRPORTS
+        1 for s in segments
+        if isinstance(s, dict)
+        and s.get("from_airport") in _DE_AIRPORTS
+        and s.get("to_airport") in _DE_AIRPORTS
     )
 
 
