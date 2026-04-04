@@ -3989,5 +3989,53 @@
         "departure_token": "WyJDalJJTjBKME9WZ3lhVFZMWWxGQlJUbHFkbWRDUnkwdExTMHRMUzB0TFhaMGJtUXhNa0ZCUVVGQlIyNVJYMUpCVDJ4U1FWRkJFaEZEV0RrNE0zeERXREk0T1h4TVNERTBNaG9MQ0piNUxoQUNHZ05GVlZJNEhIRHZpalk9IixbWyJDQU4iLCIyMDI2LTA3LTI1IiwiSEtHIixudWxsLCJDWCIsIjk4MyJdLFsiSEtHIiwiMjAyNi0wNy0yNSIsIkZSQSIsbnVsbCwiQ1giLCIyODkiXSxbIkZSQSIsIjIwMjYtMDctMjYiLCJOVUUiLG51bGwsIkxIIiwiMTQyIl1dXQ=="
       }
     ]
+  },
+  "return__WyJDalJJYjNGcFdFb3hTWEpTY2xWQlJY": {
+    "fetched_at": "2026-04-04 12:06",
+    "data": {
+      "return_segments": [
+        {
+          "from_airport": "MUC",
+          "from_name": "Munich International Airport",
+          "from_time": "2026-08-02 22:30",
+          "to_airport": "DXB",
+          "to_name": "Dubai International Airport",
+          "to_time": "2026-08-03 06:30",
+          "airline": "Emirates",
+          "flight_number": "EK 52",
+          "aircraft": "Airbus A380",
+          "duration_minutes": 360,
+          "overnight": true,
+          "booking_class": "Economy",
+          "fare_brand": null
+        },
+        {
+          "from_airport": "DXB",
+          "from_name": "Dubai International Airport",
+          "from_time": "2026-08-03 11:00",
+          "to_airport": "SZX",
+          "to_name": "Shenzhen Bao'an International Airport",
+          "to_time": "2026-08-03 22:40",
+          "airline": "Emirates",
+          "flight_number": "EK 328",
+          "aircraft": "Boeing 777",
+          "duration_minutes": 460,
+          "overnight": false,
+          "booking_class": "Economy",
+          "fare_brand": null
+        }
+      ],
+      "return_layovers": [
+        {
+          "airport": "Dubai International Airport",
+          "airport_id": "DXB",
+          "duration_minutes": 270,
+          "overnight": false
+        }
+      ],
+      "return_route": "MUC->DXB->SZX",
+      "return_duration_minutes": 1090,
+      "return_stops": 1
+    }
   }
 }

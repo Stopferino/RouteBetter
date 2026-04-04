@@ -150,10 +150,13 @@ async def search_stream(
         # Enforce top_n — clamp to available rows
         effective_top_n = min(top_n, len(df))
 
-        # Fetch return legs for a slightly larger pool so that re-scoring with
-        # combined round-trip duration produces the correct final ranking.
+        # Fetch return legs for a generously-sized pool.
+        # MIN_CANDIDATES ensures that changing top_n (e.g. 3→5) doesn't require
+        # fresh SerpApi tokens — all candidates within this minimum are always
+        # pre-cached on the first live search.
         CANDIDATE_BUFFER = 3
-        candidate_n = min(effective_top_n + CANDIDATE_BUFFER, len(df))
+        MIN_CANDIDATES = 10
+        candidate_n = min(max(effective_top_n + CANDIDATE_BUFFER, MIN_CANDIDATES), len(df))
 
         yield sse({
             "type": "log",
@@ -191,7 +194,12 @@ async def search_stream(
                     currency="EUR", hl="en", gl="us",
                 )
 
-            ret = await loop.run_in_executor(None, do_return)
+            try:
+                ret = await loop.run_in_executor(None, do_return)
+            except Exception as ret_err:
+                logger.warning(f"Return leg {rank_idx + 1} fetch raised: {ret_err}")
+                ret = None
+
             if ret:
                 flight.update(ret)
                 candidate_flights[rank_idx] = flight
@@ -199,6 +207,8 @@ async def search_stream(
                     set_cached_return(cache, token, ret)
                     await loop.run_in_executor(None, save_cache, cache, cache_file)
                 yield sse({"type": "log", "message": f"✓ Return leg {rank_idx + 1} fetched"})
+            else:
+                yield sse({"type": "log", "message": f"⚠ Return leg {rank_idx + 1} unavailable — using outbound score"})
 
             await asyncio.sleep(1.0)
 

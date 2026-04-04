@@ -178,9 +178,10 @@ def fetch_flights(
                     arr = leg.get("arrival_airport", {})
                     leg_extensions = leg.get("extensions") or []
                     # Fare brand is usually the first extension that looks like a cabin/fare label
+                    # Guard: extensions may contain non-string items (SerpApi quirk)
                     fare_brand = next(
                         (e for e in leg_extensions
-                         if any(kw in e.lower() for kw in
+                         if isinstance(e, str) and any(kw in e.lower() for kw in
                                 ("economy", "business", "first", "premium", "light",
                                  "flex", "basic", "saver", "plus", "classic"))),
                         None,
@@ -359,9 +360,10 @@ def _parse_segments(flights_legs: list, raw_layovers: list, origin: str, dest: s
         dep = leg.get("departure_airport", {})
         arr = leg.get("arrival_airport", {})
         leg_extensions = leg.get("extensions") or []
+        # Guard: extensions may contain non-string items (SerpApi quirk)
         fare_brand = next(
             (e for e in leg_extensions
-             if any(kw in e.lower() for kw in
+             if isinstance(e, str) and any(kw in e.lower() for kw in
                     ("economy", "business", "first", "premium", "light",
                      "flex", "basic", "saver", "plus", "classic"))),
             None,
@@ -471,9 +473,13 @@ def fetch_return_legs(
     flights_legs = itinerary.get("flights", [])
     raw_layovers = itinerary.get("layovers", [])
 
-    segments, layovers, route, total_dur = _parse_segments(
-        flights_legs, raw_layovers, destination, origin
-    )
+    try:
+        segments, layovers, route, total_dur = _parse_segments(
+            flights_legs, raw_layovers, destination, origin
+        )
+    except Exception as e:
+        logger.warning(f"Return leg parse error: {e}")
+        return None
 
     return {
         "return_segments": segments,

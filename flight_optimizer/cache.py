@@ -32,10 +32,19 @@ def load_cache(cache_file: str = DEFAULT_CACHE_FILE) -> dict:
 
 
 def save_cache(cache: dict, cache_file: str = DEFAULT_CACHE_FILE):
+    """Atomically write the cache to disk (temp-file + rename) so a crash
+    mid-write never leaves a corrupt JSON file."""
+    import os, tempfile
+    path = Path(cache_file)
     try:
-        with open(cache_file, "w", encoding="utf-8") as f:
-            json.dump(cache, f, ensure_ascii=False, indent=2)
-    except IOError as e:
+        dir_ = path.parent or Path(".")
+        with tempfile.NamedTemporaryFile(
+            "w", encoding="utf-8", dir=dir_, delete=False, suffix=".tmp"
+        ) as tmp:
+            json.dump(cache, tmp, ensure_ascii=False, indent=2)
+            tmp_path = tmp.name
+        os.replace(tmp_path, cache_file)
+    except (IOError, OSError) as e:
         logger.warning(f"Cache could not be saved: {e}")
 
 
