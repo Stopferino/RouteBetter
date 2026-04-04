@@ -35,6 +35,7 @@ from flight_optimizer.serpapi_client import fetch_all_combinations
 from flight_optimizer.scorer import calculate_scores, apply_filters
 from flight_optimizer.printer import print_top_flights, print_summary_table
 from flight_optimizer.exporter import export_to_excel
+from flight_optimizer.cache import load_cache
 
 
 def main():
@@ -53,6 +54,7 @@ def main():
     logger.info(f"Value of Time:     {config.VALUE_OF_TIME_EUR_PER_HOUR} €/h")
     logger.info(f"Airline-Filter:    {config.AIRLINE_FILTER or 'keiner'}")
     logger.info(f"Max. Stopps:       {config.MAX_STOPS if config.MAX_STOPS is not None else 'unbegrenzt'}")
+    logger.info(f"Cache aktiv:       {config.USE_CACHE} ({config.CACHE_FILE})")
 
     total_queries = (
         len(config.ORIGIN_AIRPORTS)
@@ -60,10 +62,13 @@ def main():
         * len(outbound_dates)
         * len(return_dates)
     )
-    logger.info(f"Gesamte API-Anfragen: {total_queries}")
+    logger.info(f"Mögliche Anfragen: {total_queries} (Cache spart bereits abgerufene)")
     logger.info("-" * 60)
 
-    # ── 2. Flugdaten abrufen ───────────────────────────────────────
+    # ── 2. Cache laden ─────────────────────────────────────────────
+    cache = load_cache(config.CACHE_FILE) if config.USE_CACHE else None
+
+    # ── 3. Flugdaten abrufen ───────────────────────────────────────
     flights = fetch_all_combinations(
         origins=config.ORIGIN_AIRPORTS,
         destinations=config.DESTINATION_AIRPORTS,
@@ -75,6 +80,8 @@ def main():
         max_stops=config.MAX_STOPS,
         airline_filter=config.AIRLINE_FILTER,
         delay_seconds=1.0,
+        cache=cache,
+        cache_file=config.CACHE_FILE if config.USE_CACHE else None,
     )
 
     if not flights:
@@ -83,17 +90,17 @@ def main():
 
     logger.info(f"\nGesamt abgerufene Flüge: {len(flights)}")
 
-    # ── 3. Score berechnen ────────────────────────────────────────
+    # ── 4. Score berechnen ────────────────────────────────────────
     df = calculate_scores(flights, value_of_time=config.VALUE_OF_TIME_EUR_PER_HOUR)
 
     # Optionale Nachfilterung (falls nicht schon in API-Abruf erfolgt)
     df = apply_filters(df, airline_filter=config.AIRLINE_FILTER, max_stops=config.MAX_STOPS)
 
-    # ── 4. Ergebnisse ausgeben ────────────────────────────────────
+    # ── 5. Ergebnisse ausgeben ────────────────────────────────────
     print_top_flights(df, top_n=config.TOP_N, value_of_time=config.VALUE_OF_TIME_EUR_PER_HOUR)
     print_summary_table(df, top_n=config.TOP_N)
 
-    # ── 5. Excel-Export ───────────────────────────────────────────
+    # ── 6. Excel-Export ───────────────────────────────────────────
     output_path = export_to_excel(df, output_path=config.EXCEL_OUTPUT_FILE)
     if output_path:
         logger.info(f"✓ Excel-Datei gespeichert: {output_path}")

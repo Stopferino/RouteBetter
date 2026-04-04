@@ -202,11 +202,16 @@ def fetch_all_combinations(
     max_stops: Optional[int] = None,
     airline_filter: Optional[list] = None,
     delay_seconds: float = 1.0,
+    cache: Optional[dict] = None,
+    cache_file: Optional[str] = None,
 ) -> list[dict]:
     """
     Ruft alle OD-Kombinationen x Datumspaare ab.
     delay_seconds verhindert Rate-Limiting.
+    cache: optionales Cache-Dictionary (aus cache.py)
     """
+    from flight_optimizer.cache import get_cached, set_cached, save_cache
+
     # Datumsvalidierung vor dem ersten API-Aufruf
     for out_date in outbound_dates:
         for ret_date in return_dates:
@@ -215,6 +220,8 @@ def fetch_all_combinations(
     all_results = []
     total = len(origins) * len(destinations) * len(outbound_dates) * len(return_dates)
     count = 0
+    api_calls = 0
+    cache_hits = 0
 
     for origin in origins:
         for destination in destinations:
@@ -225,6 +232,15 @@ def fetch_all_combinations(
                         f"[{count}/{total}] {origin}→{destination} | {out_date}↔{ret_date}"
                     )
 
+                    # Cache prüfen
+                    if cache is not None:
+                        cached = get_cached(cache, origin, destination, out_date, ret_date)
+                        if cached is not None:
+                            all_results.extend(cached)
+                            cache_hits += 1
+                            continue
+
+                    # API-Anfrage
                     flights = fetch_flights(
                         origin=origin,
                         destination=destination,
@@ -236,9 +252,20 @@ def fetch_all_combinations(
                         max_stops=max_stops,
                         airline_filter=airline_filter,
                     )
+                    api_calls += 1
                     all_results.extend(flights)
+
+                    # Ergebnis im Cache speichern
+                    if cache is not None:
+                        set_cached(cache, origin, destination, out_date, ret_date, flights)
+                        if cache_file:
+                            save_cache(cache, cache_file)
 
                     if count < total:
                         time.sleep(delay_seconds)
 
+    logger.info(
+        f"Fertig: {api_calls} API-Anfragen, {cache_hits} aus Cache geladen "
+        f"(gespart: {cache_hits} von {total} Searches)"
+    )
     return all_results
