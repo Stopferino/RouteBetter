@@ -225,10 +225,14 @@
   <main class="flex-1 min-w-0 space-y-4">
 
     <!-- Progress Panel -->
-    <div x-show="searching || logs.length" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden slide-down">
-      <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+    <div x-show="showProgress" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden slide-down">
+      <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between cursor-pointer"
+           @click="logsExpanded = !logsExpanded">
         <span class="text-sm font-semibold text-slate-700">Progress</span>
-        <span class="text-xs text-slate-400" x-text="`${progressPercent}%`"></span>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-slate-400" x-text="`${progressPercent}%`"></span>
+          <span class="text-slate-400 text-xs" x-text="logsExpanded ? '▲' : '▼'"></span>
+        </div>
       </div>
       <div class="px-5 pt-3">
         <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
@@ -236,7 +240,7 @@
         </div>
         <p class="text-xs text-slate-500 mt-1 mb-2" x-text="progressLabel"></p>
       </div>
-      <div class="log-scroll px-5 pb-3 space-y-0.5" x-ref="logBox">
+      <div x-show="logsExpanded" class="log-scroll px-5 pb-3 space-y-0.5" x-ref="logBox">
         <template x-for="(line, i) in logs" :key="i">
           <p class="text-xs text-slate-500 font-mono" x-text="line"></p>
         </template>
@@ -719,6 +723,10 @@ function flightApp() {
     apiUsage: { count: 0, month: '', limit: 250, remaining: 250, pct_used: 0 },
     rescored: false,
 
+    // Progress panel visibility
+    showProgress: false,
+    logsExpanded: true,
+
     // Restore session-persisted fields on load; save on change.
     // sessionStorage resets when the browser window/tab is closed.
     init() {
@@ -817,6 +825,8 @@ function flightApp() {
       this.groundInfo = null;
       this.rescored = false;
       this.searching = true;
+      this.showProgress = true;
+      this.logsExpanded = true;
 
       if (this._es) this._es.close();
 
@@ -862,6 +872,8 @@ function flightApp() {
         } else if (msg.type === 'done') {
           this.searching = false;
           this._es.close();
+          // Auto-collapse progress panel after a short pause so user sees 100%
+          setTimeout(() => { this.showProgress = false; this.logsExpanded = true; }, 1500);
         }
       };
 
