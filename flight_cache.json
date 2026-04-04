@@ -3654,5 +3654,340 @@
       "return_duration_minutes": 890,
       "return_stops": 1
     }
+  },
+  "CAN_NUE_2026-07-25_2026-08-02": {
+    "fetched_at": "2026-04-04 11:59",
+    "results": [
+      {
+        "origin": "CAN",
+        "destination": "NUE",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-02",
+        "price": 1512.0,
+        "currency": "EUR",
+        "duration_minutes": 1400,
+        "stops": 2,
+        "airline": "Air China",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->PEK->MUC->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-25 06:25",
+            "to_airport": "PEK",
+            "to_name": "Beijing Capital International Airport",
+            "to_time": "2026-07-25 09:35",
+            "airline": "Air China",
+            "flight_number": "CA 1386",
+            "aircraft": "Airbus A321",
+            "duration_minutes": 190,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "PEK",
+            "from_name": "Beijing Capital International Airport",
+            "from_time": "2026-07-25 13:25",
+            "to_airport": "MUC",
+            "to_name": "Munich International Airport",
+            "to_time": "2026-07-25 19:15",
+            "airline": "Lufthansa",
+            "flight_number": "LH 723",
+            "aircraft": "Airbus A350",
+            "duration_minutes": 710,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "MUC",
+            "from_name": "Munich International Airport",
+            "from_time": "2026-07-25 21:30",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-25 23:45",
+            "airline": "Lufthansa",
+            "flight_number": "LH 3808",
+            "aircraft": "Bus",
+            "duration_minutes": 135,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Beijing Capital International Airport",
+            "airport_id": "PEK",
+            "duration_minutes": 230
+          },
+          {
+            "airport": "Munich International Airport",
+            "airport_id": "MUC",
+            "duration_minutes": 135
+          }
+        ],
+        "departure_token": "WyJDalJJTjBKME9WZ3lhVFZMWWxGQlJUbHFkbWRDUnkwdExTMHRMUzB0TFhaMGJtUXhNa0ZCUVVGQlIyNVJYMUpCVDJ4U1FWRkJFaE5EUVRFek9EWjhURWczTWpOOFRFZ3pPREE0R2dzSWlKMEpFQUlhQTBWVlVqZ2NjTkxRQ2c9PSIsW1siQ0FOIiwiMjAyNi0wNy0yNSIsIlBFSyIsbnVsbCwiQ0EiLCIxMzg2Il0sWyJQRUsiLCIyMDI2LTA3LTI1IiwiTVVDIixudWxsLCJMSCIsIjcyMyJdLFsiTVVDIiwiMjAyNi0wNy0yNSIsIk5VRSIsbnVsbCwiTEgiLCIzODA4Il1dXQ=="
+      },
+      {
+        "origin": "CAN",
+        "destination": "NUE",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-02",
+        "price": 1566.0,
+        "currency": "EUR",
+        "duration_minutes": 1850,
+        "stops": 1,
+        "airline": "Turkish Airlines",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->IST->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-25 08:50",
+            "to_airport": "IST",
+            "to_name": "Istanbul Airport",
+            "to_time": "2026-07-25 15:20",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 299",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 690,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "IST",
+            "from_name": "Istanbul Airport",
+            "from_time": "2026-07-26 07:50",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-26 09:40",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 1503",
+            "aircraft": "Airbus A321 (Sharklets)",
+            "duration_minutes": 170,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Istanbul Airport",
+            "airport_id": "IST",
+            "duration_minutes": 990
+          }
+        ],
+        "departure_token": "WyJDalJJTjBKME9WZ3lhVFZMWWxGQlJUbHFkbWRDUnkwdExTMHRMUzB0TFhaMGJtUXhNa0ZCUVVGQlIyNVJYMUpCVDJ4U1FWRkJFZ3hVU3pJNU9YeFVTekUxTURNYUN3ajR4Z2tRQWhvRFJWVlNPQnh3OFlBTCIsW1siQ0FOIiwiMjAyNi0wNy0yNSIsIklTVCIsbnVsbCwiVEsiLCIyOTkiXSxbIklTVCIsIjIwMjYtMDctMjYiLCJOVUUiLG51bGwsIlRLIiwiMTUwMyJdXV0="
+      },
+      {
+        "origin": "CAN",
+        "destination": "NUE",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-02",
+        "price": 1629.0,
+        "currency": "EUR",
+        "duration_minutes": 1000,
+        "stops": 1,
+        "airline": "Turkish Airlines",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->IST->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-25 23:00",
+            "to_airport": "IST",
+            "to_name": "Istanbul Airport",
+            "to_time": "2026-07-26 05:30",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 73",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 690,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "IST",
+            "from_name": "Istanbul Airport",
+            "from_time": "2026-07-26 07:50",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-26 09:40",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 1503",
+            "aircraft": "Airbus A321 (Sharklets)",
+            "duration_minutes": 170,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Istanbul Airport",
+            "airport_id": "IST",
+            "duration_minutes": 140
+          }
+        ],
+        "departure_token": "WyJDalJJTjBKME9WZ3lhVFZMWWxGQlJUbHFkbWRDUnkwdExTMHRMUzB0TFhaMGJtUXhNa0ZCUVVGQlIyNVJYMUpCVDJ4U1FWRkJFZ3RVU3pjemZGUkxNVFV3TXhvTENKcjRDUkFDR2dORlZWSTRISERTdVFzPSIsW1siQ0FOIiwiMjAyNi0wNy0yNSIsIklTVCIsbnVsbCwiVEsiLCI3MyJdLFsiSVNUIiwiMjAyNi0wNy0yNiIsIk5VRSIsbnVsbCwiVEsiLCIxNTAzIl1dXQ=="
+      },
+      {
+        "origin": "CAN",
+        "destination": "NUE",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-02",
+        "price": 4432.0,
+        "currency": "EUR",
+        "duration_minutes": 2530,
+        "stops": 2,
+        "airline": "China Eastern",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->PVG->CDG->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-25 09:00",
+            "to_airport": "PVG",
+            "to_name": "Shanghai Pudong International Airport",
+            "to_time": "2026-07-25 11:05",
+            "airline": "China Eastern",
+            "flight_number": "MU 5328",
+            "aircraft": "Airbus A330",
+            "duration_minutes": 125,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "PVG",
+            "from_name": "Shanghai Pudong International Airport",
+            "from_time": "2026-07-25 21:30",
+            "to_airport": "CDG",
+            "to_name": "Paris Charles de Gaulle Airport",
+            "to_time": "2026-07-26 05:50",
+            "airline": "Air France",
+            "flight_number": "AF 111",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 860,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "CDG",
+            "from_name": "Paris Charles de Gaulle Airport",
+            "from_time": "2026-07-26 19:45",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-26 21:10",
+            "airline": "Air France",
+            "flight_number": "AF 1310",
+            "aircraft": "Embraer 190",
+            "duration_minutes": 85,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Shanghai Pudong International Airport",
+            "airport_id": "PVG",
+            "duration_minutes": 625
+          },
+          {
+            "airport": "Paris Charles de Gaulle Airport",
+            "airport_id": "CDG",
+            "duration_minutes": 835
+          }
+        ],
+        "departure_token": "WyJDalJJTjBKME9WZ3lhVFZMWWxGQlJUbHFkbWRDUnkwdExTMHRMUzB0TFhaMGJtUXhNa0ZCUVVGQlIyNVJYMUpCVDJ4U1FWRkJFaE5OVlRVek1qaDhRVVl4TVRGOFFVWXhNekV3R2dzSXdJWWJFQUlhQTBWVlVqZ2NjUDJVSHc9PSIsW1siQ0FOIiwiMjAyNi0wNy0yNSIsIlBWRyIsbnVsbCwiTVUiLCI1MzI4Il0sWyJQVkciLCIyMDI2LTA3LTI1IiwiQ0RHIixudWxsLCJBRiIsIjExMSJdLFsiQ0RHIiwiMjAyNi0wNy0yNiIsIk5VRSIsbnVsbCwiQUYiLCIxMzEwIl1dXQ=="
+      },
+      {
+        "origin": "CAN",
+        "destination": "NUE",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-02",
+        "price": 7692.0,
+        "currency": "EUR",
+        "duration_minutes": 1815,
+        "stops": 2,
+        "airline": "Cathay Pacific",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->HKG->FRA->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-25 10:10",
+            "to_airport": "HKG",
+            "to_name": "Hong Kong International Airport",
+            "to_time": "2026-07-25 11:45",
+            "airline": "Cathay Pacific",
+            "flight_number": "CX 983",
+            "aircraft": "Airbus A330",
+            "duration_minutes": 95,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 23:55",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 07:15",
+            "airline": "Cathay Pacific",
+            "flight_number": "CX 289",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 800,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "FRA",
+            "from_name": "Frankfurt Airport",
+            "from_time": "2026-07-26 09:40",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-26 10:25",
+            "airline": "Lufthansa",
+            "flight_number": "LH 142",
+            "aircraft": "Airbus A319",
+            "duration_minutes": 45,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Hong Kong International Airport",
+            "airport_id": "HKG",
+            "duration_minutes": 730
+          },
+          {
+            "airport": "Frankfurt Airport",
+            "airport_id": "FRA",
+            "duration_minutes": 145
+          }
+        ],
+        "departure_token": "WyJDalJJTjBKME9WZ3lhVFZMWWxGQlJUbHFkbWRDUnkwdExTMHRMUzB0TFhaMGJtUXhNa0ZCUVVGQlIyNVJYMUpCVDJ4U1FWRkJFaEZEV0RrNE0zeERXREk0T1h4TVNERTBNaG9MQ0piNUxoQUNHZ05GVlZJNEhIRHZpalk9IixbWyJDQU4iLCIyMDI2LTA3LTI1IiwiSEtHIixudWxsLCJDWCIsIjk4MyJdLFsiSEtHIiwiMjAyNi0wNy0yNSIsIkZSQSIsbnVsbCwiQ1giLCIyODkiXSxbIkZSQSIsIjIwMjYtMDctMjYiLCJOVUUiLG51bGwsIkxIIiwiMTQyIl1dXQ=="
+      }
+    ]
   }
 }
