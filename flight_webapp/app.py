@@ -21,9 +21,11 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="Flight Optimizer")
 _TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), "templates", "index.html")
 
-# ── Concurrency guard: limit simultaneous live searches ────────────────────────
+# ── Concurrency guards ─────────────────────────────────────────────────────────
 _active_searches: int = 0
-MAX_CONCURRENT_SEARCHES: int = 3
+MAX_CONCURRENT_SEARCHES: int = 3      # max simultaneous user search sessions
+OUTBOUND_CONCURRENCY: int = 8         # parallel outbound SerpApi calls per search
+RETURN_CONCURRENCY: int = 5           # parallel return-leg SerpApi calls per search
 
 
 def _date_variants(d: str, window: int) -> list:
@@ -192,44 +194,62 @@ async def search_stream(
             yield sse({
                 "type": "log",
                 "message": f"Starting search: {total} combination(s) "
-                           f"({'±1 day window' if date_window else 'exact dates'})",
+                           f"({'±1 day window' if date_window else 'exact dates'}) — "
+                           f"fetching up to {min(total, OUTBOUND_CONCURRENCY)} in parallel",
             })
 
-            for idx, (origin, dest, od, rd) in enumerate(combinations):
-                label = f"{origin}→{dest}  {od} ↔ {rd}"
-                yield sse({
-                    "type": "progress",
-                    "percent": int((idx / total) * 60),
-                    "label": f"Searching {label}…",
-                })
+            # ── Parallel outbound fetch ────────────────────────────────────────
+            # Each route is fetched concurrently; a semaphore caps live API calls
+            # at OUTBOUND_CONCURRENCY to stay within SerpApi rate limits.
+            outbound_sem = asyncio.Semaphore(OUTBOUND_CONCURRENCY)
 
+            async def fetch_one_route(origin, dest, od, rd):
+                label = f"{origin}→{dest}  {od} ↔ {rd}"
                 cached = get_cached(cache, origin, dest, od, rd) if use_cache else None
                 if cached is not None:
                     age = get_cache_age_hours(cache, origin, dest, od, rd)
+                    return cached, True, age, label
+                async with outbound_sem:
+                    def _do(o=origin, d=dest, outd=od, retd=rd):
+                        return fetch_flights(
+                            origin=o, destination=d,
+                            outbound_date=outd, return_date=retd,
+                            currency="EUR", hl="en", gl="us",
+                            max_stops=max_stops,
+                        )
+                    flights = await loop.run_in_executor(None, _do)
+                    if flights:
+                        set_cached(cache, origin, dest, od, rd, flights)
+                    return flights, False, None, label
+
+            tasks = [
+                asyncio.create_task(fetch_one_route(o, d, od, rd))
+                for (o, d, od, rd) in combinations
+            ]
+
+            completed_outbound = 0
+            cache_dirty = False
+            for coro in asyncio.as_completed(tasks):
+                flights, from_cache, age, label = await coro
+                completed_outbound += 1
+                yield sse({
+                    "type": "progress",
+                    "percent": int((completed_outbound / total) * 60),
+                    "label": f"{completed_outbound}/{total} routes done…",
+                })
+                if from_cache:
                     if age is not None:
                         cache_age_hours_list.append(age)
-                    yield sse({"type": "log", "message": f"✓ Cache hit: {label}  ({len(cached)} result(s))"})
-                    all_flights.extend(cached)
-                    continue
-
-                yield sse({"type": "log", "message": f"⟳ Fetching live: {label}"})
-
-                def do_fetch(o=origin, d=dest, outd=od, retd=rd):
-                    return fetch_flights(
-                        origin=o, destination=d,
-                        outbound_date=outd, return_date=retd,
-                        currency="EUR", hl="en", gl="us",
-                        max_stops=max_stops,
-                    )
-
-                flights = await loop.run_in_executor(None, do_fetch)
-
-                if flights:
-                    set_cached(cache, origin, dest, od, rd, flights)
-                    await loop.run_in_executor(None, save_cache, cache, cache_file)
-
+                    yield sse({"type": "log", "message": f"✓ Cache: {label} ({len(flights)} result(s))"})
+                else:
+                    yield sse({"type": "log", "message": f"✓ Live: {label} ({len(flights)} flight(s))"})
+                    if flights:
+                        cache_dirty = True
                 all_flights.extend(flights)
-                yield sse({"type": "log", "message": f"✓ Found {len(flights)} flight(s) for {label}"})
+
+            # Single cache write after all parallel fetches (not per-fetch)
+            if cache_dirty:
+                await loop.run_in_executor(None, save_cache, cache, cache_file)
 
             if not all_flights:
                 yield sse({"type": "error", "message": "No flights found. Try different dates or airports, or check your API quota."})
@@ -275,47 +295,61 @@ async def search_stream(
 
             candidate_flights = df.head(candidate_n).to_dict("records")
 
-            for rank_idx, flight in enumerate(candidate_flights):
+            # ── Parallel return-leg fetch ──────────────────────────────────────
+            return_sem = asyncio.Semaphore(RETURN_CONCURRENCY)
+
+            async def fetch_return_one(rank_idx, flight):
                 token = flight.get("departure_token", "")
                 if not token:
-                    continue
-                yield sse({
-                    "type": "progress",
-                    "percent": 70 + int((rank_idx / max(candidate_n, 1)) * 22),
-                    "label": f"Return leg {rank_idx + 1}/{candidate_n}: {flight.get('outbound_route', '?')}…",
-                })
-
+                    return rank_idx, flight, None, False
                 cached_ret = get_cached_return(cache, token) if use_cache else None
                 if cached_ret:
                     flight.update(cached_ret)
-                    candidate_flights[rank_idx] = flight
+                    return rank_idx, flight, None, True  # (idx, flight, ret_data, from_cache)
+                async with return_sem:
+                    def _do_ret(t=token, f=flight):
+                        return fetch_return_legs(
+                            departure_token=t,
+                            origin=f["origin"], destination=f["destination"],
+                            outbound_date=f["outbound_date"], return_date=f["return_date"],
+                            currency="EUR", hl="en", gl="us",
+                        )
+                    try:
+                        ret = await loop.run_in_executor(None, _do_ret)
+                    except Exception as ret_err:
+                        logger.warning(f"Return leg {rank_idx + 1} fetch raised: {ret_err}")
+                        ret = None
+                    if ret:
+                        flight.update(ret)
+                    return rank_idx, flight, ret, False
+
+            return_tasks = [
+                asyncio.create_task(fetch_return_one(i, f))
+                for i, f in enumerate(candidate_flights)
+            ]
+
+            completed_returns = 0
+            return_cache_dirty = False
+            for coro in asyncio.as_completed(return_tasks):
+                rank_idx, updated_flight, ret_data, from_cache = await coro
+                candidate_flights[rank_idx] = updated_flight
+                completed_returns += 1
+                yield sse({
+                    "type": "progress",
+                    "percent": 70 + int((completed_returns / max(candidate_n, 1)) * 22),
+                    "label": f"Return legs: {completed_returns}/{candidate_n} done…",
+                })
+                if from_cache:
                     yield sse({"type": "log", "message": f"✓ Return leg {rank_idx + 1} from cache"})
-                    continue
-
-                def do_return(t=token, f=flight):
-                    return fetch_return_legs(
-                        departure_token=t,
-                        origin=f["origin"], destination=f["destination"],
-                        outbound_date=f["outbound_date"], return_date=f["return_date"],
-                        currency="EUR", hl="en", gl="us",
-                    )
-
-                try:
-                    ret = await loop.run_in_executor(None, do_return)
-                except Exception as ret_err:
-                    logger.warning(f"Return leg {rank_idx + 1} fetch raised: {ret_err}")
-                    ret = None
-
-                if ret:
-                    flight.update(ret)
-                    candidate_flights[rank_idx] = flight
-                    set_cached_return(cache, token, ret)
-                    await loop.run_in_executor(None, save_cache, cache, cache_file)
+                elif ret_data:
+                    set_cached_return(cache, updated_flight.get("departure_token", ""), ret_data)
+                    return_cache_dirty = True
                     yield sse({"type": "log", "message": f"✓ Return leg {rank_idx + 1} fetched"})
                 else:
                     yield sse({"type": "log", "message": f"⚠ Return leg {rank_idx + 1} unavailable — using outbound score"})
 
-                await asyncio.sleep(1.0)
+            if return_cache_dirty:
+                await loop.run_in_executor(None, save_cache, cache, cache_file)
 
             yield sse({"type": "progress", "percent": 93, "label": "Re-ranking by round-trip score…"})
             candidate_flights = recalculate_scores_with_return(
