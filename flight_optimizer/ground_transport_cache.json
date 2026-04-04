@@ -2,8 +2,14 @@
   "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国|9, goethestraße, zeckern, hemhofen, landkreis erlangen-höchstadt, bayern, 91334,|CAN,FRA,HKG,MUC,NUE,SZX": {
     "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
     "dest_display": "9, Goethestraße, Zeckern, Hemhofen, Landkreis Erlangen-Höchstadt, Bayern, 91334, Deutschland",
-    "home_coords": [22.4926, 113.9137],
-    "dest_coords": [49.6938, 10.9350],
+    "home_coords": [
+      22.4926,
+      113.9137
+    ],
+    "dest_coords": [
+      49.6938,
+      10.935
+    ],
     "ai_powered": true,
     "legs": {
       "SZX": {
@@ -53,6 +59,69 @@
         "notes": "15min taxi to Erlangen Bf (€15) + 20min RE to Nürnberg + 20min transfer + 80min ICE to Frankfurt Flughafen Fernbahnhof (€58 Sparpreis).",
         "cost": 73.0,
         "duration_minutes": 130.0
+      }
+    }
+  },
+  "shenzhen shuiwan 1979|hemhofen goethestr. 9|CAN,FRA,HKG,MUC,NUE,SZX": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "9, Goethestraße, Zeckern, Hemhofen, Landkreis Erlangen-Höchstadt, Bayern, 91334, Deutschland",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": [
+      49.6937595,
+      10.9350205
+    ],
+    "ai_powered": true,
+    "legs": {
+      "HKG": {
+        "time_minutes": 65.0,
+        "cost_eur": 27.0,
+        "mode": "Didi + ferry",
+        "notes": "Didi to Shenzhen Bay Port, ferry crossing, and transfer to HKG.",
+        "cost": 27.0,
+        "duration_minutes": 65.0
+      },
+      "SZX": {
+        "time_minutes": 30.0,
+        "cost_eur": 10.0,
+        "mode": "Metro",
+        "notes": "Directly from home to Airport Express using Shenzhen Metro.",
+        "cost": 10.0,
+        "duration_minutes": 30.0
+      },
+      "CAN": {
+        "time_minutes": 150.0,
+        "cost_eur": 48.0,
+        "mode": "Didi",
+        "notes": "Didi directly to Guangzhou Baiyun International Airport.",
+        "cost": 48.0,
+        "duration_minutes": 150.0
+      },
+      "FRA": {
+        "time_minutes": 130.0,
+        "cost_eur": 73.0,
+        "mode": "DB ICE + RE",
+        "notes": "Connections from Frankfurt Airport to Hemhofen.",
+        "cost": 73.0,
+        "duration_minutes": 130.0
+      },
+      "MUC": {
+        "time_minutes": 100.0,
+        "cost_eur": 50.0,
+        "mode": "DB + bus",
+        "notes": "Train and bus connections from Munich Airport to Hemhofen.",
+        "cost": 50.0,
+        "duration_minutes": 100.0
+      },
+      "NUE": {
+        "time_minutes": 30.0,
+        "cost_eur": 10.0,
+        "mode": "DB regional",
+        "notes": "Direct connections from Nuremberg Airport to Hemhofen.",
+        "cost": 10.0,
+        "duration_minutes": 30.0
       }
     }
   }
