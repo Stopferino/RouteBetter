@@ -4,6 +4,50 @@
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
 
+## Flight Optimizer (Python MVP)
+
+Ein Python-Tool zum Optimieren von Roundtrip-Flügen nach Kosten + Reisezeit.
+
+### Ausführen
+
+```bash
+python run_optimizer.py
+```
+
+### Projektstruktur
+
+```
+flight_optimizer/
+├── config.py          ← Konfiguration (Flughäfen, Daten, Value-of-Time, Filter)
+├── main.py            ← Hauptprogramm
+├── serpapi_client.py  ← SerpApi Google Flights API-Client
+├── scorer.py          ← Score-Berechnung (Preis + Dauer × VoT)
+├── exporter.py        ← Excel-Export (openpyxl)
+├── printer.py         ← Konsolenausgabe
+├── date_utils.py      ← Datumsfenster-Hilfsfunktionen
+└── requirements.txt   ← Python-Abhängigkeiten
+run_optimizer.py       ← Startskript (Wurzelverzeichnis)
+```
+
+### Konfigurierbare Parameter (config.py)
+
+| Parameter | Beschreibung | Standard |
+|---|---|---|
+| `ORIGIN_AIRPORTS` | Abflughäfen (IATA) | HKG, SZX, CAN |
+| `DESTINATION_AIRPORTS` | Zielflughäfen (IATA) | FRA, MUC, NUE |
+| `OUTBOUND_DATE` | Wunsch-Hinflugdatum | 2025-06-15 |
+| `RETURN_DATE` | Wunsch-Rückflugdatum | 2025-06-29 |
+| `DATE_WINDOW_DAYS` | ±Tage Datumsfenster | 1 |
+| `VALUE_OF_TIME_EUR_PER_HOUR` | Value-of-Time (€/h) | 50.0 |
+| `AIRLINE_FILTER` | Airline-Whitelist (leer = alle) | [] |
+| `MAX_STOPS` | Max. Stopps (None = alle) | None |
+| `TOP_N` | Anzahl Top-Ergebnisse | 5 |
+| `EXCEL_OUTPUT_FILE` | Ausgabedateiname | flight_results.xlsx |
+
+### Secrets
+
+- `SERPAPI_KEY` — SerpApi API-Key für Google Flights
+
 ## Stack
 
 - **Monorepo tool**: pnpm workspaces
