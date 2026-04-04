@@ -9,16 +9,16 @@ DESTINATION_AIRPORTS = ["FRA", "MUC", "NUE"]
 
 # ─── Reisedaten ───────────────────────────────────────────────────────────────
 # Gewünschtes Hinflugdatum (YYYY-MM-DD)
-OUTBOUND_DATE = "2025-06-15"
+OUTBOUND_DATE = "2025-07-25"
 # Gewünschtes Rückflugdatum (YYYY-MM-DD)
-RETURN_DATE = "2025-06-29"
+RETURN_DATE = "2025-08-02"
 
 # Datumsfenster: +/- Tage um das Wunschdatum herum
 DATE_WINDOW_DAYS = 1
 
 # ─── Score-Berechnung ─────────────────────────────────────────────────────────
 # Value of Time (€ pro Stunde) – wie viel ist dir eine Stunde Reisezeit wert?
-VALUE_OF_TIME_EUR_PER_HOUR = 50.0
+VALUE_OF_TIME_EUR_PER_HOUR = 20.0
 
 # ─── Optionale Filter (leer = kein Filter) ────────────────────────────────────
 # Beispiel: ["Lufthansa", "Cathay Pacific"]
