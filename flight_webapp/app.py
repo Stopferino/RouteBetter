@@ -32,8 +32,39 @@ async def index():
 
 @app.get("/api/usage")
 async def api_usage():
-    from flight_optimizer.usage_tracker import get_usage
-    return get_usage()
+    """
+    Fetches live usage from SerpApi's /account.json endpoint.
+    Falls back to the local counter if SerpApi is unreachable or the key is missing.
+    """
+    import urllib.request
+    import urllib.error
+    from flight_optimizer.usage_tracker import get_usage, MONTHLY_LIMIT
+
+    serpapi_key = os.environ.get("SERPAPI_KEY", "")
+    if serpapi_key:
+        try:
+            url = f"https://serpapi.com/account.json?api_key={serpapi_key}"
+            req = urllib.request.Request(url, headers={"User-Agent": "FlightOptimizer/1.0"})
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                data = json.loads(resp.read())
+            used  = int(data.get("this_month_usage", 0))
+            limit = int(data.get("searches_per_month", MONTHLY_LIMIT))
+            return {
+                "count":     used,
+                "month":     data.get("account_last_searches_at", "")[:7],
+                "limit":     limit,
+                "remaining": max(0, limit - used),
+                "pct_used":  round(used / limit * 100, 1) if limit else 0,
+                "source":    "serpapi",
+            }
+        except Exception as exc:
+            # Log but fall through to local counter
+            import logging
+            logging.getLogger(__name__).warning(f"SerpApi account fetch failed: {exc}")
+
+    local = get_usage()
+    local["source"] = "local"
+    return local
 
 
 @app.get("/search/stream")

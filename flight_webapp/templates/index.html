@@ -190,15 +190,23 @@
         </button>
 
         <!-- API Usage Counter -->
-        <div class="flex items-center gap-2 px-1">
-          <div class="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
-            <div class="h-full rounded-full transition-all duration-500"
-                 :class="apiUsage.pct_used >= 80 ? 'bg-red-500' : apiUsage.pct_used >= 50 ? 'bg-amber-500' : 'bg-emerald-500'"
-                 :style="`width: ${Math.min(apiUsage.pct_used, 100)}%`"></div>
+        <div class="flex flex-col gap-1 px-1">
+          <div class="flex items-center gap-2">
+            <div class="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-500"
+                   :class="apiUsage.pct_used >= 80 ? 'bg-red-500' : apiUsage.pct_used >= 50 ? 'bg-amber-500' : 'bg-emerald-500'"
+                   :style="`width: ${Math.min(apiUsage.pct_used, 100)}%`"></div>
+            </div>
+            <span class="text-xs shrink-0"
+                  :class="apiUsage.pct_used >= 80 ? 'text-red-500 font-semibold' : 'text-slate-400'"
+                  x-text="`${apiUsage.count}/${apiUsage.limit}`"></span>
           </div>
-          <span class="text-xs text-slate-400 shrink-0"
-                :class="apiUsage.pct_used >= 80 ? 'text-red-500 font-semibold' : ''"
-                x-text="`${apiUsage.count}/${apiUsage.limit} API calls`"></span>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-400">API calls this month</span>
+            <span class="text-xs px-1.5 py-0.5 rounded font-medium"
+                  :class="apiUsage.source === 'serpapi' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'"
+                  x-text="apiUsage.source === 'serpapi' ? '● live' : '● local'"></span>
+          </div>
         </div>
 
         <!-- Error -->
@@ -720,7 +728,7 @@ function flightApp() {
     displayMaxStops: '',
 
     // API usage + re-scoring state
-    apiUsage: { count: 0, month: '', limit: 250, remaining: 250, pct_used: 0 },
+    apiUsage: { count: 0, month: '', limit: 250, remaining: 250, pct_used: 0, source: '' },
     rescored: false,
 
     // Progress panel visibility

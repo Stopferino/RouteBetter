@@ -1,1 +1,65 @@
-{}
+{
+  "shenzhen shuiwan 1979|hemhofen goethestr. 9|CAN,FRA,HKG,MUC,NUE,SZX": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "9, Goethestraße, Zeckern, Hemhofen, Landkreis Erlangen-Höchstadt, Bayern, 91334, Deutschland",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": [
+      49.6937595,
+      10.9350205
+    ],
+    "ai_powered": true,
+    "legs": {
+      "HKG": {
+        "time_minutes": 20.0,
+        "cost_eur": 30.0,
+        "mode": "Didi + border bus + Airport Express",
+        "notes": "Approximately 10 min for Didi to Shenzhen Bay Port, 30 min for border crossing and bus, and 10 min Airport Express.",
+        "cost": 30.0,
+        "duration_minutes": 20.0
+      },
+      "SZX": {
+        "time_minutes": 15.0,
+        "cost_eur": 15.0,
+        "mode": "Shenzhen Metro Airport Express Line",
+        "notes": "Includes 4-5 min to the metro station and waiting times.",
+        "cost": 15.0,
+        "duration_minutes": 15.0
+      },
+      "CAN": {
+        "time_minutes": 80.0,
+        "cost_eur": 40.0,
+        "mode": "Didi",
+        "notes": "Direct Didi journey accounting for urban traffic delays on a 118 km route.",
+        "cost": 40.0,
+        "duration_minutes": 80.0
+      },
+      "FRA": {
+        "time_minutes": 110.0,
+        "cost_eur": 40.0,
+        "mode": "Deutsche Bahn ICE/RE",
+        "notes": "Includes 20 min to Frankfurt Hbf plus waiting and transfer time.",
+        "cost": 40.0,
+        "duration_minutes": 110.0
+      },
+      "MUC": {
+        "time_minutes": 100.0,
+        "cost_eur": 45.0,
+        "mode": "S-Bahn/Regional bus",
+        "notes": "Includes 30 min to Munich city center plus transit time to Hemhofen.",
+        "cost": 45.0,
+        "duration_minutes": 100.0
+      },
+      "NUE": {
+        "time_minutes": 20.0,
+        "cost_eur": 10.0,
+        "mode": "Public transport (U2 metro + regional train)",
+        "notes": "Includes 5 min to Nuremberg U2 metro station and connection time.",
+        "cost": 10.0,
+        "duration_minutes": 20.0
+      }
+    }
+  }
+}
