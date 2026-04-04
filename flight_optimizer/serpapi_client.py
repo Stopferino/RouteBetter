@@ -147,6 +147,9 @@ def fetch_flights(
             sys.exit(1)
         return []
 
+    # Capture the real Google Flights search URL from SerpApi metadata
+    google_flights_url = data.get("search_metadata", {}).get("google_flights_url", "")
+
     results = []
 
     # Parse both "best_flights" and "other_flights"
@@ -262,6 +265,8 @@ def fetch_flights(
                     # Token needed to fetch return leg details (step 2)
                     "departure_token": itinerary.get("departure_token", ""),
                     "flight_details": itinerary,
+                    # Real Google Flights search URL for this route/date (from SerpApi metadata)
+                    "google_flights_url": google_flights_url,
                 })
             except (KeyError, TypeError, ValueError) as e:
                 logger.warning(f"Itinerary skipped (parse error): {e}")

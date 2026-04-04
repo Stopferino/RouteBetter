@@ -402,6 +402,9 @@ async def search_stream(
                 "night_hours":      f.get("night_hours", 0),
                 "excess_layover_h": f.get("excess_layover_h", 0),
                 "ground_time_h":    round(2.0 * ((f.get("ground_dep_minutes") or 0) + (f.get("ground_arr_minutes") or 0)) / 60.0, 4),
+                # Booking deep-link: booking_token for exact flight, google_flights_url for route search
+                "booking_token":      f.get("booking_token", ""),
+                "google_flights_url": f.get("google_flights_url", ""),
             })
 
         import tempfile, uuid
