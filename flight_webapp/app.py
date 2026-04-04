@@ -41,6 +41,9 @@ async def search_stream(
     max_stops: Optional[int] = Query(None),
     use_cache: bool = Query(True),
     date_window: int = Query(0),
+    home_address: str = Query("", description="Home address near departure airport"),
+    dest_address: str = Query("", description="Destination address near arrival airport"),
+    ground_cost_per_km: float = Query(1.5, description="Ground transport cost in EUR/km"),
 ):
     origin_list = [o.strip().upper() for o in origins.split(",") if o.strip()]
     dest_list = [d.strip().upper() for d in destinations.split(",") if d.strip()]
@@ -64,6 +67,7 @@ async def search_stream(
             load_cache, get_cached, set_cached, save_cache,
             get_cached_return, set_cached_return,
         )
+        from flight_optimizer.ground_transport import calculate_ground_transport
         import pandas as pd
 
         loop = asyncio.get_event_loop()
@@ -77,6 +81,44 @@ async def search_stream(
         # Always load the cache so we can write fresh data back into it,
         # even when the user has "use cache" disabled.
         cache = await loop.run_in_executor(None, load_cache, cache_file)
+
+        # ── Ground transport geocoding ────────────────────────────────────────
+        ground_transport = None
+        if home_address.strip() and dest_address.strip():
+            yield sse({"type": "progress", "percent": 2, "label": "Geocoding addresses…"})
+            yield sse({"type": "log", "message": f"Geocoding: '{home_address}' & '{dest_address}'"})
+            try:
+                ground_transport = await loop.run_in_executor(
+                    None,
+                    lambda: calculate_ground_transport(
+                        home_address.strip(), dest_address.strip(), ground_cost_per_km
+                    ),
+                )
+                if ground_transport["home_coords"]:
+                    yield sse({"type": "log", "message": f"✓ Home → {ground_transport['home_display'][:60]}"})
+                else:
+                    yield sse({"type": "log", "message": "⚠ Could not geocode home address — ground transport skipped"})
+                    ground_transport = None
+                if ground_transport and ground_transport["dest_coords"]:
+                    yield sse({"type": "log", "message": f"✓ Dest → {ground_transport['dest_display'][:60]}"})
+                else:
+                    yield sse({"type": "log", "message": "⚠ Could not geocode destination address — ground transport skipped"})
+                    ground_transport = None
+                if ground_transport:
+                    leg_summary = ", ".join(
+                        f"{k}: {v['duration_minutes']:.0f}min/{v['distance_km']:.0f}km"
+                        for k, v in ground_transport["legs"].items() if v
+                    )
+                    yield sse({"type": "log", "message": f"✓ Ground legs: {leg_summary}"})
+                    yield sse({"type": "ground_transport", "data": {
+                        "home_display": ground_transport["home_display"][:80],
+                        "dest_display": ground_transport["dest_display"][:80],
+                        "legs": ground_transport["legs"],
+                    }})
+            except Exception as gt_err:
+                logger.warning(f"Ground transport error: {gt_err}")
+                yield sse({"type": "log", "message": f"⚠ Ground transport unavailable: {gt_err}"})
+                ground_transport = None
 
         all_flights = []
         combinations = [
@@ -229,6 +271,32 @@ async def search_stream(
         # Re-score using full round-trip duration, then take the true top N
         yield sse({"type": "progress", "percent": 93, "label": "Re-ranking by round-trip score…"})
         candidate_flights = recalculate_scores_with_return(candidate_flights, value_of_time)
+
+        # ── Apply ground transport adjustment ─────────────────────────────────
+        if ground_transport:
+            for f in candidate_flights:
+                dep_leg = ground_transport["legs"].get(f.get("origin", ""))
+                arr_leg = ground_transport["legs"].get(f.get("destination", ""))
+                dep_min  = dep_leg["duration_minutes"] if dep_leg else 0.0
+                arr_min  = arr_leg["duration_minutes"] if arr_leg else 0.0
+                dep_cost = dep_leg["cost"] if dep_leg else 0.0
+                arr_cost = arr_leg["cost"] if arr_leg else 0.0
+                # Round trip: travel each ground leg twice (there and back)
+                ground_time_h = 2.0 * (dep_min + arr_min) / 60.0
+                ground_cost   = 2.0 * (dep_cost + arr_cost)
+                f["ground_dep_minutes"] = dep_min
+                f["ground_arr_minutes"] = arr_min
+                f["ground_dep_cost"]    = dep_cost
+                f["ground_arr_cost"]    = arr_cost
+                f["ground_total_cost"]  = round(ground_cost, 2)
+                f["score"] = round(
+                    float(f.get("score") or 0) + ground_cost + ground_time_h * value_of_time,
+                    2,
+                )
+            # Re-sort by the updated door-to-door score
+            candidate_flights = sorted(candidate_flights, key=lambda x: x.get("score", float("inf")))
+            yield sse({"type": "log", "message": "✓ Scores adjusted for door-to-door ground transport"})
+
         top_flights = candidate_flights[:effective_top_n]
 
         yield sse({"type": "progress", "percent": 97, "label": "Preparing results…"})
@@ -264,6 +332,12 @@ async def search_stream(
                 "booking_class": f.get("booking_class", "Economy"),
                 "fare_brand": f.get("fare_brand"),
                 "currency": f.get("currency", "EUR"),
+                # Ground transport (None fields if not requested)
+                "ground_dep_minutes": f.get("ground_dep_minutes"),
+                "ground_arr_minutes": f.get("ground_arr_minutes"),
+                "ground_dep_cost": f.get("ground_dep_cost"),
+                "ground_arr_cost": f.get("ground_arr_cost"),
+                "ground_total_cost": f.get("ground_total_cost"),
             })
 
         import tempfile, uuid
