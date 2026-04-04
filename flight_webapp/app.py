@@ -99,7 +99,7 @@ async def search_stream(
     outbound_date: str = Query(...),
     return_date: str = Query(...),
     value_of_time: float = Query(20.0),
-    top_n: int = Query(10),
+    top_n: int = Query(30),
     max_stops: Optional[int] = Query(None),
     use_cache: bool = Query(True),
     date_window: int = Query(0),
