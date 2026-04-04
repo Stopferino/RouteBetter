@@ -1,5 +1,5 @@
 """
-Flight Optimizer - Excel-Export
+Flight Optimizer - Excel Export
 """
 
 import logging
@@ -8,7 +8,7 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-# Spalten für den Excel-Export (ohne rohe flight_details)
+# Columns for Excel export (excludes raw flight_details)
 EXPORT_COLUMNS = [
     "rank",
     "score_rounded",
@@ -24,44 +24,44 @@ EXPORT_COLUMNS = [
 ]
 
 COLUMN_LABELS = {
-    "rank": "Rang",
-    "score_rounded": "Score (€)",
-    "price": "Preis (€)",
-    "duration_str": "Gesamtdauer",
-    "duration_hours": "Dauer (h)",
+    "rank": "Rank",
+    "score_rounded": "Score (EUR)",
+    "price": "Price (EUR)",
+    "duration_str": "Total Duration",
+    "duration_hours": "Duration (h)",
     "airline": "Airline",
-    "stops": "Stopps",
-    "origin": "Abflughafen",
-    "destination": "Zielflughafen",
-    "outbound_date": "Hinflug-Datum",
-    "return_date": "Rückflug-Datum",
+    "stops": "Stops",
+    "origin": "Origin",
+    "destination": "Destination",
+    "outbound_date": "Outbound Date",
+    "return_date": "Return Date",
 }
 
 
 def export_to_excel(df: pd.DataFrame, output_path: str = "flight_results.xlsx") -> str:
     """
-    Exportiert das vollständige Ergebnis-DataFrame in eine Excel-Datei.
+    Exports the full results DataFrame to an Excel file.
 
-    Erstellt zwei Tabellenblätter:
-      - "Top 5"        : Die fünf besten Flüge nach Score
-      - "Alle Flüge"   : Alle gefundenen Flüge sortiert nach Score
+    Creates two sheets:
+      - "Top 5"      : The five best flights by score
+      - "All Flights": All found flights sorted by score
 
     Args:
-        df: Vollständiges DataFrame mit Score-Spalten
-        output_path: Pfad der Ausgabedatei
+        df: Full DataFrame with score columns
+        output_path: Output file path
 
     Returns:
-        Absoluter Pfad der erzeugten Datei
+        Absolute path of the created file
     """
     if df.empty:
-        logger.warning("Keine Daten zum Exportieren.")
+        logger.warning("No data to export.")
         return ""
 
-    # Rang-Spalte hinzufügen
+    # Add rank column
     df = df.copy()
     df.insert(0, "rank", range(1, len(df) + 1))
 
-    # Nur definierte Spalten, die tatsächlich vorhanden sind
+    # Only include defined columns that are actually present
     cols_available = [c for c in EXPORT_COLUMNS if c in df.columns]
     export_df = df[cols_available].rename(columns=COLUMN_LABELS)
 
@@ -70,26 +70,25 @@ def export_to_excel(df: pd.DataFrame, output_path: str = "flight_results.xlsx") 
     output_path = Path(output_path)
 
     with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
-        # Tabellenblatt 1: Top 5
+        # Sheet 1: Top 5
         top5_df.to_excel(writer, sheet_name="Top 5", index=False)
         _autofit_columns(writer.sheets["Top 5"], top5_df)
 
-        # Tabellenblatt 2: Alle Flüge
-        export_df.to_excel(writer, sheet_name="Alle Flüge", index=False)
-        _autofit_columns(writer.sheets["Alle Flüge"], export_df)
+        # Sheet 2: All Flights
+        export_df.to_excel(writer, sheet_name="All Flights", index=False)
+        _autofit_columns(writer.sheets["All Flights"], export_df)
 
     abs_path = str(output_path.resolve())
-    logger.info(f"Excel-Export gespeichert: {abs_path}")
+    logger.info(f"Excel file saved: {abs_path}")
     return abs_path
 
 
 def _autofit_columns(worksheet, df: pd.DataFrame):
-    """Passt Spaltenbreiten automatisch an den Inhalt an."""
+    """Auto-fits column widths to content."""
     for idx, col in enumerate(df.columns, 1):
         max_len = max(
             len(str(col)),
             df.iloc[:, idx - 1].astype(str).map(len).max() if not df.empty else 0,
         )
-        # Openpyxl column_dimensions nutzt Buchstaben
         col_letter = worksheet.cell(row=1, column=idx).column_letter
         worksheet.column_dimensions[col_letter].width = min(max_len + 4, 50)

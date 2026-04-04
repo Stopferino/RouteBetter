@@ -1,46 +1,46 @@
 """
-Flight Optimizer - Konfiguration
-Hier kannst du alle Parameter einfach anpassen.
+Flight Optimizer - Configuration
+Adjust all parameters here.
 """
 
-# ─── Flughäfen ────────────────────────────────────────────────────────────────
+# ─── Airports ─────────────────────────────────────────────────────────────────
 ORIGIN_AIRPORTS = ["HKG", "SZX", "CAN"]
 DESTINATION_AIRPORTS = ["FRA", "MUC", "NUE"]
 
-# ─── Reisedaten ───────────────────────────────────────────────────────────────
-# Gewünschtes Hinflugdatum (YYYY-MM-DD)
+# ─── Travel Dates ─────────────────────────────────────────────────────────────
+# Desired outbound date (YYYY-MM-DD) — must be in the future!
 OUTBOUND_DATE = "2026-07-25"
-# Gewünschtes Rückflugdatum (YYYY-MM-DD)
+# Desired return date (YYYY-MM-DD) — must be after the outbound date!
 RETURN_DATE = "2026-08-02"
 
-# Datumsfenster: +/- Tage um das Wunschdatum herum
+# Date window: +/- days around the desired date (0 = exact date only)
 DATE_WINDOW_DAYS = 0
 
-# ─── Score-Berechnung ─────────────────────────────────────────────────────────
-# Value of Time (€ pro Stunde) – wie viel ist dir eine Stunde Reisezeit wert?
+# ─── Score Calculation ────────────────────────────────────────────────────────
+# Value of Time (EUR per hour) — how much is one hour of travel time worth to you?
 VALUE_OF_TIME_EUR_PER_HOUR = 20.0
 
-# ─── Optionale Filter (leer = kein Filter) ────────────────────────────────────
-# Beispiel: ["Lufthansa", "Cathay Pacific"]
+# ─── Optional Filters (empty = no filter) ────────────────────────────────────
+# Example: ["Lufthansa", "Cathay Pacific"]
 AIRLINE_FILTER = []
 
-# Maximale Anzahl Stopps (None = keine Einschränkung, 0 = nur Direktflüge)
+# Maximum number of stops (None = no limit, 0 = non-stop only)
 MAX_STOPS = None
 
 # ─── Cache ────────────────────────────────────────────────────────────────────
-# True = bereits abgerufene Anfragen aus Datei laden, spart API-Kontingent
+# True = load previously fetched results from file, saves API quota
 USE_CACHE = True
 CACHE_FILE = "flight_cache.json"
 
-# ─── Ausgabe ──────────────────────────────────────────────────────────────────
+# ─── Output ───────────────────────────────────────────────────────────────────
 TOP_N = 5
 EXCEL_OUTPUT_FILE = "flight_results.xlsx"
 
-# ─── Währung ──────────────────────────────────────────────────────────────────
-# Währung für SerpApi (ISO 4217)
+# ─── Currency ─────────────────────────────────────────────────────────────────
+# Currency for SerpApi (ISO 4217)
 CURRENCY = "EUR"
 
-# ─── Sprache / Region ─────────────────────────────────────────────────────────
-# hl = Sprache, gl = Land
-HL = "de"
-GL = "de"
+# ─── Language / Region ────────────────────────────────────────────────────────
+# hl = language, gl = country
+HL = "en"
+GL = "us"

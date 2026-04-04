@@ -1,6 +1,6 @@
 """
-Flight Optimizer - Lokaler Anfragen-Cache
-Speichert API-Ergebnisse in einer JSON-Datei, um Search-Kontingent zu sparen.
+Flight Optimizer - Local Request Cache
+Stores API results in a JSON file to save search quota.
 """
 
 import json
@@ -24,10 +24,10 @@ def load_cache(cache_file: str = DEFAULT_CACHE_FILE) -> dict:
     try:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
-        logger.info(f"Cache geladen: {len(data)} gespeicherte Anfragen ({cache_file})")
+        logger.info(f"Cache loaded: {len(data)} stored request(s) ({cache_file})")
         return data
     except (json.JSONDecodeError, IOError) as e:
-        logger.warning(f"Cache konnte nicht gelesen werden ({e}), starte leer.")
+        logger.warning(f"Cache could not be read ({e}), starting empty.")
         return {}
 
 
@@ -36,7 +36,7 @@ def save_cache(cache: dict, cache_file: str = DEFAULT_CACHE_FILE):
         with open(cache_file, "w", encoding="utf-8") as f:
             json.dump(cache, f, ensure_ascii=False, indent=2)
     except IOError as e:
-        logger.warning(f"Cache konnte nicht gespeichert werden: {e}")
+        logger.warning(f"Cache could not be saved: {e}")
 
 
 def get_cached(
@@ -46,13 +46,13 @@ def get_cached(
     outbound_date: str,
     return_date: str,
 ) -> list[dict] | None:
-    """Gibt gecachte Ergebnisse zurück, oder None wenn nicht vorhanden."""
+    """Returns cached results, or None if not present."""
     key = _cache_key(origin, destination, outbound_date, return_date)
     if key in cache:
         entry = cache[key]
         logger.info(
-            f"Cache-Hit: {origin}→{destination} | {outbound_date}↔{return_date} "
-            f"({len(entry['results'])} Ergebnisse, abgerufen am {entry['fetched_at']})"
+            f"Cache hit: {origin}->{destination} | {outbound_date}<->{return_date} "
+            f"({len(entry['results'])} result(s), fetched at {entry['fetched_at']})"
         )
         return entry["results"]
     return None
@@ -66,9 +66,9 @@ def set_cached(
     return_date: str,
     results: list[dict],
 ):
-    """Speichert Ergebnisse im Cache-Dictionary (noch nicht auf Disk)."""
+    """Stores results in the cache dictionary (not yet written to disk)."""
     key = _cache_key(origin, destination, outbound_date, return_date)
-    # flight_details weglassen (zu groß, nicht für Score-Berechnung nötig)
+    # Strip flight_details (too large, not needed for score calculation)
     slim_results = [
         {k: v for k, v in r.items() if k != "flight_details"}
         for r in results
@@ -80,10 +80,10 @@ def set_cached(
 
 
 def clear_cache(cache_file: str = DEFAULT_CACHE_FILE):
-    """Löscht den gesamten Cache."""
+    """Deletes the entire cache file."""
     path = Path(cache_file)
     if path.exists():
         path.unlink()
-        logger.info(f"Cache gelöscht: {cache_file}")
+        logger.info(f"Cache cleared: {cache_file}")
     else:
-        logger.info("Kein Cache vorhanden.")
+        logger.info("No cache file found.")

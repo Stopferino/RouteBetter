@@ -1,6 +1,6 @@
 """
-Flight Optimizer - Startskript
-Einfacher Einstiegspunkt: python run_optimizer.py
+Flight Optimizer - Entry point
+Run with: python run_optimizer.py
 """
 import sys
 from pathlib import Path

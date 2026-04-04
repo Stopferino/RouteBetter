@@ -1,24 +1,23 @@
 """
-Flight Optimizer - Hauptprogramm
-=================================
-Ablauf:
-  1. Alle OD-Kombinationen x Datumsfenster aus config.py aufbauen
-  2. Flugdaten über SerpApi abrufen
-  3. Score berechnen (Preis + Dauer_h * Value-of-Time)
-  4. Top-N Flüge auf der Konsole ausgeben
-  5. Alle Ergebnisse in Excel exportieren
+Flight Optimizer - Main Program
+================================
+Steps:
+  1. Build all OD combinations x date windows from config.py
+  2. Fetch flight data via SerpApi
+  3. Calculate score (Price + Duration_h * Value-of-Time)
+  4. Print top-N flights to the console
+  5. Export all results to Excel
 
-Ausführen:
+Run:
+  python run_optimizer.py
+  or:
   python -m flight_optimizer.main
-  oder:
-  python flight_optimizer/main.py
 """
 
 import logging
 import sys
 from pathlib import Path
 
-# Logging konfigurieren
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(levelname)-8s  %(message)s",
@@ -26,7 +25,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Projektverzeichnis zum Pfad hinzufügen (falls direkt ausgeführt)
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from flight_optimizer import config
@@ -40,21 +38,21 @@ from flight_optimizer.cache import load_cache
 
 def main():
     logger.info("=" * 60)
-    logger.info("  Flight Optimizer MVP gestartet")
+    logger.info("  Flight Optimizer MVP started")
     logger.info("=" * 60)
 
-    # ── 1. Datumslisten generieren ─────────────────────────────────
+    # ── 1. Generate date lists ─────────────────────────────────────
     outbound_dates = generate_date_range(config.OUTBOUND_DATE, config.DATE_WINDOW_DAYS)
     return_dates = generate_date_range(config.RETURN_DATE, config.DATE_WINDOW_DAYS)
 
-    logger.info(f"Abflughäfen:       {config.ORIGIN_AIRPORTS}")
-    logger.info(f"Zielflughäfen:     {config.DESTINATION_AIRPORTS}")
-    logger.info(f"Hinflug-Fenster:   {outbound_dates}")
-    logger.info(f"Rückflug-Fenster:  {return_dates}")
-    logger.info(f"Value of Time:     {config.VALUE_OF_TIME_EUR_PER_HOUR} €/h")
-    logger.info(f"Airline-Filter:    {config.AIRLINE_FILTER or 'keiner'}")
-    logger.info(f"Max. Stopps:       {config.MAX_STOPS if config.MAX_STOPS is not None else 'unbegrenzt'}")
-    logger.info(f"Cache aktiv:       {config.USE_CACHE} ({config.CACHE_FILE})")
+    logger.info(f"Origin airports:   {config.ORIGIN_AIRPORTS}")
+    logger.info(f"Destination:       {config.DESTINATION_AIRPORTS}")
+    logger.info(f"Outbound window:   {outbound_dates}")
+    logger.info(f"Return window:     {return_dates}")
+    logger.info(f"Value of Time:     {config.VALUE_OF_TIME_EUR_PER_HOUR} EUR/h")
+    logger.info(f"Airline filter:    {config.AIRLINE_FILTER or 'none'}")
+    logger.info(f"Max stops:         {config.MAX_STOPS if config.MAX_STOPS is not None else 'unlimited'}")
+    logger.info(f"Cache enabled:     {config.USE_CACHE} ({config.CACHE_FILE})")
 
     total_queries = (
         len(config.ORIGIN_AIRPORTS)
@@ -62,13 +60,13 @@ def main():
         * len(outbound_dates)
         * len(return_dates)
     )
-    logger.info(f"Mögliche Anfragen: {total_queries} (Cache spart bereits abgerufene)")
+    logger.info(f"Possible queries:  {total_queries} (cache skips already-fetched ones)")
     logger.info("-" * 60)
 
-    # ── 2. Cache laden ─────────────────────────────────────────────
+    # ── 2. Load cache ──────────────────────────────────────────────
     cache = load_cache(config.CACHE_FILE) if config.USE_CACHE else None
 
-    # ── 3. Flugdaten abrufen ───────────────────────────────────────
+    # ── 3. Fetch flight data ───────────────────────────────────────
     flights = fetch_all_combinations(
         origins=config.ORIGIN_AIRPORTS,
         destinations=config.DESTINATION_AIRPORTS,
@@ -85,29 +83,29 @@ def main():
     )
 
     if not flights:
-        logger.warning("Keine Flüge gefunden. Bitte Konfiguration und API-Key prüfen.")
+        logger.warning("No flights found. Please check your configuration and API key.")
         sys.exit(1)
 
-    logger.info(f"\nGesamt abgerufene Flüge: {len(flights)}")
+    logger.info(f"\nTotal flights retrieved: {len(flights)}")
 
-    # ── 4. Score berechnen ────────────────────────────────────────
+    # ── 4. Calculate scores ────────────────────────────────────────
     df = calculate_scores(flights, value_of_time=config.VALUE_OF_TIME_EUR_PER_HOUR)
 
-    # Optionale Nachfilterung (falls nicht schon in API-Abruf erfolgt)
+    # Optional post-filter (in case not already applied during API fetch)
     df = apply_filters(df, airline_filter=config.AIRLINE_FILTER, max_stops=config.MAX_STOPS)
 
-    # ── 5. Ergebnisse ausgeben ────────────────────────────────────
+    # ── 5. Print results ───────────────────────────────────────────
     print_top_flights(df, top_n=config.TOP_N, value_of_time=config.VALUE_OF_TIME_EUR_PER_HOUR)
     print_summary_table(df, top_n=config.TOP_N)
 
-    # ── 6. Excel-Export ───────────────────────────────────────────
+    # ── 6. Export to Excel ─────────────────────────────────────────
     output_path = export_to_excel(df, output_path=config.EXCEL_OUTPUT_FILE)
     if output_path:
-        logger.info(f"✓ Excel-Datei gespeichert: {output_path}")
+        logger.info(f"Excel file saved: {output_path}")
     else:
-        logger.warning("Excel-Export fehlgeschlagen.")
+        logger.warning("Excel export failed.")
 
-    logger.info("Flight Optimizer abgeschlossen.")
+    logger.info("Flight Optimizer finished.")
 
 
 if __name__ == "__main__":
