@@ -11,6 +11,7 @@ Uses:
 
 import json
 import logging
+import math
 import os
 import time
 import urllib.parse
@@ -136,6 +137,17 @@ def _osrm_driving(lat1: float, lon1: float, lat2: float, lon2: float) -> dict | 
         return None
 
 
+# ── Haversine distance ─────────────────────────────────────────────────────────
+
+def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Great-circle distance in km between two (lat, lon) points."""
+    R = 6371.0
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) ** 2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
 # ── AI estimation ──────────────────────────────────────────────────────────────
 
 def _call_openai(prompt: str, system: str, max_tokens: int = 1400) -> str | None:
@@ -207,7 +219,17 @@ def _ai_transport_estimate(
             code,
             "Use your knowledge of local transport options (public transit, taxi, ride-sharing).",
         )
-        dep_lines.append(f"- {code}: {name}. {hint}")
+        dist_str = ""
+        if home_coords and code in AIRPORT_COORDS:
+            ac = AIRPORT_COORDS[code]
+            dist_km = _haversine_km(home_coords[0], home_coords[1], ac[0], ac[1])
+            # Floor: straight-line distance at 100 km/h effective speed (conservative but not overcorrected)
+            min_minutes = int(dist_km / 100 * 60)
+            dist_str = (
+                f" Straight-line distance: {dist_km:.0f} km. "
+                f"MINIMUM realistic travel time: {min_minutes} min — do NOT go below this."
+            )
+        dep_lines.append(f"- {code}: {name}. {hint}{dist_str}")
 
     arr_lines = []
     for code in dest_airports:
@@ -216,7 +238,16 @@ def _ai_transport_estimate(
             code,
             "Use your knowledge of local transport options (public transit, taxi, ride-sharing).",
         )
-        arr_lines.append(f"- {code}: {name}. {hint}")
+        dist_str = ""
+        if dest_coords and code in AIRPORT_COORDS:
+            ac = AIRPORT_COORDS[code]
+            dist_km = _haversine_km(dest_coords[0], dest_coords[1], ac[0], ac[1])
+            min_minutes = int(dist_km / 100 * 60)
+            dist_str = (
+                f" Straight-line distance: {dist_km:.0f} km. "
+                f"MINIMUM realistic travel time: {min_minutes} min — do NOT go below this."
+            )
+        arr_lines.append(f"- {code}: {name}. {hint}{dist_str}")
 
     all_codes = origin_airports + dest_airports
     json_template = "{\n" + ",\n".join(
@@ -224,7 +255,15 @@ def _ai_transport_estimate(
         for code in all_codes
     ) + "\n}"
 
-    prompt = f"""Estimate realistic door-to-airport (or airport-to-door) travel for the following routes.
+    prompt = f"""Estimate REALISTIC door-to-airport (or airport-to-door) travel times for the following routes.
+
+IMPORTANT RULES:
+- Use the actual distances provided below — do NOT underestimate travel time.
+- Account for urban traffic, connections, waiting times, and typical delays.
+- For Didi/taxi in Chinese cities: average effective speed including traffic is 40–60 km/h.
+- For trains (DB ICE/RE in Germany): include time to reach the station + waiting time.
+- Do NOT estimate times that would require averaging more than 80 km/h door-to-door.
+- Each stated MINIMUM is a hard floor — your estimate must be >= that value.
 
 HOME ADDRESS: {home_address}{coord_hint_home}
 DESTINATION ADDRESS: {dest_address}{coord_hint_dest}
@@ -236,12 +275,12 @@ ARRIVAL AIRPORTS (airport → destination address, one-way travel):
 {chr(10).join(arr_lines)}
 
 For EACH airport code, return an object with:
-  - "time_minutes": one-way travel time estimate (integer)
+  - "time_minutes": one-way travel time estimate in minutes (integer, must respect the stated minimum)
   - "cost_eur": one-way cost estimate in EUR (number, use current rough fares)
   - "mode": short description of transport used (e.g. "Didi + border bus + Airport Express")
-  - "notes": one sentence of explanation
+  - "notes": one sentence of explanation including key distance/time breakdown
 
-Return EXACTLY this JSON structure (no markdown):
+Return EXACTLY this JSON structure (no markdown, no extra text):
 {json_template}""".strip()
 
     raw = _call_openai(prompt, system, max_tokens=1400)
@@ -259,10 +298,32 @@ Return EXACTLY this JSON structure (no markdown):
         if not expected.issubset(data.keys()):
             logger.warning(f"AI response missing some airport keys: {data.keys()}")
             return None
+        # Enforce distance-based minimums regardless of what the AI returned
         for code in expected:
             entry = data[code]
             entry["time_minutes"] = float(entry.get("time_minutes") or 0)
             entry["cost_eur"]     = float(entry.get("cost_eur") or 0)
+            # Compute distance-based floor for this leg
+            if code in origin_airports and home_coords and code in AIRPORT_COORDS:
+                ac = AIRPORT_COORDS[code]
+                dist_km  = _haversine_km(home_coords[0], home_coords[1], ac[0], ac[1])
+                min_mins = dist_km / 100 * 60
+                if entry["time_minutes"] < min_mins:
+                    logger.warning(
+                        f"AI gave {entry['time_minutes']:.0f} min for {code} origin leg "
+                        f"(floor={min_mins:.0f} min, dist={dist_km:.0f} km) — clamping up."
+                    )
+                    entry["time_minutes"] = round(min_mins)
+            elif code in dest_airports and dest_coords and code in AIRPORT_COORDS:
+                ac = AIRPORT_COORDS[code]
+                dist_km  = _haversine_km(dest_coords[0], dest_coords[1], ac[0], ac[1])
+                min_mins = dist_km / 100 * 60
+                if entry["time_minutes"] < min_mins:
+                    logger.warning(
+                        f"AI gave {entry['time_minutes']:.0f} min for {code} dest leg "
+                        f"(floor={min_mins:.0f} min, dist={dist_km:.0f} km) — clamping up."
+                    )
+                    entry["time_minutes"] = round(min_mins)
         return data
     except (json.JSONDecodeError, KeyError, TypeError) as e:
         logger.warning(f"AI response parse error: {e}\nRaw: {raw[:300]}")
