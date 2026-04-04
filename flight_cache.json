@@ -22816,5 +22816,810 @@
       "return_stops": 1,
       "booking_token": "WyJDalJJYzNCNU9IWm5lUzFYYlZGQlJsUTVabWRDUnkwdExTMHRMUzB0TFhaMGRXc3lOa0ZCUVVGQlIyNVNTMHh2U1ZZdFZWRkJFZ3hGU3pRNGZFVkxNekk0SXpFYUN3allsd1VRQWhvRFJWVlNPQnh3emZ3RiIsW1siU1pYIiwiMjAyNi0wNy0yNiIsIkRYQiIsbnVsbCwiRUsiLCIzMjkiXSxbIkRYQiIsIjIwMjYtMDctMjYiLCJGUkEiLG51bGwsIkVLIiwiNDUiXV0sW1siRlJBIiwiMjAyNi0wOC0wMiIsIkRYQiIsbnVsbCwiRUsiLCI0OCJdLFsiRFhCIiwiMjAyNi0wOC0wMyIsIlNaWCIsbnVsbCwiRUsiLCIzMjgiXV1d"
     }
+  },
+  "HKG_NUE_2026-07-24_2026-08-01": {
+    "fetched_at": "2026-04-04 15:42",
+    "results": [
+      {
+        "origin": "HKG",
+        "destination": "NUE",
+        "outbound_date": "2026-07-24",
+        "return_date": "2026-08-01",
+        "price": 1131.0,
+        "currency": "EUR",
+        "duration_minutes": 1775,
+        "stops": 1,
+        "airline": "Lufthansa",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "HKG->FRA->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-24 23:25",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-25 06:20",
+            "airline": "Lufthansa",
+            "flight_number": "LH 797",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 775,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "FRA",
+            "from_name": "Frankfurt Airport",
+            "from_time": "2026-07-25 22:15",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-25 23:00",
+            "airline": "Lufthansa",
+            "flight_number": "LH 148",
+            "aircraft": "Airbus A319",
+            "duration_minutes": 45,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Frankfurt Airport",
+            "airport_id": "FRA",
+            "duration_minutes": 955
+          }
+        ],
+        "departure_token": "WyJDalJJTm0xSU5sbFhVM0oxZGxWQlRFUnhPVUZDUnkwdExTMHRMUzB0TFMxdmVXRmlOMEZCUVVGQlIyNVNUVlZaU0hveFNYTkJFZ3RNU0RjNU4zeE1TREUwT0JvTENQRHlCaEFDR2dORlZWSTRISENQK1FjPSIsW1siSEtHIiwiMjAyNi0wNy0yNCIsIkZSQSIsbnVsbCwiTEgiLCI3OTciXSxbIkZSQSIsIjIwMjYtMDctMjUiLCJOVUUiLG51bGwsIkxIIiwiMTQ4Il1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI0agcIARIDSEtHcgcIARIDTlVFGh4SCjIwMjYtMDgtMDFqBwgBEgNOVUVyBwgBEgNIS0dAAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "HKG",
+        "destination": "NUE",
+        "outbound_date": "2026-07-24",
+        "return_date": "2026-08-01",
+        "price": 1253.0,
+        "currency": "EUR",
+        "duration_minutes": 1220,
+        "stops": 2,
+        "airline": "Lufthansa",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "HKG->FRA->MUC->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-24 23:25",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-25 06:20",
+            "airline": "Lufthansa",
+            "flight_number": "LH 797",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 775,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "FRA",
+            "from_name": "Frankfurt Airport",
+            "from_time": "2026-07-25 08:15",
+            "to_airport": "MUC",
+            "to_name": "Munich International Airport",
+            "to_time": "2026-07-25 09:10",
+            "airline": "Lufthansa",
+            "flight_number": "LH 96",
+            "aircraft": "Airbus A319",
+            "duration_minutes": 55,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "MUC",
+            "from_name": "Munich International Airport",
+            "from_time": "2026-07-25 11:30",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-25 13:45",
+            "airline": "Lufthansa",
+            "flight_number": "LH 3804",
+            "aircraft": "Bus",
+            "duration_minutes": 135,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Frankfurt Airport",
+            "airport_id": "FRA",
+            "duration_minutes": 115
+          },
+          {
+            "airport": "Munich International Airport",
+            "airport_id": "MUC",
+            "duration_minutes": 140
+          }
+        ],
+        "departure_token": "WyJDalJJTm0xSU5sbFhVM0oxZGxWQlRFUnhPVUZDUnkwdExTMHRMUzB0TFMxdmVXRmlOMEZCUVVGQlIyNVNUVlZaU0hveFNYTkJFaEZNU0RjNU4zeE1TRGsyZkV4SU16Z3dOQm9MQ09yU0J4QUNHZ05GVlZJNEhIRFU1d2c9IixbWyJIS0ciLCIyMDI2LTA3LTI0IiwiRlJBIixudWxsLCJMSCIsIjc5NyJdLFsiRlJBIiwiMjAyNi0wNy0yNSIsIk1VQyIsbnVsbCwiTEgiLCI5NiJdLFsiTVVDIiwiMjAyNi0wNy0yNSIsIk5VRSIsbnVsbCwiTEgiLCIzODA0Il1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI0agcIARIDSEtHcgcIARIDTlVFGh4SCjIwMjYtMDgtMDFqBwgBEgNOVUVyBwgBEgNIS0dAAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "HKG",
+        "destination": "NUE",
+        "outbound_date": "2026-07-24",
+        "return_date": "2026-08-01",
+        "price": 1643.0,
+        "currency": "EUR",
+        "duration_minutes": 1020,
+        "stops": 1,
+        "airline": "KLM",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "HKG->AMS->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-24 22:20",
+            "to_airport": "AMS",
+            "to_name": "Amsterdam Airport Schiphol",
+            "to_time": "2026-07-25 06:05",
+            "airline": "KLM",
+            "flight_number": "KL 888",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 825,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "AMS",
+            "from_name": "Amsterdam Airport Schiphol",
+            "from_time": "2026-07-25 08:05",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-25 09:20",
+            "airline": "KLM",
+            "flight_number": "KL 1839",
+            "aircraft": "Embraer 190",
+            "duration_minutes": 75,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Amsterdam Airport Schiphol",
+            "airport_id": "AMS",
+            "duration_minutes": 120
+          }
+        ],
+        "departure_token": "WyJDalJJTm0xSU5sbFhVM0oxZGxWQlRFUnhPVUZDUnkwdExTMHRMUzB0TFMxdmVXRmlOMEZCUVVGQlIyNVNUVlZaU0hveFNYTkJFZ3hMVERnNE9IeExUREU0TXprYUN3akhnd29RQWhvRFJWVlNPQnh3M01ZTCIsW1siSEtHIiwiMjAyNi0wNy0yNCIsIkFNUyIsbnVsbCwiS0wiLCI4ODgiXSxbIkFNUyIsIjIwMjYtMDctMjUiLCJOVUUiLG51bGwsIktMIiwiMTgzOSJdXV0=",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI0agcIARIDSEtHcgcIARIDTlVFGh4SCjIwMjYtMDgtMDFqBwgBEgNOVUVyBwgBEgNIS0dAAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "HKG",
+        "destination": "NUE",
+        "outbound_date": "2026-07-24",
+        "return_date": "2026-08-01",
+        "price": 1253.0,
+        "currency": "EUR",
+        "duration_minutes": 1220,
+        "stops": 2,
+        "airline": "Lufthansa",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "HKG->FRA->MUC->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-24 23:25",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-25 06:20",
+            "airline": "Lufthansa",
+            "flight_number": "LH 797",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 775,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "FRA",
+            "from_name": "Frankfurt Airport",
+            "from_time": "2026-07-25 09:15",
+            "to_airport": "MUC",
+            "to_name": "Munich International Airport",
+            "to_time": "2026-07-25 10:10",
+            "airline": "Lufthansa",
+            "flight_number": "LH 98",
+            "aircraft": "Airbus A321",
+            "duration_minutes": 55,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "MUC",
+            "from_name": "Munich International Airport",
+            "from_time": "2026-07-25 11:30",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-25 13:45",
+            "airline": "Lufthansa",
+            "flight_number": "LH 3804",
+            "aircraft": "Bus",
+            "duration_minutes": 135,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Frankfurt Airport",
+            "airport_id": "FRA",
+            "duration_minutes": 175
+          },
+          {
+            "airport": "Munich International Airport",
+            "airport_id": "MUC",
+            "duration_minutes": 80
+          }
+        ],
+        "departure_token": "WyJDalJJTm0xSU5sbFhVM0oxZGxWQlRFUnhPVUZDUnkwdExTMHRMUzB0TFMxdmVXRmlOMEZCUVVGQlIyNVNUVlZaU0hveFNYTkJFaEZNU0RjNU4zeE1TRGs0ZkV4SU16Z3dOQm9MQ09yU0J4QUNHZ05GVlZJNEhIRFU1d2c9IixbWyJIS0ciLCIyMDI2LTA3LTI0IiwiRlJBIixudWxsLCJMSCIsIjc5NyJdLFsiRlJBIiwiMjAyNi0wNy0yNSIsIk1VQyIsbnVsbCwiTEgiLCI5OCJdLFsiTVVDIiwiMjAyNi0wNy0yNSIsIk5VRSIsbnVsbCwiTEgiLCIzODA0Il1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI0agcIARIDSEtHcgcIARIDTlVFGh4SCjIwMjYtMDgtMDFqBwgBEgNOVUVyBwgBEgNIS0dAAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "HKG",
+        "destination": "NUE",
+        "outbound_date": "2026-07-24",
+        "return_date": "2026-08-01",
+        "price": 1353.0,
+        "currency": "EUR",
+        "duration_minutes": 1050,
+        "stops": 1,
+        "airline": "Lufthansa",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "HKG->FRA->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-24 23:25",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-25 06:20",
+            "airline": "Lufthansa",
+            "flight_number": "LH 797",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 775,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "FRA",
+            "from_name": "Frankfurt Airport",
+            "from_time": "2026-07-25 10:10",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-25 10:55",
+            "airline": "Lufthansa",
+            "flight_number": "LH 142",
+            "aircraft": "Airbus A319",
+            "duration_minutes": 45,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Frankfurt Airport",
+            "airport_id": "FRA",
+            "duration_minutes": 230
+          }
+        ],
+        "departure_token": "WyJDalJJTm0xSU5sbFhVM0oxZGxWQlRFUnhPVUZDUnkwdExTMHRMUzB0TFMxdmVXRmlOMEZCUVVGQlIyNVNUVlZaU0hveFNYTkJFZ3RNU0RjNU4zeE1TREUwTWhvTENObWdDQkFDR2dORlZWSTRISEN2d1FrPSIsW1siSEtHIiwiMjAyNi0wNy0yNCIsIkZSQSIsbnVsbCwiTEgiLCI3OTciXSxbIkZSQSIsIjIwMjYtMDctMjUiLCJOVUUiLG51bGwsIkxIIiwiMTQyIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI0agcIARIDSEtHcgcIARIDTlVFGh4SCjIwMjYtMDgtMDFqBwgBEgNOVUVyBwgBEgNIS0dAAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "HKG",
+        "destination": "NUE",
+        "outbound_date": "2026-07-24",
+        "return_date": "2026-08-01",
+        "price": 1486.0,
+        "currency": "EUR",
+        "duration_minutes": 1020,
+        "stops": 1,
+        "airline": "Cathay Pacific",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "HKG->FRA->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-24 23:55",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-25 07:15",
+            "airline": "Cathay Pacific",
+            "flight_number": "CX 289",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 800,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "FRA",
+            "from_name": "Frankfurt Airport",
+            "from_time": "2026-07-25 10:10",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-25 10:55",
+            "airline": "Lufthansa",
+            "flight_number": "LH 142",
+            "aircraft": "Airbus A319",
+            "duration_minutes": 45,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Frankfurt Airport",
+            "airport_id": "FRA",
+            "duration_minutes": 175
+          }
+        ],
+        "departure_token": "WyJDalJJTm0xSU5sbFhVM0oxZGxWQlRFUnhPVUZDUnkwdExTMHRMUzB0TFMxdmVXRmlOMEZCUVVGQlIyNVNUVlZaU0hveFNYTkJFZ3REV0RJNE9YeE1TREUwTWhvTENNT0lDUkFDR2dORlZWSTRISEQrdUFvPSIsW1siSEtHIiwiMjAyNi0wNy0yNCIsIkZSQSIsbnVsbCwiQ1giLCIyODkiXSxbIkZSQSIsIjIwMjYtMDctMjUiLCJOVUUiLG51bGwsIkxIIiwiMTQyIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI0agcIARIDSEtHcgcIARIDTlVFGh4SCjIwMjYtMDgtMDFqBwgBEgNOVUVyBwgBEgNIS0dAAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "HKG",
+        "destination": "NUE",
+        "outbound_date": "2026-07-24",
+        "return_date": "2026-08-01",
+        "price": 2200.0,
+        "currency": "EUR",
+        "duration_minutes": 1030,
+        "stops": 1,
+        "airline": "Turkish Airlines",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "HKG->IST->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-24 22:30",
+            "to_airport": "IST",
+            "to_name": "Istanbul Airport",
+            "to_time": "2026-07-25 05:00",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 71",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 690,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "IST",
+            "from_name": "Istanbul Airport",
+            "from_time": "2026-07-25 07:50",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-25 09:40",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 1503",
+            "aircraft": "Airbus A321 (Sharklets)",
+            "duration_minutes": 170,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Istanbul Airport",
+            "airport_id": "IST",
+            "duration_minutes": 170
+          }
+        ],
+        "departure_token": "WyJDalJJTm0xSU5sbFhVM0oxZGxWQlRFUnhPVUZDUnkwdExTMHRMUzB0TFMxdmVXRmlOMEZCUVVGQlIyNVNUVlZaU0hveFNYTkJFZ3RVU3pjeGZGUkxNVFV3TXhvTENNQzJEUkFDR2dORlZWSTRISERtdXc4PSIsW1siSEtHIiwiMjAyNi0wNy0yNCIsIklTVCIsbnVsbCwiVEsiLCI3MSJdLFsiSVNUIiwiMjAyNi0wNy0yNSIsIk5VRSIsbnVsbCwiVEsiLCIxNTAzIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI0agcIARIDSEtHcgcIARIDTlVFGh4SCjIwMjYtMDgtMDFqBwgBEgNOVUVyBwgBEgNIS0dAAUgBcAGYAQE&tfu=EgIIAQ"
+      }
+    ]
+  },
+  "HKG_NUE_2026-07-25_2026-08-03": {
+    "fetched_at": "2026-04-04 15:44",
+    "results": [
+      {
+        "origin": "HKG",
+        "destination": "NUE",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-03",
+        "price": 1063.0,
+        "currency": "EUR",
+        "duration_minutes": 1020,
+        "stops": 1,
+        "airline": "Lufthansa",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "HKG->FRA->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 23:25",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 06:20",
+            "airline": "Lufthansa",
+            "flight_number": "LH 797",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 775,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "FRA",
+            "from_name": "Frankfurt Airport",
+            "from_time": "2026-07-26 09:40",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-26 10:25",
+            "airline": "Lufthansa",
+            "flight_number": "LH 142",
+            "aircraft": "Airbus A319",
+            "duration_minutes": 45,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Frankfurt Airport",
+            "airport_id": "FRA",
+            "duration_minutes": 200
+          }
+        ],
+        "departure_token": "WyJDalJJUVdFdE4yaEdRVVZ0TTJkQlRIRllla0ZDUnkwdExTMHRMUzB0YjNsamFXa3hORUZCUVVGQlIyNVNUV00wVFZsS1JsTkJFZ3RNU0RjNU4zeE1TREUwTWhvTENLMitCaEFDR2dORlZWSTRISERPdkFjPSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkZSQSIsbnVsbCwiTEgiLCI3OTciXSxbIkZSQSIsIjIwMjYtMDctMjYiLCJOVUUiLG51bGwsIkxIIiwiMTQyIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI1agcIARIDSEtHcgcIARIDTlVFGh4SCjIwMjYtMDgtMDNqBwgBEgNOVUVyBwgBEgNIS0dAAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "HKG",
+        "destination": "NUE",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-03",
+        "price": 1414.0,
+        "currency": "EUR",
+        "duration_minutes": 990,
+        "stops": 1,
+        "airline": "Cathay Pacific",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "HKG->FRA->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 23:55",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 07:15",
+            "airline": "Cathay Pacific",
+            "flight_number": "CX 289",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 800,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "FRA",
+            "from_name": "Frankfurt Airport",
+            "from_time": "2026-07-26 09:40",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-26 10:25",
+            "airline": "Lufthansa",
+            "flight_number": "LH 142",
+            "aircraft": "Airbus A319",
+            "duration_minutes": 45,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Frankfurt Airport",
+            "airport_id": "FRA",
+            "duration_minutes": 145
+          }
+        ],
+        "departure_token": "WyJDalJJUVdFdE4yaEdRVVZ0TTJkQlRIRllla0ZDUnkwdExTMHRMUzB0YjNsamFXa3hORUZCUVVGQlIyNVNUV00wVFZsS1JsTkJFZ3REV0RJNE9YeE1TREUwTWhvTENLVFFDQkFDR2dORlZWSTRISENZK0FrPSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkZSQSIsbnVsbCwiQ1giLCIyODkiXSxbIkZSQSIsIjIwMjYtMDctMjYiLCJOVUUiLG51bGwsIkxIIiwiMTQyIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI1agcIARIDSEtHcgcIARIDTlVFGh4SCjIwMjYtMDgtMDNqBwgBEgNOVUVyBwgBEgNIS0dAAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "HKG",
+        "destination": "NUE",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-03",
+        "price": 1551.0,
+        "currency": "EUR",
+        "duration_minutes": 1730,
+        "stops": 1,
+        "airline": "Air France",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "HKG->CDG->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 22:20",
+            "to_airport": "CDG",
+            "to_name": "Paris Charles de Gaulle Airport",
+            "to_time": "2026-07-26 05:50",
+            "airline": "Air France",
+            "flight_number": "AF 185",
+            "aircraft": "Airbus A350",
+            "duration_minutes": 810,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "CDG",
+            "from_name": "Paris Charles de Gaulle Airport",
+            "from_time": "2026-07-26 19:45",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-26 21:10",
+            "airline": "Air France",
+            "flight_number": "AF 1310",
+            "aircraft": "Embraer 190",
+            "duration_minutes": 85,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Paris Charles de Gaulle Airport",
+            "airport_id": "CDG",
+            "duration_minutes": 835
+          }
+        ],
+        "departure_token": "WyJDalJJUVdFdE4yaEdRVVZ0TTJkQlRIRllla0ZDUnkwdExTMHRMUzB0YjNsamFXa3hORUZCUVVGQlIyNVNUV00wVFZsS1JsTkJFZ3hCUmpFNE5YeEJSakV6TVRBYUN3aUd1d2tRQWhvRFJWVlNPQnh3bVBNSyIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkNERyIsbnVsbCwiQUYiLCIxODUiXSxbIkNERyIsIjIwMjYtMDctMjYiLCJOVUUiLG51bGwsIkFGIiwiMTMxMCJdXV0=",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI1agcIARIDSEtHcgcIARIDTlVFGh4SCjIwMjYtMDgtMDNqBwgBEgNOVUVyBwgBEgNIS0dAAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "HKG",
+        "destination": "NUE",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-03",
+        "price": 1579.0,
+        "currency": "EUR",
+        "duration_minutes": 1280,
+        "stops": 2,
+        "airline": "Air France",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "HKG->CDG->AMS->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 22:20",
+            "to_airport": "CDG",
+            "to_name": "Paris Charles de Gaulle Airport",
+            "to_time": "2026-07-26 05:50",
+            "airline": "Air France",
+            "flight_number": "AF 185",
+            "aircraft": "Airbus A350",
+            "duration_minutes": 810,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "CDG",
+            "from_name": "Paris Charles de Gaulle Airport",
+            "from_time": "2026-07-26 09:40",
+            "to_airport": "AMS",
+            "to_name": "Amsterdam Airport Schiphol",
+            "to_time": "2026-07-26 10:55",
+            "airline": "KLM",
+            "flight_number": "KL 1404",
+            "aircraft": "Boeing 737",
+            "duration_minutes": 75,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "AMS",
+            "from_name": "Amsterdam Airport Schiphol",
+            "from_time": "2026-07-26 12:25",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-26 13:40",
+            "airline": "KLM",
+            "flight_number": "KL 1843",
+            "aircraft": "Embraer 190",
+            "duration_minutes": 75,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Paris Charles de Gaulle Airport",
+            "airport_id": "CDG",
+            "duration_minutes": 230
+          },
+          {
+            "airport": "Amsterdam Airport Schiphol",
+            "airport_id": "AMS",
+            "duration_minutes": 90
+          }
+        ],
+        "departure_token": "WyJDalJJUVdFdE4yaEdRVVZ0TTJkQlRIRllla0ZDUnkwdExTMHRMUzB0YjNsamFXa3hORUZCUVVGQlIyNVNUV00wVFZsS1JsTkJFaE5CUmpFNE5YeExUREUwTURSOFMwd3hPRFF6R2dzSTdkQUpFQUlhQTBWVlVqZ2NjS2VNQ3c9PSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkNERyIsbnVsbCwiQUYiLCIxODUiXSxbIkNERyIsIjIwMjYtMDctMjYiLCJBTVMiLG51bGwsIktMIiwiMTQwNCJdLFsiQU1TIiwiMjAyNi0wNy0yNiIsIk5VRSIsbnVsbCwiS0wiLCIxODQzIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI1agcIARIDSEtHcgcIARIDTlVFGh4SCjIwMjYtMDgtMDNqBwgBEgNOVUVyBwgBEgNIS0dAAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "HKG",
+        "destination": "NUE",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-03",
+        "price": 1579.0,
+        "currency": "EUR",
+        "duration_minutes": 1280,
+        "stops": 2,
+        "airline": "Air France",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "HKG->CDG->AMS->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 22:20",
+            "to_airport": "CDG",
+            "to_name": "Paris Charles de Gaulle Airport",
+            "to_time": "2026-07-26 05:50",
+            "airline": "Air France",
+            "flight_number": "AF 185",
+            "aircraft": "Airbus A350",
+            "duration_minutes": 810,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "CDG",
+            "from_name": "Paris Charles de Gaulle Airport",
+            "from_time": "2026-07-26 10:15",
+            "to_airport": "AMS",
+            "to_name": "Amsterdam Airport Schiphol",
+            "to_time": "2026-07-26 11:30",
+            "airline": "KLM",
+            "flight_number": "KL 1406",
+            "aircraft": "Boeing 737",
+            "duration_minutes": 75,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "AMS",
+            "from_name": "Amsterdam Airport Schiphol",
+            "from_time": "2026-07-26 12:25",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-26 13:40",
+            "airline": "KLM",
+            "flight_number": "KL 1843",
+            "aircraft": "Embraer 190",
+            "duration_minutes": 75,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Paris Charles de Gaulle Airport",
+            "airport_id": "CDG",
+            "duration_minutes": 265
+          },
+          {
+            "airport": "Amsterdam Airport Schiphol",
+            "airport_id": "AMS",
+            "duration_minutes": 55
+          }
+        ],
+        "departure_token": "WyJDalJJUVdFdE4yaEdRVVZ0TTJkQlRIRllla0ZDUnkwdExTMHRMUzB0YjNsamFXa3hORUZCUVVGQlIyNVNUV00wVFZsS1JsTkJFaE5CUmpFNE5YeExUREUwTURaOFMwd3hPRFF6R2dzSTdkQUpFQUlhQTBWVlVqZ2NjS2VNQ3c9PSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkNERyIsbnVsbCwiQUYiLCIxODUiXSxbIkNERyIsIjIwMjYtMDctMjYiLCJBTVMiLG51bGwsIktMIiwiMTQwNiJdLFsiQU1TIiwiMjAyNi0wNy0yNiIsIk5VRSIsbnVsbCwiS0wiLCIxODQzIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI1agcIARIDSEtHcgcIARIDTlVFGh4SCjIwMjYtMDgtMDNqBwgBEgNOVUVyBwgBEgNIS0dAAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "HKG",
+        "destination": "NUE",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-03",
+        "price": 2422.0,
+        "currency": "EUR",
+        "duration_minutes": 1030,
+        "stops": 1,
+        "airline": "Turkish Airlines",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "HKG->IST->NUE",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 22:30",
+            "to_airport": "IST",
+            "to_name": "Istanbul Airport",
+            "to_time": "2026-07-26 05:00",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 71",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 690,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "IST",
+            "from_name": "Istanbul Airport",
+            "from_time": "2026-07-26 07:50",
+            "to_airport": "NUE",
+            "to_name": "Nuremberg Airport",
+            "to_time": "2026-07-26 09:40",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 1503",
+            "aircraft": "Airbus A321 (Sharklets)",
+            "duration_minutes": 170,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Istanbul Airport",
+            "airport_id": "IST",
+            "duration_minutes": 170
+          }
+        ],
+        "departure_token": "WyJDalJJUVdFdE4yaEdRVVZ0TTJkQlRIRllla0ZDUnkwdExTMHRMUzB0YjNsamFXa3hORUZCUVVGQlIyNVNUV00wVFZsS1JsTkJFZ3RVU3pjeGZGUkxNVFV3TXhvTENNYmpEaEFDR2dORlZWSTRISENVZ3hFPSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIklTVCIsbnVsbCwiVEsiLCI3MSJdLFsiSVNUIiwiMjAyNi0wNy0yNiIsIk5VRSIsbnVsbCwiVEsiLCIxNTAzIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI1agcIARIDSEtHcgcIARIDTlVFGh4SCjIwMjYtMDgtMDNqBwgBEgNOVUVyBwgBEgNIS0dAAUgBcAGYAQE&tfu=EgIIAQ"
+      }
+    ]
   }
 }

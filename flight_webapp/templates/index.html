@@ -396,6 +396,21 @@
             </template>
           </div>
         </div>
+
+        <!-- Miles program filter -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Miles program</label>
+          <button type="button"
+                  class="flex items-center gap-1.5 px-3 py-1 text-sm rounded-lg border transition-colors font-medium"
+                  :class="starAllianceOnly
+                    ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
+                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+                  @click="starAllianceOnly = !starAllianceOnly; applyFilters(); rescored = rawResults.length > 0"
+                  title="Show only Star Alliance member airlines (Lufthansa, Air China, SWISS, Austrian, Singapore, Thai, Turkish, ANA…)">
+            <span>★</span>
+            <span>Star Alliance</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -411,7 +426,9 @@
     <div x-show="rawResults.length > 0 && results.length === 0 && !searching"
          class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center text-slate-400">
       <p class="text-lg font-semibold text-slate-500">No flights match this filter</p>
-      <p class="text-sm mt-1">Try relaxing the Max Stops or Show Top filter above.</p>
+      <p class="text-sm mt-1">
+        Try relaxing Max Stops, Show Top<span x-show="starAllianceOnly">, or turning off the Star Alliance filter</span>.
+      </p>
     </div>
 
     <!-- Results Header + Export -->
@@ -898,6 +915,7 @@ function flightApp() {
     stopPenalty: 75,
     displayTopN: 5,
     displayMaxStops: '',
+    starAllianceOnly: false,
 
     // API usage + re-scoring state
     apiUsage: { count: 0, month: '', limit: 250, remaining: 250, pct_used: 0, source: '' },
@@ -923,8 +941,9 @@ function flightApp() {
       this.$watch('destAddress', v => sessionStorage.setItem('fo_destAddress', v));
       // Live Filters: all four re-apply instantly on change (no new API call)
       const liveReapply = () => { if (this.rawResults.length > 0) { this.applyFilters(); this.rescored = true; } };
-      this.$watch('valueOfTime',    liveReapply);
-      this.$watch('stopPenalty',    liveReapply);
+      this.$watch('valueOfTime',      liveReapply);
+      this.$watch('stopPenalty',      liveReapply);
+      this.$watch('starAllianceOnly', liveReapply);
       this.fetchUsage();
     },
 
@@ -975,7 +994,22 @@ function flightApp() {
         return Math.max(outSt, retSt) <= maxSt;
       });
 
-      // 3. Sort by score, assign ranks, slice to displayTopN
+      // 3. Star Alliance filter — keeps only flights whose main airline is a Star Alliance member
+      if (this.starAllianceOnly) {
+        const SA = ['lufthansa', 'swiss', 'austrian', 'brussels', 'air china',
+          'air india', 'singapore airlines', 'singapore', 'thai airways', 'thai',
+          'all nippon', 'turkish airlines', 'turkish', 'united airlines', 'united',
+          'air canada', 'shenzhen', 'asiana', 'tap air', 'tap portugal',
+          'lot polish', 'scandinavian', 'sas', 'ethiopian', 'egyptair',
+          'south african', 'avianca', 'copa airlines', 'croatia airlines',
+          'aegean', 'air new zealand'];
+        pool = pool.filter(f => {
+          const a = (f.airline || '').toLowerCase();
+          return SA.some(t => a.includes(t));
+        });
+      }
+
+      // 4. Sort by score, assign ranks, slice to displayTopN
       pool.sort((a, b) => a.score - b.score);
       this.results = pool
         .map((f, i) => ({ ...f, rank: i + 1 }))
