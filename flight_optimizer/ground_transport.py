@@ -198,45 +198,36 @@ def _ai_transport_estimate(
     Returns {code: {...}} for all requested airports, or None if AI is unavailable.
     """
     system = (
-        "You are a travel logistics expert who knows public transport, Didi, Deutsche Bahn, "
-        "metro systems, and airport ground transport worldwide. "
-        "You respond ONLY with a valid JSON object, no markdown fences, no extra text."
+        "You are a precise travel logistics calculator. "
+        "You estimate door-to-airport travel time by computing each leg of the journey step by step "
+        "using the speed benchmarks provided. "
+        "You respond ONLY with a valid JSON object — no markdown, no explanation, no extra text."
     )
 
-    coord_hint_home = (
-        f" (approx coords {home_coords[0]:.4f},{home_coords[1]:.4f})"
-        if home_coords else ""
-    )
-    coord_hint_dest = (
-        f" (approx coords {dest_coords[0]:.4f},{dest_coords[1]:.4f})"
-        if dest_coords else ""
-    )
-
+    # Build per-leg distance info
     dep_lines = []
     for code in origin_airports:
         name = AIRPORT_NAMES.get(code, f"{code} Airport")
         hint = _ORIGIN_HINTS.get(
             code,
-            "Use your knowledge of local transport options (public transit, taxi, ride-sharing).",
+            "Use taxi/ride-share or local public transport.",
         )
         dist_str = ""
         if home_coords and code in AIRPORT_COORDS:
             ac = AIRPORT_COORDS[code]
             dist_km = _haversine_km(home_coords[0], home_coords[1], ac[0], ac[1])
-            # Floor: straight-line distance at 100 km/h effective speed (conservative but not overcorrected)
             min_minutes = int(dist_km / 100 * 60)
             dist_str = (
-                f" Straight-line distance: {dist_km:.0f} km. "
-                f"MINIMUM realistic travel time: {min_minutes} min — do NOT go below this."
+                f" [Straight-line: {dist_km:.0f} km → hard minimum: {min_minutes} min]"
             )
-        dep_lines.append(f"- {code}: {name}. {hint}{dist_str}")
+        dep_lines.append(f"  • {code} ({name}): {hint}{dist_str}")
 
     arr_lines = []
     for code in dest_airports:
         name = AIRPORT_NAMES.get(code, f"{code} Airport")
         hint = _DEST_HINTS.get(
             code,
-            "Use your knowledge of local transport options (public transit, taxi, ride-sharing).",
+            "Use taxi/ride-share or local public transport.",
         )
         dist_str = ""
         if dest_coords and code in AIRPORT_COORDS:
@@ -244,10 +235,9 @@ def _ai_transport_estimate(
             dist_km = _haversine_km(dest_coords[0], dest_coords[1], ac[0], ac[1])
             min_minutes = int(dist_km / 100 * 60)
             dist_str = (
-                f" Straight-line distance: {dist_km:.0f} km. "
-                f"MINIMUM realistic travel time: {min_minutes} min — do NOT go below this."
+                f" [Straight-line: {dist_km:.0f} km → hard minimum: {min_minutes} min]"
             )
-        arr_lines.append(f"- {code}: {name}. {hint}{dist_str}")
+        arr_lines.append(f"  • {code} ({name}): {hint}{dist_str}")
 
     all_codes = origin_airports + dest_airports
     json_template = "{\n" + ",\n".join(
@@ -255,32 +245,48 @@ def _ai_transport_estimate(
         for code in all_codes
     ) + "\n}"
 
-    prompt = f"""Estimate REALISTIC door-to-airport (or airport-to-door) travel times for the following routes.
+    prompt = f"""Calculate realistic door-to-airport travel time for each route below.
 
-IMPORTANT RULES:
-- Use the actual distances provided below — do NOT underestimate travel time.
-- Account for urban traffic, connections, waiting times, and typical delays.
-- For Didi/taxi in Chinese cities: average effective speed including traffic is 40–60 km/h.
-- For trains (DB ICE/RE in Germany): include time to reach the station + waiting time.
-- Do NOT estimate times that would require averaging more than 80 km/h door-to-door.
-- Each stated MINIMUM is a hard floor — your estimate must be >= that value.
+━━━ CALCULATION RULES ━━━
+Step 1 – Identify best transport mode given distance and location.
+Step 2 – Estimate each segment of the journey (home→station, station→airport, etc.).
+Step 3 – Sum segments. Apply the hard minimum from the distance shown. Your answer must be ≥ that minimum.
 
-HOME ADDRESS: {home_address}{coord_hint_home}
-DESTINATION ADDRESS: {dest_address}{coord_hint_dest}
+SPEED BENCHMARKS (use these, do not deviate without strong reason):
+  Chinese ride-hail (Didi) in urban/suburban mix:  40–50 km/h effective (includes slow urban exits)
+  Chinese Didi on intercity expressway (>50 km):   60–70 km/h on highway + 20–30 min urban exits
+  Shenzhen Metro (Line 11 Airport Express):         45–75 min from Nanshan/Futian to SZX
+  Cross-boundary ferry (Shekou→HKG):               35 min crossing + 30 min pre-board = 65 min on-site
+  German Autobahn (own car or taxi):               110 km/h on open highway; add 20–30 min for rural access
+  German rural access to train station:            15–30 min by taxi (add to all rail options)
+  German DB ICE (Nürnberg→Frankfurt):              75–85 min (city-to-city); add station connections
+  German DB regional (RE, S-Bahn):                 40–60 km/h average incl. stops
+  For any leg >100 km: road distance ≈ straight-line × 1.3; rail ≈ straight-line × 1.15
 
-DEPARTURE AIRPORTS (home address → airport, one-way travel):
+REFERENCE CALIBRATION EXAMPLES (verified real-world times — use to validate your estimates):
+  Shekou/Nanshan, Shenzhen → SZX (28km road):  60 min Didi, €14
+  Shekou/Nanshan, Shenzhen → HKG (~20km, but water gap):  85 min (Didi+ferry), €27
+  Shekou/Nanshan, Shenzhen → CAN (145km road via G4):  150 min Didi, €48
+  Hemhofen/Zeckern (near Erlangen, Bavaria) → NUE (32km road):  40 min own car, €50 taxi
+  Hemhofen/Zeckern (near Erlangen, Bavaria) → MUC (178km via A9+A92):  115 min own car, €22 fuel
+  Hemhofen/Zeckern (near Erlangen, Bavaria) → FRA (220km, but train is faster):
+    15min taxi to Erlangen Bf + 20min RE to Nürnberg + 80min ICE to Frankfurt Flughafen = 130 min, €73
+
+━━━ ROUTES TO ESTIMATE ━━━
+HOME ADDRESS: {home_address}
+  (coords: {f"{home_coords[0]:.4f},{home_coords[1]:.4f}" if home_coords else "unknown"})
+
+DEPARTURE AIRPORTS (home → airport):
 {chr(10).join(dep_lines)}
 
-ARRIVAL AIRPORTS (airport → destination address, one-way travel):
+DESTINATION ADDRESS: {dest_address}
+  (coords: {f"{dest_coords[0]:.4f},{dest_coords[1]:.4f}" if dest_coords else "unknown"})
+
+ARRIVAL AIRPORTS (airport → destination):
 {chr(10).join(arr_lines)}
 
-For EACH airport code, return an object with:
-  - "time_minutes": one-way travel time estimate in minutes (integer, must respect the stated minimum)
-  - "cost_eur": one-way cost estimate in EUR (number, use current rough fares)
-  - "mode": short description of transport used (e.g. "Didi + border bus + Airport Express")
-  - "notes": one sentence of explanation including key distance/time breakdown
-
-Return EXACTLY this JSON structure (no markdown, no extra text):
+━━━ OUTPUT FORMAT ━━━
+Return ONLY this JSON (no markdown, no extra text). time_minutes must be ≥ the hard minimum shown:
 {json_template}""".strip()
 
     raw = _call_openai(prompt, system, max_tokens=1400)

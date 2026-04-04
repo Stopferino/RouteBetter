@@ -1,64 +1,58 @@
 {
-  "shenzhen shuiwan 1979|hemhofen goethestr. 9|CAN,FRA,HKG,MUC,NUE,SZX": {
+  "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国|9, goethestraße, zeckern, hemhofen, landkreis erlangen-höchstadt, bayern, 91334,|CAN,FRA,HKG,MUC,NUE,SZX": {
     "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
     "dest_display": "9, Goethestraße, Zeckern, Hemhofen, Landkreis Erlangen-Höchstadt, Bayern, 91334, Deutschland",
-    "home_coords": [
-      22.4925961,
-      113.9137107
-    ],
-    "dest_coords": [
-      49.6937595,
-      10.9350205
-    ],
+    "home_coords": [22.4926, 113.9137],
+    "dest_coords": [49.6938, 10.9350],
     "ai_powered": true,
     "legs": {
-      "HKG": {
-        "time_minutes": 20.0,
-        "cost_eur": 30.0,
-        "mode": "Didi + border bus + Airport Express",
-        "notes": "Approximately 10 min for Didi to Shenzhen Bay Port, 30 min for border crossing and bus, and 10 min Airport Express.",
-        "cost": 30.0,
-        "duration_minutes": 20.0
-      },
       "SZX": {
-        "time_minutes": 15.0,
-        "cost_eur": 15.0,
-        "mode": "Shenzhen Metro Airport Express Line",
-        "notes": "Includes 4-5 min to the metro station and waiting times.",
-        "cost": 15.0,
-        "duration_minutes": 15.0
+        "time_minutes": 60.0,
+        "cost_eur": 14.0,
+        "mode": "Didi",
+        "notes": "28km road via Shennan Ave/G107; ~45 km/h effective in Shenzhen traffic.",
+        "cost": 14.0,
+        "duration_minutes": 60.0
+      },
+      "HKG": {
+        "time_minutes": 85.0,
+        "cost_eur": 27.0,
+        "mode": "Didi to Shekou Ferry Terminal + cross-boundary ferry",
+        "notes": "5min Didi to Shekou pier + 30min pre-board + 35min ferry to HKG. Best option from Shekou.",
+        "cost": 27.0,
+        "duration_minutes": 85.0
       },
       "CAN": {
-        "time_minutes": 80.0,
-        "cost_eur": 40.0,
-        "mode": "Didi",
-        "notes": "Direct Didi journey accounting for urban traffic delays on a 118 km route.",
-        "cost": 40.0,
-        "duration_minutes": 80.0
-      },
-      "FRA": {
-        "time_minutes": 110.0,
-        "cost_eur": 40.0,
-        "mode": "Deutsche Bahn ICE/RE",
-        "notes": "Includes 20 min to Frankfurt Hbf plus waiting and transfer time.",
-        "cost": 40.0,
-        "duration_minutes": 110.0
-      },
-      "MUC": {
-        "time_minutes": 100.0,
-        "cost_eur": 45.0,
-        "mode": "S-Bahn/Regional bus",
-        "notes": "Includes 30 min to Munich city center plus transit time to Hemhofen.",
-        "cost": 45.0,
-        "duration_minutes": 100.0
+        "time_minutes": 150.0,
+        "cost_eur": 48.0,
+        "mode": "Didi via Guangshen Expressway (G4)",
+        "notes": "~145km road: 30min Shenzhen urban exit + 70min G4 highway + 25min airport approach.",
+        "cost": 48.0,
+        "duration_minutes": 150.0
       },
       "NUE": {
-        "time_minutes": 20.0,
-        "cost_eur": 10.0,
-        "mode": "Public transport (U2 metro + regional train)",
-        "notes": "Includes 5 min to Nuremberg U2 metro station and connection time.",
-        "cost": 10.0,
-        "duration_minutes": 20.0
+        "time_minutes": 40.0,
+        "cost_eur": 50.0,
+        "mode": "Taxi or own car via A73/B8",
+        "notes": "32km rural road via B8 then Autobahn spur; 35-45min. Taxi ~€50, own car much cheaper.",
+        "cost": 50.0,
+        "duration_minutes": 40.0
+      },
+      "MUC": {
+        "time_minutes": 115.0,
+        "cost_eur": 22.0,
+        "mode": "Own car via A9 + A92",
+        "notes": "178km Autobahn (A9 south then A92 east to airport); 100min highway + 15min rural exit. Train via Nürnberg+Munich Hbf takes 2h30+ — not practical.",
+        "cost": 22.0,
+        "duration_minutes": 115.0
+      },
+      "FRA": {
+        "time_minutes": 130.0,
+        "cost_eur": 73.0,
+        "mode": "Taxi to Erlangen Bf + RE to Nürnberg + ICE to Frankfurt Airport Fbf",
+        "notes": "15min taxi to Erlangen Bf (€15) + 20min RE to Nürnberg + 20min transfer + 80min ICE to Frankfurt Flughafen Fernbahnhof (€58 Sparpreis).",
+        "cost": 73.0,
+        "duration_minutes": 130.0
       }
     }
   }
