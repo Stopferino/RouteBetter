@@ -94,15 +94,21 @@ def fetch_flights(
     # Fehlerprüfung in der API-Antwort (auch bei HTTP 4xx/5xx)
     if "error" in data:
         err_msg = data["error"]
+
+        # Keine Ergebnisse = normaler Fall, kein echter Fehler
+        if "hasn't returned any results" in err_msg or "no results" in err_msg.lower():
+            logger.warning(f"Keine Ergebnisse für {origin}→{destination} | {outbound_date}↔{return_date} (übersprungen)")
+            return []
+
+        # Echte Fehler → ERROR + ggf. Abbruch
         logger.error(f"SerpApi-Fehler: {err_msg}")
 
-        # Verständliche Hinweise für häufige Fehler
         if "past" in err_msg.lower():
             logger.error(
                 "  → Das Datum liegt in der Vergangenheit! "
                 "Bitte OUTBOUND_DATE und RETURN_DATE in config.py auf ein zukünftiges Datum setzen."
             )
-            sys.exit(1)  # Sofort abbrechen, alle anderen Anfragen würden ebenfalls scheitern
+            sys.exit(1)
         if "api_key" in err_msg.lower() or "invalid" in err_msg.lower():
             logger.error("  → Ungültiger oder abgelaufener SERPAPI_KEY.")
             sys.exit(1)
