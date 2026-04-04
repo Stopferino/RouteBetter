@@ -253,5 +253,68 @@
         "duration_minutes": 50.0
       }
     }
+  },
+  "shenzhen shuiwan 1979|erlangen hbf|CAN,FRA,HKG,MUC,NUE,SZX": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "Hauptbahnhof, Parkplatzstraße, Innenstadt, Erlangen, Bayern, 91054, Deutschland",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": [
+      49.5955417,
+      11.0005867
+    ],
+    "ai_powered": true,
+    "legs": {
+      "HKG": {
+        "time_minutes": 85.0,
+        "cost_eur": 27.0,
+        "mode": "Didi+ferry",
+        "notes": "Didi to Shenzhen Bay Port, ferry crossing, bus or Airport Express to HKG.",
+        "cost": 27.0,
+        "duration_minutes": 85.0
+      },
+      "SZX": {
+        "time_minutes": 35.0,
+        "cost_eur": 10.0,
+        "mode": "Metro",
+        "notes": "Shenzhen Metro Airport Express Line directly to SZX.",
+        "cost": 10.0,
+        "duration_minutes": 35.0
+      },
+      "CAN": {
+        "time_minutes": 150.0,
+        "cost_eur": 48.0,
+        "mode": "Didi",
+        "notes": "Didi from home directly to CAN.",
+        "cost": 48.0,
+        "duration_minutes": 150.0
+      },
+      "NUE": {
+        "time_minutes": 30.0,
+        "cost_eur": 10.0,
+        "mode": "Public transport",
+        "notes": "U2 metro to Nuremberg city, then connecting regional train.",
+        "cost": 10.0,
+        "duration_minutes": 30.0
+      },
+      "MUC": {
+        "time_minutes": 120.0,
+        "cost_eur": 35.0,
+        "mode": "DB",
+        "notes": "Deutsche Bahn from Nuremberg to Munich.",
+        "cost": 35.0,
+        "duration_minutes": 120.0
+      },
+      "FRA": {
+        "time_minutes": 130.0,
+        "cost_eur": 73.0,
+        "mode": "DB ICE/RE",
+        "notes": "Deutsche Bahn ICE or RE from Nuremberg to Frankfurt Flughafen.",
+        "cost": 73.0,
+        "duration_minutes": 130.0
+      }
+    }
   }
 }

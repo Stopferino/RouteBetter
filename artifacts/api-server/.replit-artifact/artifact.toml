@@ -38,3 +38,12 @@ paths = ["/"]
 
 [services.development]
 run = "cd /home/runner/workspace && PORT=8000 python3 -m uvicorn flight_webapp.app:app --host 0.0.0.0 --port 8000"
+
+[services.production.run]
+args = ["bash", "start_prod.sh"]
+
+[services.production.run.env]
+NODE_ENV = "production"
+
+[services.production.health.startup]
+path = "/health"

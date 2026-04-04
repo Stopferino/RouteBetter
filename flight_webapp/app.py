@@ -24,6 +24,11 @@ def _date_variants(d: str, window: int) -> list:
     return [str(base + timedelta(days=i)) for i in range(-window, window + 1)]
 
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 @app.get("/", response_class=HTMLResponse)
 async def index():
     with open(_TEMPLATE_PATH, encoding="utf-8") as f:
