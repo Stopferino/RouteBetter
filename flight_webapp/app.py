@@ -26,7 +26,7 @@ async def index():
         return HTMLResponse(content=f.read())
 
 
-@app.get("/api/search/stream")
+@app.get("/search/stream")
 async def search_stream(
     origins: str = Query(..., description="Comma-separated origin codes"),
     destinations: str = Query(..., description="Comma-separated destination codes"),
@@ -207,7 +207,7 @@ async def search_stream(
     )
 
 
-@app.get("/api/export/{export_id}")
+@app.get("/export/{export_id}")
 async def download_excel(export_id: str):
     import tempfile
     path = os.path.join(tempfile.gettempdir(), f"flight_results_{export_id}.xlsx")

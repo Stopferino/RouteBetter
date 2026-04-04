@@ -432,7 +432,7 @@ function flightApp() {
       });
       if (this.maxStops !== '') params.set('max_stops', this.maxStops);
 
-      this._es = new EventSource(`/api/search/stream?${params}`);
+      this._es = new EventSource(`/search/stream?${params}`);
 
       this._es.onmessage = (e) => {
         let msg;
@@ -472,7 +472,7 @@ function flightApp() {
 
     downloadExcel() {
       if (!this.exportId) return;
-      window.open(`/api/export/${this.exportId}`, '_blank');
+      window.open(`/export/${this.exportId}`, '_blank');
     },
   };
 }

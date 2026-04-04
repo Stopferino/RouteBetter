@@ -1,5 +1,5 @@
 kind = "api"
-previewPath = "/api" # TODO - should be excluded from preview in the first place
+previewPath = "/api"
 title = "API Server"
 version = "1.0.0"
 id = "3B4_FFSkEVBkAeYMFRJ2e"
@@ -30,3 +30,11 @@ NODE_ENV = "production"
 
 [services.production.health.startup]
 path = "/api/healthz"
+
+[[services]]
+localPort = 8000
+name = "Flight Optimizer"
+paths = ["/"]
+
+[services.development]
+run = "cd /home/runner/workspace && PORT=8000 python3 -m uvicorn flight_webapp.app:app --host 0.0.0.0 --port 8000"
