@@ -64,11 +64,21 @@
                  class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
           <div class="flex flex-wrap gap-1.5 mt-2 min-h-[24px]">
             <template x-for="code in origins" :key="code">
-              <span class="bg-blue-600 text-white font-mono text-xs font-bold px-2 py-0.5 rounded" x-text="code"></span>
+              <span :title="airportName(code) || 'Unknown airport — check the IATA code'"
+                    :class="airportName(code)
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-red-500 text-white ring-2 ring-red-300'"
+                    class="font-mono text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1">
+                <span x-text="code"></span>
+                <span x-show="!airportName(code)" class="text-red-100">⚠</span>
+              </span>
             </template>
-            <span x-show="origins.length === 0" class="text-xs text-red-500 italic">
-              No valid 3-letter codes — separate with ;
-            </span>
+            <span x-show="origins.length === 0" class="text-xs text-red-500 italic">No valid 3-letter codes — separate with ;</span>
+          </div>
+          <div x-show="invalidOrigins.length > 0"
+               class="mt-1.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-2.5 py-1.5 leading-snug">
+            Unknown code<span x-show="invalidOrigins.length > 1">s</span>:
+            <strong x-text="invalidOrigins.join(', ')"></strong> — please check and correct before searching.
           </div>
         </div>
 
@@ -80,11 +90,21 @@
                  class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
           <div class="flex flex-wrap gap-1.5 mt-2 min-h-[24px]">
             <template x-for="code in destinations" :key="code">
-              <span class="bg-emerald-600 text-white font-mono text-xs font-bold px-2 py-0.5 rounded" x-text="code"></span>
+              <span :title="airportName(code) || 'Unknown airport — check the IATA code'"
+                    :class="airportName(code)
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-red-500 text-white ring-2 ring-red-300'"
+                    class="font-mono text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1">
+                <span x-text="code"></span>
+                <span x-show="!airportName(code)" class="text-red-100">⚠</span>
+              </span>
             </template>
-            <span x-show="destinations.length === 0" class="text-xs text-red-500 italic">
-              No valid 3-letter codes — separate with ;
-            </span>
+            <span x-show="destinations.length === 0" class="text-xs text-red-500 italic">No valid 3-letter codes — separate with ;</span>
+          </div>
+          <div x-show="invalidDestinations.length > 0"
+               class="mt-1.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-2.5 py-1.5 leading-snug">
+            Unknown code<span x-show="invalidDestinations.length > 1">s</span>:
+            <strong x-text="invalidDestinations.join(', ')"></strong> — please check and correct before searching.
           </div>
         </div>
 
@@ -180,7 +200,7 @@
 
         <!-- Search Button -->
         <button type="submit"
-                :disabled="searching || origins.length === 0 || destinations.length === 0 || !outboundDate || !returnDate || (outboundDate && returnDate && returnDate <= outboundDate)"
+                :disabled="searching || origins.length === 0 || destinations.length === 0 || hasInvalidAirports || !outboundDate || !returnDate || (outboundDate && returnDate && returnDate <= outboundDate)"
                 class="w-full gradient-header text-white font-semibold py-3 rounded-xl hover:opacity-90
                        disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2">
           <span x-show="!searching">🔍 Search Flights</span>
@@ -701,17 +721,129 @@
 <script>
 function flightApp() {
   return {
+    // ── IATA airport validation dictionary ───────────────────────────────────
+    IATA: {
+      // East & Southeast Asia
+      HKG:'Hong Kong Intl',SZX:'Shenzhen Bao\'an',CAN:'Guangzhou Baiyun',
+      PEK:'Beijing Capital',PKX:'Beijing Daxing',SHA:'Shanghai Hongqiao',PVG:'Shanghai Pudong',
+      CTU:'Chengdu Tianfu',TFU:'Chengdu Tianfu (new)',KMG:'Kunming Changshui',
+      XIY:'Xi\'an Xianyang',WUH:'Wuhan Tianhe',CSX:'Changsha Huanghua',
+      HAK:'Haikou Meilan',SYX:'Sanya Phoenix',NKG:'Nanjing Lukou',
+      HGH:'Hangzhou Xiaoshan',TAO:'Qingdao Jiaodong',XMN:'Xiamen Gaoqi',
+      CGQ:'Changchun Longjia',HRB:'Harbin Taiping',DLC:'Dalian Zhoushuizi',
+      TSN:'Tianjin Binhai',SJW:'Shijiazhuang Zhengding',TYN:'Taiyuan Wusu',
+      KWE:'Guiyang Longdongbao',NNG:'Nanning Wuxu',URC:'Urumqi Diwopu',
+      LHW:'Lanzhou Zhongchuan',MXZ:'Meixian',ZUH:'Zhuhai Jinwan',
+      NRT:'Tokyo Narita',HND:'Tokyo Haneda',KIX:'Osaka Kansai',ITM:'Osaka Itami',
+      NGO:'Nagoya Chubu',CTS:'Sapporo New Chitose',FUK:'Fukuoka',OKA:'Naha',
+      ICN:'Seoul Incheon',GMP:'Seoul Gimpo',PUS:'Busan Gimhae',
+      TPE:'Taipei Taoyuan',TSA:'Taipei Songshan',KHH:'Kaohsiung',RMQ:'Taichung',
+      SIN:'Singapore Changi',KUL:'Kuala Lumpur Intl',
+      BKK:'Bangkok Suvarnabhumi',DMK:'Bangkok Don Mueang',
+      HAN:'Hanoi Noi Bai',SGN:'Ho Chi Minh City',DAD:'Da Nang',
+      MNL:'Manila Ninoy Aquino',CEB:'Cebu Mactan',
+      CGK:'Jakarta Soekarno-Hatta',DPS:'Bali Ngurah Rai',SUB:'Surabaya Juanda',
+      RGN:'Yangon Intl',REP:'Siem Reap',PNH:'Phnom Penh',VTE:'Vientiane',
+      // South Asia
+      DEL:'Delhi Indira Gandhi',BOM:'Mumbai Chhatrapati Shivaji',
+      MAA:'Chennai Intl',BLR:'Bengaluru Kempegowda',CCU:'Kolkata Netaji',
+      HYD:'Hyderabad Rajiv Gandhi',GOI:'Goa Dabolim',COK:'Kochi Intl',
+      CMB:'Colombo Bandaranaike',DAC:'Dhaka Hazrat Shahjalal',KTM:'Kathmandu',
+      // Middle East
+      DXB:'Dubai Intl',AUH:'Abu Dhabi Intl',SHJ:'Sharjah',DWC:'Al Maktoum',
+      DOH:'Doha Hamad',RUH:'Riyadh King Khalid',JED:'Jeddah King Abdulaziz',
+      MED:'Madinah',AHB:'Abha',DMM:'Dammam King Fahd',
+      KWI:'Kuwait Intl',BAH:'Bahrain Intl',MCT:'Muscat Intl',AMM:'Amman Queen Alia',
+      BEY:'Beirut Rafic Hariri',TLV:'Tel Aviv Ben Gurion',CAI:'Cairo Intl',
+      IST:'Istanbul',SAW:'Istanbul Sabiha',ESB:'Ankara',ADB:'Izmir',
+      // Europe
+      LHR:'London Heathrow',LGW:'London Gatwick',STN:'London Stansted',
+      LTN:'London Luton',LCY:'London City',MAN:'Manchester',
+      CDG:'Paris Charles de Gaulle',ORY:'Paris Orly',
+      AMS:'Amsterdam Schiphol',
+      FRA:'Frankfurt',MUC:'Munich',BER:'Berlin Brandenburg',DUS:'Düsseldorf',
+      HAM:'Hamburg',CGN:'Cologne Bonn',STR:'Stuttgart',NUE:'Nuremberg',
+      LEJ:'Leipzig',DRS:'Dresden',HAJ:'Hannover',ERF:'Erfurt',FMO:'Münster',
+      BSL:'Basel Mulhouse',FDH:'Friedrichshafen',KSF:'Kassel',PAD:'Paderborn',
+      MAD:'Madrid Barajas',BCN:'Barcelona',PMI:'Palma de Mallorca',
+      AGP:'Málaga',ALC:'Alicante',VLC:'Valencia',IBZ:'Ibiza',TFS:'Tenerife South',
+      LPA:'Gran Canaria',FCO:'Rome Fiumicino',CIA:'Rome Ciampino',
+      MXP:'Milan Malpensa',LIN:'Milan Linate',BGY:'Milan Bergamo Orio',
+      NAP:'Naples',VCE:'Venice Marco Polo',BLQ:'Bologna',
+      ZRH:'Zurich',GVA:'Geneva',VIE:'Vienna',SZG:'Salzburg',INN:'Innsbruck',
+      BRU:'Brussels',LUX:'Luxembourg',
+      CPH:'Copenhagen',ARN:'Stockholm Arlanda',NYO:'Stockholm Skavsta',
+      GOT:'Gothenburg',OSL:'Oslo Gardermoen',HEL:'Helsinki',TLL:'Tallinn',
+      RIX:'Riga',VNO:'Vilnius',WAW:'Warsaw Chopin',KRK:'Krakow',
+      GDN:'Gdansk',WRO:'Wroclaw',POZ:'Poznan',
+      PRG:'Prague',BTS:'Bratislava',BUD:'Budapest',
+      OTP:'Bucharest Otopeni',CLJ:'Cluj-Napoca',SOF:'Sofia',
+      ATH:'Athens',SKG:'Thessaloniki',HER:'Heraklion',RHO:'Rhodes',
+      DUB:'Dublin',SNN:'Shannon',ORK:'Cork',
+      LIS:'Lisbon',OPO:'Porto',FAO:'Faro',
+      KEF:'Reykjavik',
+      SVO:'Moscow Sheremetyevo',DME:'Moscow Domodedovo',VKO:'Moscow Vnukovo',
+      LED:'St Petersburg',KZN:'Kazan',SVX:'Yekaterinburg',OVB:'Novosibirsk',
+      KJA:'Krasnoyarsk',IKT:'Irkutsk',VVO:'Vladivostok',
+      KBP:'Kyiv Boryspil',LWO:'Lviv',ODS:'Odessa',
+      SXF:'Berlin Schönefeld (closed)',TXL:'Berlin Tegel (closed)',
+      EVN:'Yerevan',TBS:'Tbilisi',
+      // Africa
+      CAI:'Cairo',JNB:'Johannesburg OR Tambo',CPT:'Cape Town',DUR:'Durban',
+      NBO:'Nairobi Jomo Kenyatta',ADD:'Addis Ababa Bole',
+      LOS:'Lagos Murtala Muhammed',ABV:'Abuja Nnamdi Azikiwe',
+      ACC:'Accra Kotoka',CMN:'Casablanca Mohammed V',TUN:'Tunis Carthage',
+      ALG:'Algiers Houari Boumediene',RAK:'Marrakech',MRU:'Mauritius',
+      // North America
+      JFK:'New York JFK',LGA:'New York LaGuardia',EWR:'Newark Liberty',
+      LAX:'Los Angeles',SFO:'San Francisco',SJC:'San Jose',OAK:'Oakland',
+      ORD:'Chicago O\'Hare',MDW:'Chicago Midway',
+      MIA:'Miami',FLL:'Fort Lauderdale',TPA:'Tampa',MCO:'Orlando',PBI:'West Palm Beach',
+      ATL:'Atlanta',CLT:'Charlotte',RDU:'Raleigh-Durham',IAD:'Washington Dulles',
+      DCA:'Washington National',BWI:'Baltimore',PHL:'Philadelphia',PIT:'Pittsburgh',
+      BOS:'Boston Logan',
+      DFW:'Dallas Fort Worth',DAL:'Dallas Love Field',IAH:'Houston Intercontinental',
+      HOU:'Houston Hobby',SAT:'San Antonio',AUS:'Austin',
+      DEN:'Denver',LAS:'Las Vegas',PHX:'Phoenix',SLC:'Salt Lake City',ABQ:'Albuquerque',
+      SEA:'Seattle',PDX:'Portland',SAN:'San Diego',
+      MSP:'Minneapolis',STL:'St Louis',MCI:'Kansas City',
+      DTW:'Detroit',CLE:'Cleveland',CMH:'Columbus',IND:'Indianapolis',MKE:'Milwaukee',
+      MSY:'New Orleans',MEM:'Memphis',BNA:'Nashville',
+      YYZ:'Toronto Pearson',YUL:'Montreal',YVR:'Vancouver',YYC:'Calgary',
+      YEG:'Edmonton',YHZ:'Halifax',
+      MEX:'Mexico City',GDL:'Guadalajara',MTY:'Monterrey',CUN:'Cancun',
+      // Central & South America
+      BOG:'Bogotá El Dorado',MDE:'Medellín',CLO:'Cali',
+      LIM:'Lima Jorge Chávez',SCL:'Santiago',EZE:'Buenos Aires Ezeiza',
+      AEP:'Buenos Aires Aeroparque',GRU:'São Paulo Guarulhos',
+      CGH:'São Paulo Congonhas',GIG:'Rio de Janeiro Galeão',SDU:'Rio Santos Dumont',
+      BSB:'Brasília',SSA:'Salvador',REC:'Recife',FOR:'Fortaleza',
+      CWB:'Curitiba',POA:'Porto Alegre',BEL:'Belém',
+      MVD:'Montevideo',ASU:'Asunción',VVI:'Santa Cruz de la Sierra',
+      UIO:'Quito',GYE:'Guayaquil',CCS:'Caracas',PTY:'Panama City',
+      SJO:'San José',GUA:'Guatemala City',SAL:'San Salvador',MGA:'Managua',
+      HAV:'Havana',SDQ:'Santo Domingo',SJU:'San Juan',KIN:'Kingston',
+      // Oceania
+      SYD:'Sydney Kingsford Smith',MEL:'Melbourne',BNE:'Brisbane',PER:'Perth',
+      ADL:'Adelaide',CBR:'Canberra',OOL:'Gold Coast',HBA:'Hobart',DRW:'Darwin',
+      AKL:'Auckland',CHC:'Christchurch',WLG:'Wellington',
+      NAN:'Nadi',PPT:'Papeete',
+    },
+
     // Free-text airport inputs — user types IATA codes separated by ;
     originsRaw: 'HKG; SZX; CAN',
     destsRaw: 'FRA; MUC; NUE',
 
     // Computed from raw strings: only valid 3-letter codes, uppercased
-    get origins() {
-      return this.originsRaw.split(';').map(s => s.trim().toUpperCase()).filter(s => /^[A-Z]{3}$/.test(s));
+    _parseCodes(raw) {
+      return raw.split(';').map(s => s.trim().toUpperCase()).filter(s => /^[A-Z]{3}$/.test(s));
     },
-    get destinations() {
-      return this.destsRaw.split(';').map(s => s.trim().toUpperCase()).filter(s => /^[A-Z]{3}$/.test(s));
-    },
+    get origins()      { return this._parseCodes(this.originsRaw); },
+    get destinations() { return this._parseCodes(this.destsRaw); },
+    get invalidOrigins()      { return this.origins.filter(c => !this.IATA[c]); },
+    get invalidDestinations() { return this.destinations.filter(c => !this.IATA[c]); },
+    get hasInvalidAirports()  { return this.invalidOrigins.length > 0 || this.invalidDestinations.length > 0; },
+    airportName(code) { return this.IATA[code] || null; },
 
     outboundDate: '2026-07-25',
     returnDate: '2026-08-02',
