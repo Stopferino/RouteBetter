@@ -251,6 +251,8 @@ async def search_stream(
             if cache_dirty:
                 await loop.run_in_executor(None, save_cache, cache, cache_file)
 
+            yield sse({"type": "log", "message": f"[DEBUG] Collected {len(all_flights)} flights from {completed_outbound}/{total} combinations"})
+
             if not all_flights:
                 yield sse({"type": "error", "message": "No flights found. Try different dates or airports, or check your API quota."})
                 return
@@ -260,6 +262,8 @@ async def search_stream(
                 None,
                 lambda: calculate_scores(all_flights, value_of_time=value_of_time),
             )
+
+            yield sse({"type": "log", "message": f"[DEBUG] After scoring: {len(df)} rows, max_stops={max_stops}"})
 
             for _col, _default in [("booking_class", "Economy"), ("currency", "EUR")]:
                 if _col in df.columns:
@@ -278,7 +282,12 @@ async def search_stream(
                 return
             df = df.reset_index(drop=True)
 
+            yield sse({"type": "log", "message": f"[DEBUG] After filter: {len(df)} rows → effective_top_n={min(top_n, len(df))}"})
+
             effective_top_n = min(top_n, len(df))
+            if effective_top_n == 0:
+                yield sse({"type": "error", "message": f"No scoreable flights found after filtering ({len(all_flights)} collected, {len(df)} after filter). Try relaxing stops or date range."})
+                return
 
             CANDIDATE_BUFFER = 3
             MIN_CANDIDATES = 10
