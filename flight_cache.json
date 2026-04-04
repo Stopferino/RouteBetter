@@ -929,7 +929,7 @@
     ]
   },
   "HKG_NUE_2026-07-25_2026-08-02": {
-    "fetched_at": "2026-04-04 10:15",
+    "fetched_at": "2026-04-04 13:53",
     "results": [
       {
         "origin": "HKG",
@@ -937,9 +937,12 @@
         "outbound_date": "2026-07-25",
         "return_date": "2026-08-02",
         "price": 908.0,
+        "currency": "EUR",
         "duration_minutes": 1220,
         "stops": 2,
         "airline": "Lufthansa",
+        "booking_class": "Economy",
+        "fare_brand": null,
         "outbound_route": "HKG->FRA->MUC->NUE",
         "outbound_segments": [
           {
@@ -953,7 +956,9 @@
             "flight_number": "LH 797",
             "aircraft": "Boeing 787",
             "duration_minutes": 775,
-            "overnight": true
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
           },
           {
             "from_airport": "FRA",
@@ -966,7 +971,9 @@
             "flight_number": "LH 96",
             "aircraft": "Airbus A320",
             "duration_minutes": 55,
-            "overnight": false
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
           },
           {
             "from_airport": "MUC",
@@ -979,7 +986,9 @@
             "flight_number": "LH 3804",
             "aircraft": "Bus",
             "duration_minutes": 135,
-            "overnight": false
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
           }
         ],
         "outbound_layovers": [
@@ -994,7 +1003,7 @@
             "duration_minutes": 140
           }
         ],
-        "departure_token": "WyJDalJJVkVSNE5GaFdTbTA1VW1OQlJpMVVWMmRDUnkwdExTMHRMUzB0TFc5clltdDVNa0ZCUVVGQlIyNVJOVTVKU0hSTFkwZEJFaEZNU0RjNU4zeE1TRGsyZkV4SU16Z3dOQm9MQ0p6RkJSQUNHZ05GVlZJNEhIQ0hzUVk9IixbWyJIS0ciLCIyMDI2LTA3LTI1IiwiRlJBIixudWxsLCJMSCIsIjc5NyJdLFsiRlJBIiwiMjAyNi0wNy0yNiIsIk1VQyIsbnVsbCwiTEgiLCI5NiJdLFsiTVVDIiwiMjAyNi0wNy0yNiIsIk5VRSIsbnVsbCwiTEgiLCIzODA0Il1dXQ=="
+        "departure_token": "WyJDalJJUjI4eVgyeFVWRFZ1VldkQlJqZDBVbEZDUnkwdExTMHRMUzB0TFMxNWFYUnlORUZCUVVGQlIyNVNSamx2VHpGMlkyOUJFaEZNU0RjNU4zeE1TRGsyZkV4SU16Z3dOQm9MQ0p6RkJSQUNHZ05GVlZJNEhIQ0hzUVk9IixbWyJIS0ciLCIyMDI2LTA3LTI1IiwiRlJBIixudWxsLCJMSCIsIjc5NyJdLFsiRlJBIiwiMjAyNi0wNy0yNiIsIk1VQyIsbnVsbCwiTEgiLCI5NiJdLFsiTVVDIiwiMjAyNi0wNy0yNiIsIk5VRSIsbnVsbCwiTEgiLCIzODA0Il1dXQ=="
       },
       {
         "origin": "HKG",
@@ -1002,9 +1011,12 @@
         "outbound_date": "2026-07-25",
         "return_date": "2026-08-02",
         "price": 1063.0,
+        "currency": "EUR",
         "duration_minutes": 1020,
         "stops": 1,
         "airline": "Lufthansa",
+        "booking_class": "Economy",
+        "fare_brand": null,
         "outbound_route": "HKG->FRA->NUE",
         "outbound_segments": [
           {
@@ -1018,7 +1030,9 @@
             "flight_number": "LH 797",
             "aircraft": "Boeing 787",
             "duration_minutes": 775,
-            "overnight": true
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
           },
           {
             "from_airport": "FRA",
@@ -1031,7 +1045,9 @@
             "flight_number": "LH 142",
             "aircraft": "Airbus A319",
             "duration_minutes": 45,
-            "overnight": false
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
           }
         ],
         "outbound_layovers": [
@@ -1041,7 +1057,7 @@
             "duration_minutes": 200
           }
         ],
-        "departure_token": "WyJDalJJVkVSNE5GaFdTbTA1VW1OQlJpMVVWMmRDUnkwdExTMHRMUzB0TFc5clltdDVNa0ZCUVVGQlIyNVJOVTVKU0hSTFkwZEJFZ3RNU0RjNU4zeE1TREUwTWhvTENLMitCaEFDR2dORlZWSTRISERPdkFjPSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkZSQSIsbnVsbCwiTEgiLCI3OTciXSxbIkZSQSIsIjIwMjYtMDctMjYiLCJOVUUiLG51bGwsIkxIIiwiMTQyIl1dXQ=="
+        "departure_token": "WyJDalJJUjI4eVgyeFVWRFZ1VldkQlJqZDBVbEZDUnkwdExTMHRMUzB0TFMxNWFYUnlORUZCUVVGQlIyNVNSamx2VHpGMlkyOUJFZ3RNU0RjNU4zeE1TREUwTWhvTENLMitCaEFDR2dORlZWSTRISERPdkFjPSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkZSQSIsbnVsbCwiTEgiLCI3OTciXSxbIkZSQSIsIjIwMjYtMDctMjYiLCJOVUUiLG51bGwsIkxIIiwiMTQyIl1dXQ=="
       },
       {
         "origin": "HKG",
@@ -1049,9 +1065,12 @@
         "outbound_date": "2026-07-25",
         "return_date": "2026-08-02",
         "price": 908.0,
+        "currency": "EUR",
         "duration_minutes": 1220,
         "stops": 2,
         "airline": "Lufthansa",
+        "booking_class": "Economy",
+        "fare_brand": null,
         "outbound_route": "HKG->FRA->MUC->NUE",
         "outbound_segments": [
           {
@@ -1065,7 +1084,9 @@
             "flight_number": "LH 797",
             "aircraft": "Boeing 787",
             "duration_minutes": 775,
-            "overnight": true
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
           },
           {
             "from_airport": "FRA",
@@ -1078,7 +1099,9 @@
             "flight_number": "LH 98",
             "aircraft": "Airbus A319",
             "duration_minutes": 55,
-            "overnight": false
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
           },
           {
             "from_airport": "MUC",
@@ -1091,7 +1114,9 @@
             "flight_number": "LH 3804",
             "aircraft": "Bus",
             "duration_minutes": 135,
-            "overnight": false
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
           }
         ],
         "outbound_layovers": [
@@ -1106,7 +1131,7 @@
             "duration_minutes": 80
           }
         ],
-        "departure_token": "WyJDalJJVkVSNE5GaFdTbTA1VW1OQlJpMVVWMmRDUnkwdExTMHRMUzB0TFc5clltdDVNa0ZCUVVGQlIyNVJOVTVKU0hSTFkwZEJFaEZNU0RjNU4zeE1TRGs0ZkV4SU16Z3dOQm9MQ0p6RkJSQUNHZ05GVlZJNEhIQ0hzUVk9IixbWyJIS0ciLCIyMDI2LTA3LTI1IiwiRlJBIixudWxsLCJMSCIsIjc5NyJdLFsiRlJBIiwiMjAyNi0wNy0yNiIsIk1VQyIsbnVsbCwiTEgiLCI5OCJdLFsiTVVDIiwiMjAyNi0wNy0yNiIsIk5VRSIsbnVsbCwiTEgiLCIzODA0Il1dXQ=="
+        "departure_token": "WyJDalJJUjI4eVgyeFVWRFZ1VldkQlJqZDBVbEZDUnkwdExTMHRMUzB0TFMxNWFYUnlORUZCUVVGQlIyNVNSamx2VHpGMlkyOUJFaEZNU0RjNU4zeE1TRGs0ZkV4SU16Z3dOQm9MQ0p6RkJSQUNHZ05GVlZJNEhIQ0hzUVk9IixbWyJIS0ciLCIyMDI2LTA3LTI1IiwiRlJBIixudWxsLCJMSCIsIjc5NyJdLFsiRlJBIiwiMjAyNi0wNy0yNiIsIk1VQyIsbnVsbCwiTEgiLCI5OCJdLFsiTVVDIiwiMjAyNi0wNy0yNiIsIk5VRSIsbnVsbCwiTEgiLCIzODA0Il1dXQ=="
       },
       {
         "origin": "HKG",
@@ -1114,9 +1139,12 @@
         "outbound_date": "2026-07-25",
         "return_date": "2026-08-02",
         "price": 924.0,
+        "currency": "EUR",
         "duration_minutes": 1775,
         "stops": 1,
         "airline": "Lufthansa",
+        "booking_class": "Economy",
+        "fare_brand": null,
         "outbound_route": "HKG->FRA->NUE",
         "outbound_segments": [
           {
@@ -1130,7 +1158,9 @@
             "flight_number": "LH 797",
             "aircraft": "Boeing 787",
             "duration_minutes": 775,
-            "overnight": true
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
           },
           {
             "from_airport": "FRA",
@@ -1143,7 +1173,9 @@
             "flight_number": "LH 148",
             "aircraft": "Airbus A320",
             "duration_minutes": 45,
-            "overnight": false
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
           }
         ],
         "outbound_layovers": [
@@ -1153,7 +1185,7 @@
             "duration_minutes": 955
           }
         ],
-        "departure_token": "WyJDalJJVkVSNE5GaFdTbTA1VW1OQlJpMVVWMmRDUnkwdExTMHRMUzB0TFc5clltdDVNa0ZCUVVGQlIyNVJOVTVKU0hSTFkwZEJFZ3RNU0RjNU4zeE1TREUwT0JvTENMYlJCUkFDR2dORlZWSTRISENQdndZPSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkZSQSIsbnVsbCwiTEgiLCI3OTciXSxbIkZSQSIsIjIwMjYtMDctMjYiLCJOVUUiLG51bGwsIkxIIiwiMTQ4Il1dXQ=="
+        "departure_token": "WyJDalJJUjI4eVgyeFVWRFZ1VldkQlJqZDBVbEZDUnkwdExTMHRMUzB0TFMxNWFYUnlORUZCUVVGQlIyNVNSamx2VHpGMlkyOUJFZ3RNU0RjNU4zeE1TREUwT0JvTENMYlJCUkFDR2dORlZWSTRISENQdndZPSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkZSQSIsbnVsbCwiTEgiLCI3OTciXSxbIkZSQSIsIjIwMjYtMDctMjYiLCJOVUUiLG51bGwsIkxIIiwiMTQ4Il1dXQ=="
       },
       {
         "origin": "HKG",
@@ -1161,9 +1193,12 @@
         "outbound_date": "2026-07-25",
         "return_date": "2026-08-02",
         "price": 1580.0,
+        "currency": "EUR",
         "duration_minutes": 990,
         "stops": 1,
         "airline": "Cathay Pacific",
+        "booking_class": "Economy",
+        "fare_brand": null,
         "outbound_route": "HKG->FRA->NUE",
         "outbound_segments": [
           {
@@ -1177,7 +1212,9 @@
             "flight_number": "CX 289",
             "aircraft": "Boeing 777",
             "duration_minutes": 800,
-            "overnight": true
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
           },
           {
             "from_airport": "FRA",
@@ -1190,7 +1227,9 @@
             "flight_number": "LH 142",
             "aircraft": "Airbus A319",
             "duration_minutes": 45,
-            "overnight": false
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
           }
         ],
         "outbound_layovers": [
@@ -1200,7 +1239,7 @@
             "duration_minutes": 145
           }
         ],
-        "departure_token": "WyJDalJJVkVSNE5GaFdTbTA1VW1OQlJpMVVWMmRDUnkwdExTMHRMUzB0TFc5clltdDVNa0ZCUVVGQlIyNVJOVTVKU0hSTFkwZEJFZ3REV0RJNE9YeE1TREUwTWhvTENJalNDUkFDR2dORlZWSTRISERhalFzPSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkZSQSIsbnVsbCwiQ1giLCIyODkiXSxbIkZSQSIsIjIwMjYtMDctMjYiLCJOVUUiLG51bGwsIkxIIiwiMTQyIl1dXQ=="
+        "departure_token": "WyJDalJJUjI4eVgyeFVWRFZ1VldkQlJqZDBVbEZDUnkwdExTMHRMUzB0TFMxNWFYUnlORUZCUVVGQlIyNVNSamx2VHpGMlkyOUJFZ3REV0RJNE9YeE1TREUwTWhvTENJalNDUkFDR2dORlZWSTRISERhalFzPSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkZSQSIsbnVsbCwiQ1giLCIyODkiXSxbIkZSQSIsIjIwMjYtMDctMjYiLCJOVUUiLG51bGwsIkxIIiwiMTQyIl1dXQ=="
       },
       {
         "origin": "HKG",
@@ -1208,9 +1247,12 @@
         "outbound_date": "2026-07-25",
         "return_date": "2026-08-02",
         "price": 2200.0,
+        "currency": "EUR",
         "duration_minutes": 1030,
         "stops": 1,
         "airline": "Turkish Airlines",
+        "booking_class": "Economy",
+        "fare_brand": null,
         "outbound_route": "HKG->IST->NUE",
         "outbound_segments": [
           {
@@ -1224,7 +1266,9 @@
             "flight_number": "TK 71",
             "aircraft": "Boeing 777",
             "duration_minutes": 690,
-            "overnight": true
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
           },
           {
             "from_airport": "IST",
@@ -1237,7 +1281,9 @@
             "flight_number": "TK 1503",
             "aircraft": "Airbus A321 (Sharklets)",
             "duration_minutes": 170,
-            "overnight": false
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
           }
         ],
         "outbound_layovers": [
@@ -1247,7 +1293,7 @@
             "duration_minutes": 170
           }
         ],
-        "departure_token": "WyJDalJJVkVSNE5GaFdTbTA1VW1OQlJpMVVWMmRDUnkwdExTMHRMUzB0TFc5clltdDVNa0ZCUVVGQlIyNVJOVTVKU0hSTFkwZEJFZ3RVU3pjeGZGUkxNVFV3TXhvTENNQzJEUkFDR2dORlZWSTRISERtdXc4PSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIklTVCIsbnVsbCwiVEsiLCI3MSJdLFsiSVNUIiwiMjAyNi0wNy0yNiIsIk5VRSIsbnVsbCwiVEsiLCIxNTAzIl1dXQ=="
+        "departure_token": "WyJDalJJUjI4eVgyeFVWRFZ1VldkQlJqZDBVbEZDUnkwdExTMHRMUzB0TFMxNWFYUnlORUZCUVVGQlIyNVNSamx2VHpGMlkyOUJFZ3RVU3pjeGZGUkxNVFV3TXhvTENNQzJEUkFDR2dORlZWSTRISERtdXc4PSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIklTVCIsbnVsbCwiVEsiLCI3MSJdLFsiSVNUIiwiMjAyNi0wNy0yNiIsIk5VRSIsbnVsbCwiVEsiLCIxNTAzIl1dXQ=="
       }
     ]
   },
@@ -4062,6 +4108,55 @@
       "return_route": "FRA->CAN",
       "return_duration_minutes": 685,
       "return_stops": 0
+    }
+  },
+  "return__WyJDalJJUjI4eVgyeFVWRFZ1VldkQlJq": {
+    "fetched_at": "2026-04-04 13:53",
+    "data": {
+      "return_segments": [
+        {
+          "from_airport": "NUE",
+          "from_name": "Nuremberg Airport",
+          "from_time": "2026-08-02 18:45",
+          "to_airport": "IST",
+          "to_name": "Istanbul Airport",
+          "to_time": "2026-08-02 22:35",
+          "airline": "Turkish Airlines",
+          "flight_number": "TK 1506",
+          "aircraft": "Airbus A321 (Sharklets)",
+          "duration_minutes": 170,
+          "overnight": false,
+          "booking_class": "Economy",
+          "fare_brand": null
+        },
+        {
+          "from_airport": "IST",
+          "from_name": "Istanbul Airport",
+          "from_time": "2026-08-03 01:30",
+          "to_airport": "HKG",
+          "to_name": "Hong Kong International Airport",
+          "to_time": "2026-08-03 17:15",
+          "airline": "Turkish Airlines",
+          "flight_number": "TK 70",
+          "aircraft": "Boeing 777",
+          "duration_minutes": 645,
+          "overnight": true,
+          "booking_class": "Economy",
+          "fare_brand": null
+        }
+      ],
+      "return_layovers": [
+        {
+          "airport": "Istanbul Airport",
+          "airport_id": "IST",
+          "duration_minutes": 175,
+          "overnight": false
+        }
+      ],
+      "return_route": "NUE->IST->HKG",
+      "return_duration_minutes": 990,
+      "return_stops": 1,
+      "booking_token": "WyJDalJJYVZwRFRIaE5kRFJpWjFsQlN6VmFOVUZDUnkwdExTMHRMUzB0TFc5NVkyWmpPVUZCUVVGQlIyNVNSaTA0UjBvMlh6WkJFZ3RVU3pFMU1EWjhWRXMzTUJvTENNQzJEUkFDR2dORlZWSTRISERtdXc4PSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIklTVCIsbnVsbCwiVEsiLCI3MSJdLFsiSVNUIiwiMjAyNi0wNy0yNiIsIk5VRSIsbnVsbCwiVEsiLCIxNTAzIl1dLFtbIk5VRSIsIjIwMjYtMDgtMDIiLCJJU1QiLG51bGwsIlRLIiwiMTUwNiJdLFsiSVNUIiwiMjAyNi0wOC0wMyIsIkhLRyIsbnVsbCwiVEsiLCI3MCJdXV0="
     }
   }
 }

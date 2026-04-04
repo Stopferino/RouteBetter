@@ -124,5 +124,95 @@
         "duration_minutes": 30.0
       }
     }
+  },
+  "shenzhen shuiwan 1979|hemhofen goethestr. 9|HKG,NUE": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "9, Goethestraße, Zeckern, Hemhofen, Landkreis Erlangen-Höchstadt, Bayern, 91334, Deutschland",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": [
+      49.6937595,
+      10.9350205
+    ],
+    "ai_powered": true,
+    "legs": {
+      "HKG": {
+        "time_minutes": 85.0,
+        "cost_eur": 27.0,
+        "mode": "Didi + bus/Airport Express",
+        "notes": "Didi to Shenzhen Bay Port, border crossing, then bus/Airport Express to airport.",
+        "cost": 27.0,
+        "duration_minutes": 85.0
+      },
+      "NUE": {
+        "time_minutes": 130.0,
+        "cost_eur": 73.0,
+        "mode": "Public transport (U2 metro + regional train)",
+        "notes": "Surface transport via metro and regional train from Nuremberg Airport to destination.",
+        "cost": 73.0,
+        "duration_minutes": 130.0
+      }
+    }
+  },
+  "shenzhen shuiwan 1979|erlangen hautpbahnhof|HKG,NUE": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "Erlangen Hautpbahnhof",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": null,
+    "ai_powered": true,
+    "legs": {
+      "HKG": {
+        "time_minutes": 70.0,
+        "cost_eur": 27.0,
+        "mode": "Didi + bus/Airport Express",
+        "notes": "Didi to Shenzhen Bay Port (20 min) + border crossing (15 min) + bus/Airport Express (35 min)",
+        "cost": 27.0,
+        "duration_minutes": 70.0
+      },
+      "NUE": {
+        "time_minutes": 130.0,
+        "cost_eur": 73.0,
+        "mode": "Public transport (U2 metro + regional train)",
+        "notes": "Includes taxi to Erlangen Bf (15 min) + U2 metro to Nürnberg (20 min) + regional train to NUE (80 min)",
+        "cost": 73.0,
+        "duration_minutes": 130.0
+      }
+    }
+  },
+  "shenzhen shuiwan 1979|erlangen hbf|HKG,NUE": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "Hauptbahnhof, Parkplatzstraße, Innenstadt, Erlangen, Bayern, 91054, Deutschland",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": [
+      49.5955417,
+      11.0005867
+    ],
+    "ai_powered": true,
+    "legs": {
+      "HKG": {
+        "time_minutes": 85.0,
+        "cost_eur": 27.0,
+        "mode": "Didi + ferry + bus/Airport Express",
+        "notes": "Includes 20 min border crossing and transfer.",
+        "cost": 27.0,
+        "duration_minutes": 85.0
+      },
+      "NUE": {
+        "time_minutes": 35.0,
+        "cost_eur": 20.0,
+        "mode": "Public transport (U2 metro + regional train)",
+        "notes": "Includes connection times.",
+        "cost": 20.0,
+        "duration_minutes": 35.0
+      }
+    }
   }
 }
