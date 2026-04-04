@@ -286,7 +286,7 @@
         </div>
 
         <!-- Summary Strip -->
-        <div class="border-t border-slate-100 px-5 py-2 bg-slate-50 flex flex-wrap gap-4 text-xs text-slate-600">
+        <div class="border-t border-slate-100 px-5 py-2 bg-slate-50 flex flex-wrap gap-4 text-xs text-slate-600 items-center">
           <span>
             🛫 <strong>Outbound:</strong>
             <span x-text="flight.duration_str"></span>
@@ -296,6 +296,12 @@
             🛬 <strong>Return:</strong>
             <span x-text="fmtMin(flight.return_duration_minutes)"></span>
             · <span x-text="(flight.return_stops ?? '?') + ' stop(s)'"></span>
+          </span>
+          <!-- Booking class badge -->
+          <span class="ml-auto flex items-center gap-1">
+            <span class="bg-sky-50 border border-sky-200 text-sky-700 px-2 py-0.5 rounded font-semibold"
+                  x-text="flight.fare_brand || flight.booking_class || 'Economy'"></span>
+            <span class="text-slate-400 italic" x-show="!flight.fare_brand" title="Requested via travel_class=Economy">· Economy requested</span>
           </span>
         </div>
 
@@ -327,6 +333,10 @@
                       <span class="text-xs text-slate-500" x-text="seg.airline"></span>
                       <span class="text-xs bg-slate-100 px-2 py-0.5 rounded" x-text="fmtMin(seg.duration_minutes)"></span>
                       <span class="text-xs text-slate-400" x-text="seg.aircraft"></span>
+                      <!-- Fare/booking class per segment -->
+                      <span x-show="seg.fare_brand || seg.booking_class"
+                            class="text-xs bg-sky-50 border border-sky-200 text-sky-700 px-2 py-0.5 rounded"
+                            x-text="seg.fare_brand || seg.booking_class"></span>
                       <span x-show="seg.overnight" class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">🌙 overnight</span>
                     </div>
                   </div>
@@ -367,6 +377,10 @@
                       <span class="text-xs text-slate-500" x-text="seg.airline"></span>
                       <span class="text-xs bg-slate-100 px-2 py-0.5 rounded" x-text="fmtMin(seg.duration_minutes)"></span>
                       <span class="text-xs text-slate-400" x-text="seg.aircraft"></span>
+                      <!-- Fare/booking class per segment -->
+                      <span x-show="seg.fare_brand || seg.booking_class"
+                            class="text-xs bg-sky-50 border border-sky-200 text-sky-700 px-2 py-0.5 rounded"
+                            x-text="seg.fare_brand || seg.booking_class"></span>
                       <span x-show="seg.overnight" class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">🌙 overnight</span>
                     </div>
                   </div>

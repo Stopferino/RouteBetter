@@ -230,6 +230,10 @@ async def search_stream(
                 "outbound_layovers": f.get("outbound_layovers") or [],
                 "return_segments": f.get("return_segments") or [],
                 "return_layovers": f.get("return_layovers") or [],
+                # Booking / fare class (from first outbound leg)
+                "booking_class": f.get("booking_class", "Economy"),
+                "fare_brand": f.get("fare_brand"),
+                "currency": f.get("currency", "EUR"),
             })
 
         import tempfile, uuid

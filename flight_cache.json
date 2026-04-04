@@ -3610,5 +3610,49 @@
       "return_duration_minutes": 1080,
       "return_stops": 1
     }
+  },
+  "return__WyJDalJJVkVSNE5GaFdTbTA1VW1OQlJp": {
+    "fetched_at": "2026-04-04 10:38",
+    "data": {
+      "return_segments": [
+        {
+          "from_airport": "NUE",
+          "from_name": "Nuremberg Airport",
+          "from_time": "2026-08-02 18:30",
+          "to_airport": "FRA",
+          "to_name": "Frankfurt Airport",
+          "to_time": "2026-08-02 19:20",
+          "airline": "Lufthansa",
+          "flight_number": "LH 147",
+          "aircraft": "Airbus A319",
+          "duration_minutes": 50,
+          "overnight": false
+        },
+        {
+          "from_airport": "FRA",
+          "from_name": "Frankfurt Airport",
+          "from_time": "2026-08-02 21:40",
+          "to_airport": "HKG",
+          "to_name": "Hong Kong International Airport",
+          "to_time": "2026-08-03 15:20",
+          "airline": "Lufthansa",
+          "flight_number": "LH 796",
+          "aircraft": "Boeing 787",
+          "duration_minutes": 700,
+          "overnight": true
+        }
+      ],
+      "return_layovers": [
+        {
+          "airport": "Frankfurt Airport",
+          "airport_id": "FRA",
+          "duration_minutes": 140,
+          "overnight": false
+        }
+      ],
+      "return_route": "NUE->FRA->HKG",
+      "return_duration_minutes": 890,
+      "return_stops": 1
+    }
   }
 }

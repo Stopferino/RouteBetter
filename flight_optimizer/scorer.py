@@ -6,6 +6,22 @@ Score = Price + (Total round-trip duration in hours * Value of Time)
 import pandas as pd
 from typing import Optional
 
+# German airport IATA codes — used to detect domestic DE segments
+_DE_AIRPORTS: frozenset = frozenset({
+    "FRA", "MUC", "NUE", "DUS", "HAM", "BER", "TXL", "STR", "CGN",
+    "HAJ", "LEJ", "DRS", "HHN", "FKB", "PAD", "ERF", "FDH", "SCN",
+    "DTM", "KSF", "GWT", "FMO", "NRN", "LBC", "RLG", "QFB", "ZQW",
+    "SXF", "THF",
+})
+
+
+def _count_de_domestic(segments: list) -> int:
+    """Count segments where both endpoints are German airports."""
+    return sum(
+        1 for s in (segments or [])
+        if s.get("from_airport") in _DE_AIRPORTS and s.get("to_airport") in _DE_AIRPORTS
+    )
+
 
 def calculate_scores(
     flights: list[dict],
@@ -83,16 +99,17 @@ def apply_filters(
     df: pd.DataFrame,
     airline_filter: Optional[list[str]] = None,
     max_stops: Optional[int] = None,
+    max_de_domestic: int = 1,
 ) -> pd.DataFrame:
     """
-    Optional post-fetch filtering (can also be applied during the API call).
-    Kept here for easy future extension.
+    Post-fetch filtering of the scored DataFrame.
 
     Args:
         df: Full results DataFrame
         airline_filter: List of airline names (substring match)
-        max_stops: Maximum number of stops
-
+        max_stops: Maximum number of stops on the outbound leg
+        max_de_domestic: Maximum German domestic segments allowed on the outbound leg
+                         (default 1 — allows e.g. FRA→NUE but rejects FRA→MUC→NUE)
     Returns:
         Filtered DataFrame
     """
@@ -102,5 +119,13 @@ def apply_filters(
 
     if max_stops is not None:
         df = df[df["stops"] <= max_stops]
+
+    # Limit German domestic segments on the outbound itinerary
+    if max_de_domestic is not None and "outbound_segments" in df.columns:
+        df = df[
+            df["outbound_segments"].apply(
+                lambda segs: _count_de_domestic(segs) <= max_de_domestic
+            )
+        ]
 
     return df.reset_index(drop=True)

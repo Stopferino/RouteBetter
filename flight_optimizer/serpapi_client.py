@@ -14,6 +14,14 @@ logger = logging.getLogger(__name__)
 
 SERPAPI_BASE_URL = "https://serpapi.com/search"
 
+# German airport IATA codes used to detect domestic DE segments
+GERMAN_AIRPORTS: frozenset = frozenset({
+    "FRA", "MUC", "NUE", "DUS", "HAM", "BER", "TXL", "STR", "CGN",
+    "HAJ", "LEJ", "DRS", "HHN", "FKB", "PAD", "ERF", "FDH", "SCN",
+    "DTM", "KSF", "GWT", "FMO", "NRN", "LBC", "RLG", "QFB", "ZQW",
+    "SXF", "THF",  # older Berlin codes
+})
+
 
 def _validate_dates(outbound_date: str, return_date: str):
     """Validates that dates are in the future and return is after outbound."""
@@ -66,10 +74,11 @@ def fetch_flights(
         "arrival_id": destination,
         "outbound_date": outbound_date,
         "return_date": return_date,
-        "currency": currency,
+        "currency": currency,  # Prices returned directly in this currency (e.g. EUR)
         "hl": hl,
         "gl": gl,
-        "type": "1",  # 1 = Round trip
+        "type": "1",        # 1 = Round trip
+        "travel_class": "1",  # 1 = Economy (cheapest class)
         "api_key": api_key,
     }
 
@@ -167,6 +176,15 @@ def fetch_flights(
                 for leg in flights_legs:
                     dep = leg.get("departure_airport", {})
                     arr = leg.get("arrival_airport", {})
+                    leg_extensions = leg.get("extensions") or []
+                    # Fare brand is usually the first extension that looks like a cabin/fare label
+                    fare_brand = next(
+                        (e for e in leg_extensions
+                         if any(kw in e.lower() for kw in
+                                ("economy", "business", "first", "premium", "light",
+                                 "flex", "basic", "saver", "plus", "classic"))),
+                        None,
+                    )
                     outbound_segments.append({
                         "from_airport": dep.get("id", "?"),
                         "from_name": dep.get("name", ""),
@@ -179,6 +197,8 @@ def fetch_flights(
                         "aircraft": leg.get("airplane", ""),
                         "duration_minutes": leg.get("duration", 0),
                         "overnight": leg.get("overnight", False),
+                        "booking_class": leg.get("travel_class", "Economy"),
+                        "fare_brand": fare_brand,
                     })
 
                 # ── Outbound layover details ───────────────────────────────
@@ -207,16 +227,30 @@ def fetch_flights(
                 if max_stops is not None and stops > max_stops:
                     continue
 
+                # Booking class from the first outbound leg
+                booking_class = (
+                    outbound_segments[0].get("booking_class", "Economy")
+                    if outbound_segments else "Economy"
+                )
+                fare_brand = (
+                    outbound_segments[0].get("fare_brand")
+                    if outbound_segments else None
+                )
+
                 results.append({
                     "origin": origin,
                     "destination": destination,
                     "outbound_date": outbound_date,
                     "return_date": return_date,
                     "price": float(price),
+                    "currency": currency,
                     # Outbound leg summary (used by scorer)
                     "duration_minutes": int(total_duration),
                     "stops": stops,
                     "airline": airline,
+                    # Booking / fare class
+                    "booking_class": booking_class,
+                    "fare_brand": fare_brand,
                     # Detailed outbound leg breakdown
                     "outbound_route": outbound_route,
                     "outbound_segments": outbound_segments,
@@ -324,6 +358,14 @@ def _parse_segments(flights_legs: list, raw_layovers: list, origin: str, dest: s
     for leg in flights_legs:
         dep = leg.get("departure_airport", {})
         arr = leg.get("arrival_airport", {})
+        leg_extensions = leg.get("extensions") or []
+        fare_brand = next(
+            (e for e in leg_extensions
+             if any(kw in e.lower() for kw in
+                    ("economy", "business", "first", "premium", "light",
+                     "flex", "basic", "saver", "plus", "classic"))),
+            None,
+        )
         segments.append({
             "from_airport": dep.get("id", "?"),
             "from_name": dep.get("name", ""),
@@ -336,6 +378,8 @@ def _parse_segments(flights_legs: list, raw_layovers: list, origin: str, dest: s
             "aircraft": leg.get("airplane", ""),
             "duration_minutes": leg.get("duration", 0),
             "overnight": leg.get("overnight", False),
+            "booking_class": leg.get("travel_class", "Economy"),
+            "fare_brand": fare_brand,
         })
 
     layovers = []
