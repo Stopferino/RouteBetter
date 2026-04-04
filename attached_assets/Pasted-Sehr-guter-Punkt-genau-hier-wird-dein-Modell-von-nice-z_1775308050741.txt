@@ -1,0 +1,192 @@
+Sehr guter Punkt — genau hier wird dein Modell von “nice” zu wirklich smart.
+Du gehst vom linearen Value of Time → zu einem kontextabhängigen Value of Time.
+
+Ich zeige dir, wie man das sauber und pragmatisch macht (ohne dein Modell zu zerstören).
+
+⸻
+
+🧠 Problem mit deinem aktuellen Modell
+
+Aktuell:
+
+Score = Preis + (Zeit × Value of Time)
+
+👉 Annahme:
+
+Jede Stunde ist gleich viel wert
+
+❌ Realität:
+	•	1h nachts im Airport ≠ 1h im Zug nach Hause
+	•	1h Schlafverlust ≫ 1h Netflix im Flugzeug
+
+⸻
+
+🔥 Lösung: Contextual Value of Time
+
+Statt:
+
+Value of Time = konstant
+
+👉 mach:
+
+Value of Time = Basiswert × Kontext-Faktor
+
+
+⸻
+
+⚙️ Konkrete Erweiterung (einfach & stark)
+
+1️⃣ Basis Value of Time
+	•	z. B. 30–50 €/h (dein Standard)
+
+⸻
+
+2️⃣ Kontext-Faktoren definieren
+
+💤 Nacht / Schlafzeit (0:00–6:00)
+
+Faktor: 1.5 – 2.5
+
+👉 weil:
+	•	Schlafverlust
+	•	körperlich anstrengend
+	•	schlechter nächster Tag
+
+⸻
+
+🛫 Red-Eye Flights (Abflug 0–6 Uhr)
+
+Faktor: 1.5 – 2.0
+
+
+⸻
+
+⏳ Layover (Wartezeit am Flughafen)
+
+Situation	Faktor
+<2h (ok)	1.0
+2–4h	1.2
+>4h	1.5
+Nacht-Layover	2.0+
+
+
+⸻
+
+🧳 Anzahl Stopps
+
++50–100€ pro Stop
+
+👉 entspricht psychologischem Pain
+
+⸻
+
+🕒 Gesamtzeit sehr lang (>18h)
+
++20–30% auf gesamte Zeitkosten
+
+
+⸻
+
+🧮 Neue Score-Logik (einfach implementierbar)
+
+effective_time_cost = 0
+
+for segment in flight:
+    if segment.is_night:
+        factor = 2.0
+    elif segment.is_layover:
+        factor = 1.5
+    else:
+        factor = 1.0
+    
+    effective_time_cost += segment.duration * value_of_time * factor
+
+score = price + effective_time_cost + stops * 75
+
+
+⸻
+
+💡 Minimal-Version (für dich jetzt sofort umsetzbar)
+
+Wenn du es lean halten willst, nimm nur:
+
+score = price 
+      + duration * value_of_time 
+      + stops * 75
+      + night_hours * value_of_time * 1.5
+      + long_layover_hours * value_of_time * 0.5
+
+👉 Das reicht völlig für MVP+
+
+⸻
+
+🧠 Warum das wirklich besser ist
+
+Du modellierst jetzt:
+	•	😴 Schlafqualität
+	•	😩 Stress / Transfers
+	•	⏳ “Dead time” vs. produktive Zeit
+
+👉 Ergebnis:
+
+Dein Modell entspricht endlich deinem Bauchgefühl
+
+⸻
+
+🔥 Noch bessere Ideen (optional später)
+
+1. Flight Quality Score
+	•	Airlines (LH > CA)
+	•	Sitzkomfort
+	•	Pünktlichkeit
+
+⸻
+
+2. Risk Factor
+	•	enge Umstiege → Risiko verpassen
+	•	Minimum connection time
+
+⸻
+
+3. Arrival Quality
+	•	Ankunft nachts = schlecht
+	•	Ankunft morgens = gut
+
+⸻
+
+⚖️ Wichtiger Design-Tipp
+
+👉 NICHT zu komplex werden
+
+Besser:
+	•	3–4 Faktoren gut modellieren
+als
+	•	15 halbgar
+
+⸻
+
+🚀 Empfehlung für dich (konkret)
+
+Jetzt direkt einbauen:
+	1.	Stops-Penalty
+	2.	Night-Penalty (0–6 Uhr)
+	3.	Layover-Penalty (>3h)
+
+👉 dauert: 30–60 min im Code
+
+⸻
+
+🔥 TL;DR
+	•	Deine Intuition ist 100% richtig
+	•	Value of Time sollte nicht konstant sein
+	•	Nutze einfache Multiplikatoren je Kontext
+
+👉 Dadurch wird dein Tool:
+
+realistischer als jede Flight-Suchmaschine
+
+⸻
+
+Wenn du willst, kann ich dir im nächsten Schritt:
+
+👉 konkret zeigen, wo du das in deinem Replit-Code einbaust (copy-paste ready)

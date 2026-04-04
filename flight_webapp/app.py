@@ -43,7 +43,8 @@ async def search_stream(
     date_window: int = Query(0),
     home_address: str = Query("", description="Home address near departure airport"),
     dest_address: str = Query("", description="Destination address near arrival airport"),
-    ground_cost_per_km: float = Query(1.5, description="Ground transport cost in EUR/km"),
+    ground_cost_per_km: float = Query(1.5, description="Kept for backward compat"),
+    stop_penalty: float = Query(75.0, description="EUR penalty per stop (outbound+return)"),
 ):
     origin_list = [o.strip().upper() for o in origins.split(",") if o.strip()]
     dest_list = [d.strip().upper() for d in destinations.split(",") if d.strip()]
@@ -273,7 +274,9 @@ async def search_stream(
 
         # Re-score using full round-trip duration, then take the true top N
         yield sse({"type": "progress", "percent": 93, "label": "Re-ranking by round-trip score…"})
-        candidate_flights = recalculate_scores_with_return(candidate_flights, value_of_time)
+        candidate_flights = recalculate_scores_with_return(
+            candidate_flights, value_of_time, stop_penalty_eur=stop_penalty
+        )
 
         # ── Apply ground transport adjustment ─────────────────────────────────
         if ground_transport:
@@ -349,6 +352,14 @@ async def search_stream(
                 "ground_arr_mode":    f.get("ground_arr_mode", ""),
                 "ground_dep_notes":   f.get("ground_dep_notes", ""),
                 "ground_arr_notes":   f.get("ground_arr_notes", ""),
+                # Score breakdown components (contextual scoring)
+                "time_cost_base":   f.get("time_cost_base"),
+                "stops_penalty":    f.get("stops_penalty"),
+                "night_penalty":    f.get("night_penalty"),
+                "layover_penalty":  f.get("layover_penalty"),
+                "out_is_night":     f.get("out_is_night", False),
+                "ret_is_night":     f.get("ret_is_night", False),
+                "duration_minutes": int(f.get("duration_minutes") or 0),
             })
 
         import tempfile, uuid
