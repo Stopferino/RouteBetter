@@ -238,6 +238,18 @@
           </span>
         </button>
 
+        <!-- API Usage Counter -->
+        <div class="flex items-center gap-2 px-1">
+          <div class="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-500"
+                 :class="apiUsage.pct_used >= 80 ? 'bg-red-500' : apiUsage.pct_used >= 50 ? 'bg-amber-500' : 'bg-emerald-500'"
+                 :style="`width: ${Math.min(apiUsage.pct_used, 100)}%`"></div>
+          </div>
+          <span class="text-xs text-slate-400 shrink-0"
+                :class="apiUsage.pct_used >= 80 ? 'text-red-500 font-semibold' : ''"
+                x-text="`${apiUsage.count}/${apiUsage.limit} API calls`"></span>
+        </div>
+
         <!-- Error -->
         <div x-show="errorMsg" class="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700"
              x-text="errorMsg"></div>
@@ -319,8 +331,12 @@
     <!-- Results Header + Export -->
     <div x-show="results.length > 0" class="flex items-center justify-between">
       <div>
-        <h2 class="text-lg font-bold text-slate-800">
+        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
           Top <span x-text="results.length"></span> Flights
+          <span x-show="rescored"
+                class="text-xs font-normal bg-violet-100 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-full animate-pulse">
+            ⚡ re-ranked client-side
+          </span>
         </h2>
         <p class="text-xs text-slate-400">
           from <span x-text="totalFound"></span> flights analysed · sorted by score (lowest = best)
@@ -669,6 +685,10 @@ function flightApp() {
     destAddress: '',
     groundInfo: null,
 
+    // API usage + re-scoring state
+    apiUsage: { count: 0, month: '', limit: 250, remaining: 250, pct_used: 0 },
+    rescored: false,
+
     // Restore session-persisted fields on load; save on change.
     // sessionStorage resets when the browser window/tab is closed.
     init() {
@@ -681,6 +701,41 @@ function flightApp() {
       this.$watch('destsRaw',    v => sessionStorage.setItem('fo_destsRaw',    v));
       this.$watch('homeAddress', v => sessionStorage.setItem('fo_homeAddress', v));
       this.$watch('destAddress', v => sessionStorage.setItem('fo_destAddress', v));
+      // Client-side re-scoring on slider change (no new API call)
+      this.$watch('valueOfTime', () => { if (this.results.length > 0) { this.rescore(); this.rescored = true; } });
+      this.$watch('stopPenalty', () => { if (this.results.length > 0) { this.rescore(); this.rescored = true; } });
+      this.fetchUsage();
+    },
+
+    async fetchUsage() {
+      try {
+        const r = await fetch('/api/usage');
+        if (r.ok) this.apiUsage = await r.json();
+      } catch {}
+    },
+
+    rescore() {
+      const vot = this.valueOfTime;
+      const sp  = this.stopPenalty;
+      this.results = this.results.map(f => {
+        const timeCostBase   = (f.total_flight_h   || 0) * vot;
+        const nightPenalty   = (f.night_hours       || 0) * vot * 0.5;
+        const layoverPenalty = (f.excess_layover_h  || 0) * vot * 0.5;
+        const stopsPenalty   = ((f.stops || 0) + (f.return_stops || 0)) * sp;
+        const groundCost     = f.ground_total_cost  || 0;
+        const groundTimeCost = (f.ground_time_h     || 0) * vot;
+        const score = (f.price || 0) + timeCostBase + nightPenalty + layoverPenalty + stopsPenalty + groundCost + groundTimeCost;
+        return {
+          ...f,
+          score:          Math.round(score          * 100) / 100,
+          time_cost_base: Math.round(timeCostBase   * 100) / 100,
+          night_penalty:  Math.round(nightPenalty   * 100) / 100,
+          layover_penalty:Math.round(layoverPenalty * 100) / 100,
+          stops_penalty:  Math.round(stopsPenalty   * 100) / 100,
+        };
+      });
+      this.results.sort((a, b) => a.score - b.score);
+      this.results = this.results.map((f, i) => ({ ...f, rank: i + 1 }));
     },
 
     apiCallEstimate() {
@@ -754,6 +809,8 @@ function flightApp() {
           this.results = msg.flights.map(f => ({ ...f, _open: false }));
           this.totalFound = msg.total_found;
           this.exportId = msg.export_id;
+          this.rescored = false;
+          this.fetchUsage();
         } else if (msg.type === 'error') {
           this.errorMsg = msg.message;
           this.searching = false;

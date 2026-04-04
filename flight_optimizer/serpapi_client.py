@@ -92,6 +92,9 @@ def fetch_flights(
     retry_delay = 5  # seconds between retries
     data = None
 
+    from flight_optimizer.usage_tracker import increment as _track_usage
+    _track_usage()
+
     for attempt in range(1, max_retries + 1):
         try:
             response = requests.get(SERPAPI_BASE_URL, params=params, timeout=60)
@@ -440,6 +443,9 @@ def fetch_return_legs(
         "departure_token": departure_token,
         "api_key": api_key,
     }
+
+    from flight_optimizer.usage_tracker import increment as _track_usage
+    _track_usage()
 
     for attempt in range(1, 4):
         try:

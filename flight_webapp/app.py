@@ -30,6 +30,12 @@ async def index():
         return HTMLResponse(content=f.read())
 
 
+@app.get("/api/usage")
+async def api_usage():
+    from flight_optimizer.usage_tracker import get_usage
+    return get_usage()
+
+
 @app.get("/search/stream")
 async def search_stream(
     origins: str = Query(..., description="Comma-separated origin codes"),
@@ -360,6 +366,11 @@ async def search_stream(
                 "out_is_night":     f.get("out_is_night", False),
                 "ret_is_night":     f.get("ret_is_night", False),
                 "duration_minutes": int(f.get("duration_minutes") or 0),
+                # Raw VoT-independent fields for client-side re-scoring
+                "total_flight_h":   f.get("total_flight_h", 0),
+                "night_hours":      f.get("night_hours", 0),
+                "excess_layover_h": f.get("excess_layover_h", 0),
+                "ground_time_h":    round(2.0 * ((f.get("ground_dep_minutes") or 0) + (f.get("ground_arr_minutes") or 0)) / 60.0, 4),
             })
 
         import tempfile, uuid

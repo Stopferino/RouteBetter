@@ -161,6 +161,12 @@ def recalculate_scores_with_return(
         f["stops_penalty"]  = round(stops_penalty, 2)
         f["out_is_night"]   = out_is_night
         f["ret_is_night"]   = ret_is_night
+        # Raw VoT-independent fields — used for client-side re-scoring
+        out_night_h = outbound_h if out_is_night else 0.0
+        ret_night_h = return_h   if ret_is_night else 0.0
+        f["total_flight_h"]   = round(outbound_h + return_h, 4)
+        f["night_hours"]      = round(out_night_h + ret_night_h, 4)
+        f["excess_layover_h"] = round(out_excess_h + ret_excess_h, 4)
 
     flights.sort(key=lambda f: f["score"])
     return flights
