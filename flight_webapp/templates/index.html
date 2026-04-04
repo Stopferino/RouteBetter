@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flight Optimizer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    .gradient-header { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); }
+    .card-hover { transition: box-shadow 0.2s, transform 0.2s; }
+    .card-hover:hover { box-shadow: 0 8px 30px rgba(37,99,235,0.15); transform: translateY(-2px); }
+    .progress-bar { transition: width 0.5s ease-in-out; }
+    .log-scroll { max-height: 160px; overflow-y: auto; scroll-behavior: smooth; }
+    .rank-badge-1 { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .rank-badge-2 { background: linear-gradient(135deg, #94a3b8, #64748b); }
+    .rank-badge-3 { background: linear-gradient(135deg, #cd7c3a, #b45309); }
+    .rank-badge-n { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .segment-line { border-left: 2px dashed #cbd5e1; margin-left: 10px; padding-left: 14px; }
+    input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.6; cursor: pointer; }
+    .slide-down { animation: slideDown 0.35s ease forwards; }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+    .pulse-dot { animation: pulseDot 1.2s infinite; }
+    @keyframes pulseDot { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+  </style>
+</head>
+
+<body class="bg-slate-100 min-h-screen font-sans" x-data="flightApp()" x-cloak>
+
+<!-- ── HEADER ───────────────────────────────────────────────────────────────── -->
+<header class="gradient-header text-white shadow-lg">
+  <div class="max-w-screen-xl mx-auto px-6 py-4 flex items-center gap-4">
+    <span class="text-3xl">✈</span>
+    <div>
+      <h1 class="text-xl font-bold tracking-tight">Flight Optimizer</h1>
+      <p class="text-blue-200 text-xs">Find the best round-trip flights by price &amp; time value</p>
+    </div>
+    <div class="ml-auto text-right text-xs text-blue-200" x-show="results.length">
+      <span x-text="`${totalFound} flights analysed`"></span>
+    </div>
+  </div>
+</header>
+
+<!-- ── MAIN LAYOUT ───────────────────────────────────────────────────────────── -->
+<div class="max-w-screen-xl mx-auto px-4 py-6 flex gap-6 flex-col lg:flex-row">
+
+  <!-- ── SIDEBAR (Search Form) ─────────────────────────────────────────────── -->
+  <aside class="w-full lg:w-80 shrink-0">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="gradient-header text-white px-5 py-3">
+        <h2 class="font-semibold text-sm tracking-wide uppercase">Search Parameters</h2>
+      </div>
+      <form class="p-5 space-y-5" @submit.prevent="startSearch">
+
+        <!-- Origins -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Origin Airports</label>
+          <div class="grid grid-cols-3 gap-2">
+            <template x-for="apt in allOrigins" :key="apt">
+              <label class="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2 cursor-pointer border border-slate-200 hover:border-blue-400 transition-colors"
+                     :class="origins.includes(apt) ? 'border-blue-500 bg-blue-50' : ''">
+                <input type="checkbox" class="accent-blue-600 w-4 h-4" :value="apt"
+                       x-model="origins" />
+                <span class="font-mono font-semibold text-sm" x-text="apt"></span>
+              </label>
+            </template>
+          </div>
+        </div>
+
+        <!-- Destinations -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Destination Airports</label>
+          <div class="grid grid-cols-3 gap-2">
+            <template x-for="apt in allDestinations" :key="apt">
+              <label class="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2 cursor-pointer border border-slate-200 hover:border-blue-400 transition-colors"
+                     :class="destinations.includes(apt) ? 'border-blue-500 bg-blue-50' : ''">
+                <input type="checkbox" class="accent-blue-600 w-4 h-4" :value="apt"
+                       x-model="destinations" />
+                <span class="font-mono font-semibold text-sm" x-text="apt"></span>
+              </label>
+            </template>
+          </div>
+        </div>
+
+        <!-- Dates -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Outbound</label>
+            <input type="date" x-model="outboundDate"
+                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Return</label>
+            <input type="date" x-model="returnDate"
+                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+          </div>
+        </div>
+
+        <!-- Value of Time -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">
+            Value of Time: <span class="text-blue-600 font-bold" x-text="`${valueOfTime} EUR/h`"></span>
+          </label>
+          <input type="range" min="5" max="150" step="5" x-model.number="valueOfTime"
+                 class="w-full accent-blue-600" />
+          <div class="flex justify-between text-xs text-slate-400 mt-1">
+            <span>5 EUR/h</span><span>150 EUR/h</span>
+          </div>
+        </div>
+
+        <!-- Top N + Max Stops -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Top Results</label>
+            <select x-model.number="topN"
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+              <template x-for="n in [3,5,8,10]">
+                <option :value="n" x-text="n"></option>
+              </template>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Max Stops</label>
+            <select x-model="maxStops"
+                    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+              <option value="">Any</option>
+              <option value="0">Non-stop</option>
+              <option value="1">Max 1</option>
+              <option value="2">Max 2</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Cache toggle -->
+        <div class="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
+          <span class="text-xs font-semibold text-slate-500">Use Cache (save API quota)</span>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" x-model="useCache" class="sr-only peer" />
+            <div class="w-10 h-5 bg-slate-300 rounded-full peer peer-checked:bg-blue-600
+                        after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                        after:bg-white after:rounded-full after:h-4 after:w-4
+                        after:transition-all peer-checked:after:translate-x-5"></div>
+          </label>
+        </div>
+
+        <!-- Search Button -->
+        <button type="submit"
+                :disabled="searching || origins.length === 0 || destinations.length === 0 || !outboundDate || !returnDate"
+                class="w-full gradient-header text-white font-semibold py-3 rounded-xl hover:opacity-90
+                       disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2">
+          <span x-show="!searching">🔍 Search Flights</span>
+          <span x-show="searching" class="flex items-center gap-2">
+            <span class="pulse-dot">●</span> Searching…
+          </span>
+        </button>
+
+        <!-- Error -->
+        <div x-show="errorMsg" class="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700"
+             x-text="errorMsg"></div>
+      </form>
+    </div>
+
+    <!-- Score explanation -->
+    <div class="mt-3 bg-blue-50 border border-blue-200 rounded-xl p-4 text-xs text-blue-700">
+      <p class="font-semibold mb-1">📊 Score Formula</p>
+      <p>Score = Price + Outbound duration (h) × Value-of-Time (EUR/h)</p>
+      <p class="mt-1 text-blue-500">Lower score = better value</p>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT AREA ─────────────────────────────────────────────────── -->
+  <main class="flex-1 min-w-0 space-y-4">
+
+    <!-- Progress Panel -->
+    <div x-show="searching || logs.length" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden slide-down">
+      <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+        <span class="text-sm font-semibold text-slate-700">Progress</span>
+        <span class="text-xs text-slate-400" x-text="`${progressPercent}%`"></span>
+      </div>
+      <div class="px-5 pt-3">
+        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+          <div class="h-2 rounded-full gradient-header progress-bar" :style="`width:${progressPercent}%`"></div>
+        </div>
+        <p class="text-xs text-slate-500 mt-1 mb-2" x-text="progressLabel"></p>
+      </div>
+      <div class="log-scroll px-5 pb-3 space-y-0.5" x-ref="logBox">
+        <template x-for="(line, i) in logs" :key="i">
+          <p class="text-xs text-slate-500 font-mono" x-text="line"></p>
+        </template>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div x-show="!searching && results.length === 0 && !errorMsg"
+         class="bg-white rounded-2xl shadow-sm border border-slate-200 p-16 text-center text-slate-400">
+      <div class="text-6xl mb-4">✈️</div>
+      <p class="text-lg font-semibold text-slate-500">Ready to search</p>
+      <p class="text-sm mt-2">Select airports and dates, then hit Search Flights.</p>
+    </div>
+
+    <!-- Results Header + Export -->
+    <div x-show="results.length > 0" class="flex items-center justify-between">
+      <div>
+        <h2 class="text-lg font-bold text-slate-800">
+          Top <span x-text="results.length"></span> Flights
+        </h2>
+        <p class="text-xs text-slate-400">
+          from <span x-text="totalFound"></span> flights analysed · sorted by score (lowest = best)
+        </p>
+      </div>
+      <button x-show="exportId" @click="downloadExcel"
+              class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
+        📥 Export Excel
+      </button>
+    </div>
+
+    <!-- Flight Cards -->
+    <template x-for="(flight, fi) in results" :key="fi">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 card-hover overflow-hidden">
+
+        <!-- Card Header -->
+        <div class="flex items-start gap-4 px-5 py-4">
+
+          <!-- Rank Badge -->
+          <div class="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow"
+               :class="flight.rank === 1 ? 'rank-badge-1' : flight.rank === 2 ? 'rank-badge-2' : flight.rank === 3 ? 'rank-badge-3' : 'rank-badge-n'">
+            <span x-text="flight.rank"></span>
+          </div>
+
+          <!-- Route + Airline -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-bold text-blue-700 font-mono text-base" x-text="flight.outbound_route || `${flight.origin}→${flight.destination}`"></span>
+              <span class="text-slate-300">↔</span>
+              <span class="font-bold text-slate-500 font-mono text-sm" x-text="flight.return_route || `${flight.destination}→${flight.origin}`"></span>
+            </div>
+            <p class="text-sm text-slate-500 mt-0.5">
+              <span x-text="flight.airline"></span>
+              &nbsp;·&nbsp;
+              <span x-text="flight.outbound_date"></span> ↔ <span x-text="flight.return_date"></span>
+            </p>
+          </div>
+
+          <!-- Price + Score -->
+          <div class="text-right shrink-0">
+            <div class="text-2xl font-bold text-slate-800">
+              <span x-text="flight.price.toFixed(0)"></span>
+              <span class="text-base font-normal text-slate-500"> EUR</span>
+            </div>
+            <div class="text-xs text-slate-400">round-trip</div>
+            <div class="mt-1 inline-flex items-center gap-1 bg-blue-50 border border-blue-200 rounded-lg px-2 py-0.5">
+              <span class="text-xs text-blue-600 font-semibold">Score:</span>
+              <span class="text-sm font-bold text-blue-700" x-text="flight.score.toFixed(0) + ' EUR'"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Strip -->
+        <div class="border-t border-slate-100 px-5 py-2 bg-slate-50 flex flex-wrap gap-4 text-xs text-slate-600">
+          <span>
+            🛫 <strong>Outbound:</strong>
+            <span x-text="flight.duration_str"></span>
+            · <span x-text="flight.stops + ' stop(s)'"></span>
+          </span>
+          <span x-show="flight.return_duration_minutes">
+            🛬 <strong>Return:</strong>
+            <span x-text="fmtMin(flight.return_duration_minutes)"></span>
+            · <span x-text="(flight.return_stops ?? '?') + ' stop(s)'"></span>
+          </span>
+        </div>
+
+        <!-- Toggle Detail Button -->
+        <button @click="flight._open = !flight._open"
+                class="w-full text-xs text-blue-500 hover:text-blue-700 py-2 border-t border-slate-100 flex items-center justify-center gap-1 transition-colors">
+          <span x-text="flight._open ? '▲ Hide detail' : '▼ Show flight detail'"></span>
+        </button>
+
+        <!-- Expandable Detail -->
+        <div x-show="flight._open" class="px-5 pb-5 pt-1 space-y-4 slide-down">
+
+          <!-- Outbound Segments -->
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded">OUTBOUND</span>
+              <span class="text-xs text-slate-500" x-text="flight.outbound_date"></span>
+            </div>
+            <template x-for="(seg, si) in flight.outbound_segments" :key="si">
+              <div>
+                <div class="flex items-start gap-3 py-2">
+                  <!-- Times -->
+                  <div class="text-center w-14 shrink-0">
+                    <div class="font-mono font-bold text-slate-800 text-sm" x-text="fmtTime(seg.from_time)"></div>
+                    <div class="font-mono text-xs text-slate-400" x-text="seg.from_airport"></div>
+                  </div>
+                  <!-- Line + info -->
+                  <div class="flex-1 segment-line">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="font-semibold text-sm text-slate-700" x-text="seg.flight_number"></span>
+                      <span class="text-xs text-slate-500" x-text="seg.airline"></span>
+                      <span class="text-xs bg-slate-100 px-2 py-0.5 rounded" x-text="fmtMin(seg.duration_minutes)"></span>
+                      <span class="text-xs text-slate-400" x-text="seg.aircraft"></span>
+                      <span x-show="seg.overnight" class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">🌙 overnight</span>
+                    </div>
+                  </div>
+                  <!-- Arrival -->
+                  <div class="text-center w-14 shrink-0">
+                    <div class="font-mono font-bold text-slate-800 text-sm" x-text="fmtTime(seg.to_time)"></div>
+                    <div class="font-mono text-xs text-slate-400" x-text="seg.to_airport"></div>
+                  </div>
+                </div>
+                <!-- Layover -->
+                <template x-if="si < flight.outbound_layovers.length">
+                  <div class="ml-[74px] flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 mb-1">
+                    <span>⏱</span>
+                    <span>Layover at <strong x-text="flight.outbound_layovers[si].airport_id"></strong></span>
+                    <span x-text="flight.outbound_layovers[si].airport"></span>
+                    <span class="font-semibold" x-text="fmtMin(flight.outbound_layovers[si].duration_minutes)"></span>
+                    <span x-show="flight.outbound_layovers[si].overnight" class="text-amber-600">🌙</span>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+
+          <!-- Return Segments -->
+          <div x-show="flight.return_segments.length > 0">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded">RETURN</span>
+              <span class="text-xs text-slate-500" x-text="flight.return_date"></span>
+            </div>
+            <template x-for="(seg, si) in flight.return_segments" :key="si">
+              <div>
+                <div class="flex items-start gap-3 py-2">
+                  <div class="text-center w-14 shrink-0">
+                    <div class="font-mono font-bold text-slate-800 text-sm" x-text="fmtTime(seg.from_time)"></div>
+                    <div class="font-mono text-xs text-slate-400" x-text="seg.from_airport"></div>
+                  </div>
+                  <div class="flex-1 segment-line">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="font-semibold text-sm text-slate-700" x-text="seg.flight_number"></span>
+                      <span class="text-xs text-slate-500" x-text="seg.airline"></span>
+                      <span class="text-xs bg-slate-100 px-2 py-0.5 rounded" x-text="fmtMin(seg.duration_minutes)"></span>
+                      <span class="text-xs text-slate-400" x-text="seg.aircraft"></span>
+                      <span x-show="seg.overnight" class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">🌙 overnight</span>
+                    </div>
+                  </div>
+                  <div class="text-center w-14 shrink-0">
+                    <div class="font-mono font-bold text-slate-800 text-sm" x-text="fmtTime(seg.to_time)"></div>
+                    <div class="font-mono text-xs text-slate-400" x-text="seg.to_airport"></div>
+                  </div>
+                </div>
+                <template x-if="si < flight.return_layovers.length">
+                  <div class="ml-[74px] flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 mb-1">
+                    <span>⏱</span>
+                    <span>Layover at <strong x-text="flight.return_layovers[si].airport_id"></strong></span>
+                    <span x-text="flight.return_layovers[si].airport"></span>
+                    <span class="font-semibold" x-text="fmtMin(flight.return_layovers[si].duration_minutes)"></span>
+                    <span x-show="flight.return_layovers[si].overnight" class="text-amber-600">🌙</span>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+          <div x-show="flight.return_segments.length === 0" class="text-xs text-slate-400 italic">
+            Return leg details not yet fetched — re-run search to load.
+          </div>
+
+        </div>
+      </div>
+    </template>
+
+  </main>
+</div>
+
+<script>
+function flightApp() {
+  return {
+    allOrigins: ['HKG', 'SZX', 'CAN'],
+    allDestinations: ['FRA', 'MUC', 'NUE'],
+    origins: ['HKG', 'SZX', 'CAN'],
+    destinations: ['FRA', 'MUC', 'NUE'],
+    outboundDate: '2026-07-25',
+    returnDate: '2026-08-02',
+    valueOfTime: 20,
+    topN: 5,
+    maxStops: '',
+    useCache: true,
+    searching: false,
+    results: [],
+    totalFound: 0,
+    exportId: null,
+    errorMsg: '',
+    logs: [],
+    progressPercent: 0,
+    progressLabel: '',
+    _es: null,
+
+    fmtMin(min) {
+      if (!min && min !== 0) return '?';
+      min = Math.round(min);
+      return `${Math.floor(min / 60)}h ${String(min % 60).padStart(2, '0')}m`;
+    },
+
+    fmtTime(t) {
+      if (!t) return '?';
+      const parts = t.split(' ');
+      return parts[parts.length - 1];
+    },
+
+    startSearch() {
+      if (this.searching) return;
+      this.errorMsg = '';
+      this.results = [];
+      this.logs = [];
+      this.progressPercent = 0;
+      this.progressLabel = 'Starting…';
+      this.exportId = null;
+      this.searching = true;
+
+      if (this._es) this._es.close();
+
+      const params = new URLSearchParams({
+        origins: this.origins.join(','),
+        destinations: this.destinations.join(','),
+        outbound_date: this.outboundDate,
+        return_date: this.returnDate,
+        value_of_time: this.valueOfTime,
+        top_n: this.topN,
+        use_cache: this.useCache,
+      });
+      if (this.maxStops !== '') params.set('max_stops', this.maxStops);
+
+      this._es = new EventSource(`/api/search/stream?${params}`);
+
+      this._es.onmessage = (e) => {
+        let msg;
+        try { msg = JSON.parse(e.data); } catch { return; }
+
+        if (msg.type === 'log') {
+          this.logs.push(msg.message);
+          this.$nextTick(() => {
+            const box = this.$refs.logBox;
+            if (box) box.scrollTop = box.scrollHeight;
+          });
+        } else if (msg.type === 'progress') {
+          this.progressPercent = msg.percent;
+          this.progressLabel = msg.label;
+        } else if (msg.type === 'results') {
+          this.results = msg.flights.map(f => ({ ...f, _open: false }));
+          this.totalFound = msg.total_found;
+          this.exportId = msg.export_id;
+        } else if (msg.type === 'error') {
+          this.errorMsg = msg.message;
+          this.searching = false;
+          this._es.close();
+        } else if (msg.type === 'done') {
+          this.searching = false;
+          this._es.close();
+        }
+      };
+
+      this._es.onerror = () => {
+        if (this.searching) {
+          this.errorMsg = 'Connection error. Please try again.';
+          this.searching = false;
+          this._es.close();
+        }
+      };
+    },
+
+    downloadExcel() {
+      if (!this.exportId) return;
+      window.open(`/api/export/${this.exportId}`, '_blank');
+    },
+  };
+}
+</script>
+</body>
+</html>

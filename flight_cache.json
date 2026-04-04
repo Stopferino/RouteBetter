@@ -1,0 +1,389 @@
+{
+  "HKG_FRA_2026-07-25_2026-08-02": {
+    "fetched_at": "2026-04-04 10:02",
+    "results": [
+      {
+        "origin": "HKG",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-02",
+        "price": 1034.0,
+        "duration_minutes": 1055,
+        "stops": 1,
+        "airline": "Qatar Airways",
+        "outbound_route": "HKG->DOH->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 19:40",
+            "to_airport": "DOH",
+            "to_name": "Hamad International Airport",
+            "to_time": "2026-07-25 22:50",
+            "airline": "Qatar Airways",
+            "flight_number": "QR 817",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 490,
+            "overnight": false
+          },
+          {
+            "from_airport": "DOH",
+            "from_name": "Hamad International Airport",
+            "from_time": "2026-07-26 01:55",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 07:15",
+            "airline": "Qatar Airways",
+            "flight_number": "QR 69",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 380,
+            "overnight": true
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Hamad International Airport",
+            "airport_id": "DOH",
+            "duration_minutes": 185
+          }
+        ],
+        "departure_token": "WyJDalJJZFMxVmNXaHNUbk5VYVd0QlNsSjRlV2RDUnkwdExTMHRMUzB0TFc5clpXNHhNa0ZCUVVGQlIyNVJNbkIzU2sxcFRYVkJFZ3BSVWpneE4zeFJValk1R2dzSXQ2Y0dFQUlhQTBWVlVqZ2NjSnFpQnc9PSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkRPSCIsbnVsbCwiUVIiLCI4MTciXSxbIkRPSCIsIjIwMjYtMDctMjYiLCJGUkEiLG51bGwsIlFSIiwiNjkiXV1d"
+      },
+      {
+        "origin": "HKG",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-02",
+        "price": 1131.0,
+        "duration_minutes": 775,
+        "stops": 0,
+        "airline": "Lufthansa",
+        "outbound_route": "HKG->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 23:25",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 06:20",
+            "airline": "Lufthansa",
+            "flight_number": "LH 797",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 775,
+            "overnight": true
+          }
+        ],
+        "outbound_layovers": [],
+        "departure_token": "WyJDalJJZFMxVmNXaHNUbk5VYVd0QlNsSjRlV2RDUnkwdExTMHRMUzB0TFc5clpXNHhNa0ZCUVVGQlIyNVJNbkIzU2sxcFRYVkJFZ1ZNU0RjNU54b0xDTFB6QmhBQ0dnTkZWVkk0SEhEYytRYz0iLFtbIkhLRyIsIjIwMjYtMDctMjUiLCJGUkEiLG51bGwsIkxIIiwiNzk3Il1dXQ=="
+      },
+      {
+        "origin": "HKG",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-02",
+        "price": 1596.0,
+        "duration_minutes": 800,
+        "stops": 0,
+        "airline": "Cathay Pacific",
+        "outbound_route": "HKG->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 23:55",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 07:15",
+            "airline": "Cathay Pacific",
+            "flight_number": "CX 289",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 800,
+            "overnight": true
+          }
+        ],
+        "outbound_layovers": [],
+        "departure_token": "WyJDalJJZFMxVmNXaHNUbk5VYVd0QlNsSjRlV2RDUnkwdExTMHRMUzB0TFc5clpXNHhNa0ZCUVVGQlIyNVJNbkIzU2sxcFRYVkJFZ1ZEV0RJNE9Sb0xDT1hlQ1JBQ0dnTkZWVkk0SEhDdm5Bcz0iLFtbIkhLRyIsIjIwMjYtMDctMjUiLCJGUkEiLG51bGwsIkNYIiwiMjg5Il1dXQ=="
+      },
+      {
+        "origin": "HKG",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-02",
+        "price": 1034.0,
+        "duration_minutes": 1150,
+        "stops": 1,
+        "airline": "Qatar Airways",
+        "outbound_route": "HKG->DOH->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 01:25",
+            "to_airport": "DOH",
+            "to_name": "Hamad International Airport",
+            "to_time": "2026-07-25 04:35",
+            "airline": "Qatar Airways",
+            "flight_number": "QR 815",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 490,
+            "overnight": true
+          },
+          {
+            "from_airport": "DOH",
+            "from_name": "Hamad International Airport",
+            "from_time": "2026-07-25 09:15",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-25 14:35",
+            "airline": "Qatar Airways",
+            "flight_number": "QR 67",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 380,
+            "overnight": false
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Hamad International Airport",
+            "airport_id": "DOH",
+            "duration_minutes": 280
+          }
+        ],
+        "departure_token": "WyJDalJJZFMxVmNXaHNUbk5VYVd0QlNsSjRlV2RDUnkwdExTMHRMUzB0TFc5clpXNHhNa0ZCUVVGQlIyNVJNbkIzU2sxcFRYVkJFZ3BSVWpneE5YeFJValkzR2dzSXQ2Y0dFQUlhQTBWVlVqZ2NjSnFpQnc9PSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkRPSCIsbnVsbCwiUVIiLCI4MTUiXSxbIkRPSCIsIjIwMjYtMDctMjUiLCJGUkEiLG51bGwsIlFSIiwiNjciXV1d"
+      },
+      {
+        "origin": "HKG",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-02",
+        "price": 1090.0,
+        "duration_minutes": 1115,
+        "stops": 1,
+        "airline": "Emirates",
+        "outbound_route": "HKG->DXB->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 00:40",
+            "to_airport": "DXB",
+            "to_name": "Dubai International Airport",
+            "to_time": "2026-07-25 04:25",
+            "airline": "Emirates",
+            "flight_number": "EK 381",
+            "aircraft": "Airbus A380",
+            "duration_minutes": 465,
+            "overnight": true
+          },
+          {
+            "from_airport": "DXB",
+            "from_name": "Dubai International Airport",
+            "from_time": "2026-07-25 08:25",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-25 13:15",
+            "airline": "Emirates",
+            "flight_number": "EK 45",
+            "aircraft": "Airbus A380",
+            "duration_minutes": 410,
+            "overnight": false
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Dubai International Airport",
+            "airport_id": "DXB",
+            "duration_minutes": 240
+          }
+        ],
+        "departure_token": "WyJDalJJZFMxVmNXaHNUbk5VYVd0QlNsSjRlV2RDUnkwdExTMHRMUzB0TFc5clpXNHhNa0ZCUVVGQlIyNVJNbkIzU2sxcFRYVkJFZ3BGU3pNNE1YeEZTelExR2dzSWhkTUdFQUlhQTBWVlVqZ2NjTGpVQnc9PSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkRYQiIsbnVsbCwiRUsiLCIzODEiXSxbIkRYQiIsIjIwMjYtMDctMjUiLCJGUkEiLG51bGwsIkVLIiwiNDUiXV1d"
+      },
+      {
+        "origin": "HKG",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-02",
+        "price": 1194.0,
+        "duration_minutes": 1035,
+        "stops": 1,
+        "airline": "Air India",
+        "outbound_route": "HKG->DEL->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 08:20",
+            "to_airport": "DEL",
+            "to_name": "Indira Gandhi International Airport",
+            "to_time": "2026-07-25 11:45",
+            "airline": "Air India",
+            "flight_number": "AI 315",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 355,
+            "overnight": false
+          },
+          {
+            "from_airport": "DEL",
+            "from_name": "Indira Gandhi International Airport",
+            "from_time": "2026-07-25 13:55",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-25 19:35",
+            "airline": "Air India",
+            "flight_number": "AI 2029",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 550,
+            "overnight": false
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Indira Gandhi International Airport",
+            "airport_id": "DEL",
+            "duration_minutes": 130
+          }
+        ],
+        "departure_token": "WyJDalJJZFMxVmNXaHNUbk5VYVd0QlNsSjRlV2RDUnkwdExTMHRMUzB0TFc5clpXNHhNa0ZCUVVGQlIyNVJNbkIzU2sxcFRYVkJFZ3hCU1RNeE5YeEJTVEl3TWprYUN3aXZwQWNRQWhvRFJWVlNPQnh3a2JJSSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkRFTCIsbnVsbCwiQUkiLCIzMTUiXSxbIkRFTCIsIjIwMjYtMDctMjUiLCJGUkEiLG51bGwsIkFJIiwiMjAyOSJdXV0="
+      },
+      {
+        "origin": "HKG",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-02",
+        "price": 1530.0,
+        "duration_minutes": 1030,
+        "stops": 1,
+        "airline": "THAI",
+        "outbound_route": "HKG->BKK->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 19:05",
+            "to_airport": "BKK",
+            "to_name": "Suvarnabhumi Airport",
+            "to_time": "2026-07-25 20:45",
+            "airline": "THAI",
+            "flight_number": "TG 639",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 160,
+            "overnight": false
+          },
+          {
+            "from_airport": "BKK",
+            "from_name": "Suvarnabhumi Airport",
+            "from_time": "2026-07-25 23:45",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 06:15",
+            "airline": "THAI",
+            "flight_number": "TG 920",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 690,
+            "overnight": true
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Suvarnabhumi Airport",
+            "airport_id": "BKK",
+            "duration_minutes": 180
+          }
+        ],
+        "departure_token": "WyJDalJJZFMxVmNXaHNUbk5VYVd0QlNsSjRlV2RDUnkwdExTMHRMUzB0TFc5clpXNHhNa0ZCUVVGQlIyNVJNbkIzU2sxcFRYVkJFZ3RVUnpZek9YeFVSemt5TUJvTENNK3FDUkFDR2dORlZWSTRISENoNEFvPSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkJLSyIsbnVsbCwiVEciLCI2MzkiXSxbIkJLSyIsIjIwMjYtMDctMjUiLCJGUkEiLG51bGwsIlRHIiwiOTIwIl1dXQ=="
+      },
+      {
+        "origin": "HKG",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-02",
+        "price": 1587.0,
+        "duration_minutes": 1030,
+        "stops": 1,
+        "airline": "THAI",
+        "outbound_route": "HKG->BKK->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 07:50",
+            "to_airport": "BKK",
+            "to_name": "Suvarnabhumi Airport",
+            "to_time": "2026-07-25 09:30",
+            "airline": "THAI",
+            "flight_number": "TG 603",
+            "aircraft": "Airbus A320",
+            "duration_minutes": 160,
+            "overnight": false
+          },
+          {
+            "from_airport": "BKK",
+            "from_name": "Suvarnabhumi Airport",
+            "from_time": "2026-07-25 12:25",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-25 19:00",
+            "airline": "THAI",
+            "flight_number": "TG 922",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 695,
+            "overnight": false
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Suvarnabhumi Airport",
+            "airport_id": "BKK",
+            "duration_minutes": 175
+          }
+        ],
+        "departure_token": "WyJDalJJZFMxVmNXaHNUbk5VYVd0QlNsSjRlV2RDUnkwdExTMHRMUzB0TFc5clpXNHhNa0ZCUVVGQlIyNVJNbkIzU2sxcFRYVkJFZ3RVUnpZd00zeFVSemt5TWhvTENNN1hDUkFDR2dORlZWSTRISENNbEFzPSIsW1siSEtHIiwiMjAyNi0wNy0yNSIsIkJLSyIsbnVsbCwiVEciLCI2MDMiXSxbIkJLSyIsIjIwMjYtMDctMjUiLCJGUkEiLG51bGwsIlRHIiwiOTIyIl1dXQ=="
+      }
+    ]
+  },
+  "return__WyJDalJJZFMxVmNXaHNUbk5VYVd0QlNs": {
+    "fetched_at": "2026-04-04 10:02",
+    "data": {
+      "return_segments": [
+        {
+          "from_airport": "FRA",
+          "from_name": "Frankfurt Airport",
+          "from_time": "2026-08-02 21:55",
+          "to_airport": "DOH",
+          "to_name": "Hamad International Airport",
+          "to_time": "2026-08-03 04:55",
+          "airline": "Qatar Airways",
+          "flight_number": "QR 72",
+          "aircraft": "Boeing 787",
+          "duration_minutes": 360,
+          "overnight": true
+        },
+        {
+          "from_airport": "DOH",
+          "from_name": "Hamad International Airport",
+          "from_time": "2026-08-03 08:30",
+          "to_airport": "HKG",
+          "to_name": "Hong Kong International Airport",
+          "to_time": "2026-08-03 21:55",
+          "airline": "Qatar Airways",
+          "flight_number": "QR 816",
+          "aircraft": "Boeing 777",
+          "duration_minutes": 505,
+          "overnight": false
+        }
+      ],
+      "return_layovers": [
+        {
+          "airport": "Hamad International Airport",
+          "airport_id": "DOH",
+          "duration_minutes": 215,
+          "overnight": true
+        }
+      ],
+      "return_route": "FRA->DOH->HKG",
+      "return_duration_minutes": 1080,
+      "return_stops": 1
+    }
+  }
+}

@@ -4,11 +4,16 @@
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
 
-## Flight Optimizer (Python MVP)
+## Flight Optimizer
 
-Ein Python-Tool zum Optimieren von Roundtrip-Flügen nach Kosten + Reisezeit.
+### Web App (UI)
+Runs on port **8000** via the "Flight Optimizer Web App" workflow.
+- Stack: Python FastAPI + Alpine.js + Tailwind CSS (CDN)
+- Entry: `flight_webapp/app.py`
+- Template: `flight_webapp/templates/index.html`
+- Features: real-time SSE search progress, flight cards with full outbound + return leg detail, Excel export
 
-### Ausführen
+### Command-line script
 
 ```bash
 python run_optimizer.py
