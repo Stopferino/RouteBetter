@@ -14,7 +14,7 @@ OUTBOUND_DATE = "2026-07-25"
 RETURN_DATE = "2026-08-02"
 
 # Datumsfenster: +/- Tage um das Wunschdatum herum
-DATE_WINDOW_DAYS = 1
+DATE_WINDOW_DAYS = 0
 
 # ─── Score-Berechnung ─────────────────────────────────────────────────────────
 # Value of Time (€ pro Stunde) – wie viel ist dir eine Stunde Reisezeit wert?
