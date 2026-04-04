@@ -14,6 +14,10 @@ logger = logging.getLogger(__name__)
 
 SERPAPI_BASE_URL = "https://serpapi.com/search"
 
+
+class QuotaExhaustedError(RuntimeError):
+    """Raised when the SerpApi monthly search quota has been reached."""
+
 # German airport IATA codes used to detect domestic DE segments
 GERMAN_AIRPORTS: frozenset = frozenset({
     "FRA", "MUC", "NUE", "DUS", "HAM", "BER", "TXL", "STR", "CGN",
@@ -145,6 +149,13 @@ def fetch_flights(
         if "api_key" in err_msg.lower() or "invalid" in err_msg.lower():
             logger.error("  -> Invalid or expired SERPAPI_KEY.")
             sys.exit(1)
+
+        # Quota / plan limit exhausted — raise so the caller can surface a clear message
+        _quota_kws = ("run out", "upgrade", "monthly", "plan", "credit", "quota", "exceeded")
+        if any(kw in err_msg.lower() for kw in _quota_kws):
+            logger.error("  -> Monthly search quota exhausted.")
+            raise QuotaExhaustedError(err_msg)
+
         return []
 
     # Capture the real Google Flights search URL from SerpApi metadata

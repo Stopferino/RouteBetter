@@ -136,7 +136,7 @@ async def search_stream(
 
         _active_searches += 1
         try:
-            from flight_optimizer.serpapi_client import fetch_flights, fetch_return_legs
+            from flight_optimizer.serpapi_client import fetch_flights, fetch_return_legs, QuotaExhaustedError
             from flight_optimizer.scorer import calculate_scores, apply_filters, recalculate_scores_with_return
             from flight_optimizer.exporter import export_to_excel
             from flight_optimizer.cache import (
@@ -215,13 +215,17 @@ async def search_stream(
             # Each route is fetched concurrently; a semaphore caps live API calls
             # at OUTBOUND_CONCURRENCY to stay within SerpApi rate limits.
             outbound_sem = asyncio.Semaphore(OUTBOUND_CONCURRENCY)
+            quota_hit = False
 
             async def fetch_one_route(origin, dest, od, rd):
+                nonlocal quota_hit
                 label = f"{origin}→{dest}  {od} ↔ {rd}"
                 cached = get_cached(cache, origin, dest, od, rd) if use_cache else None
                 if cached is not None:
                     age = get_cache_age_hours(cache, origin, dest, od, rd)
                     return cached, True, age, label
+                if quota_hit:
+                    return [], False, None, label
                 async with outbound_sem:
                     def _do(o=origin, d=dest, outd=od, retd=rd):
                         return fetch_flights(
@@ -230,7 +234,11 @@ async def search_stream(
                             currency="EUR", hl="en", gl="us",
                             max_stops=max_stops,
                         )
-                    flights = await loop.run_in_executor(None, _do)
+                    try:
+                        flights = await loop.run_in_executor(None, _do)
+                    except QuotaExhaustedError:
+                        quota_hit = True
+                        return [], False, None, label
                     if flights:
                         set_cached(cache, origin, dest, od, rd, flights)
                     return flights, False, None, label
@@ -264,7 +272,25 @@ async def search_stream(
             if cache_dirty:
                 await loop.run_in_executor(None, save_cache, cache, cache_file)
 
-            if not all_flights:
+            if quota_hit and not all_flights:
+                yield sse({
+                    "type": "error",
+                    "message": (
+                        "SerpApi monthly quota exhausted — no live results available. "
+                        "Enable 'Use Cache' to see previously fetched flights, "
+                        "or upgrade your SerpApi plan at serpapi.com/manage-api-key."
+                    ),
+                })
+                return
+            elif quota_hit:
+                yield sse({
+                    "type": "log",
+                    "message": (
+                        "⚠ SerpApi quota exhausted mid-search — showing cached results only. "
+                        "Some routes may be missing."
+                    ),
+                })
+            elif not all_flights:
                 yield sse({"type": "error", "message": "No flights found. Try different dates or airports, or check your API quota."})
                 return
 

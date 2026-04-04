@@ -27645,5 +27645,1777 @@
       "return_stops": 1,
       "booking_token": "WyJDalJJZUVneVdqRkVXR1JEWDFWQlNWcENURUZDUnkwdExTMHRMUzB0TFhsc2FYa3hPRUZCUVVGQlIyNVNUbTFOUjJvd2FEaEJFZ3BSVWpjeWZGRlNPREUyR2dzSXQ2Y0dFQUlhQTBWVlVqZ2NjSnFpQnc9PSIsW1siSEtHIiwiMjAyNi0wNy0yNiIsIkRPSCIsbnVsbCwiUVIiLCI4MTciXSxbIkRPSCIsIjIwMjYtMDctMjciLCJGUkEiLG51bGwsIlFSIiwiNjkiXV0sW1siRlJBIiwiMjAyNi0wOC0wMiIsIkRPSCIsbnVsbCwiUVIiLCI3MiJdLFsiRE9IIiwiMjAyNi0wOC0wMyIsIkhLRyIsbnVsbCwiUVIiLCI4MTYiXV1d"
     }
+  },
+  "CAN_MUC_2026-07-26_2026-08-01": {
+    "fetched_at": "2026-04-04 16:05",
+    "results": [
+      {
+        "origin": "CAN",
+        "destination": "MUC",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1196.0,
+        "currency": "EUR",
+        "duration_minutes": 1135,
+        "stops": 1,
+        "airline": "Emirates",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->DXB->MUC",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 00:20",
+            "to_airport": "DXB",
+            "to_name": "Dubai International Airport",
+            "to_time": "2026-07-26 04:00",
+            "airline": "Emirates",
+            "flight_number": "EK 363",
+            "aircraft": "Airbus A380",
+            "duration_minutes": 460,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "DXB",
+            "from_name": "Dubai International Airport",
+            "from_time": "2026-07-26 08:50",
+            "to_airport": "MUC",
+            "to_name": "Munich International Airport",
+            "to_time": "2026-07-26 13:15",
+            "airline": "Emirates",
+            "flight_number": "EK 49",
+            "aircraft": "Airbus A380",
+            "duration_minutes": 385,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Dubai International Airport",
+            "airport_id": "DXB",
+            "duration_minutes": 290
+          }
+        ],
+        "departure_token": "WyJDalJJYjNGcFdFb3hTWEpTY2xWQlJtSXpVVUZDUnkwdExTMHRMUzB0TFhaMGRXRXhNa0ZCUVVGQlIyNVNUblJOVEV4dWVtZEJFZ3BGU3pNMk0zeEZTelE1R2dzSWg2WUhFQUlhQTBWVlVqZ2NjSXEwQ0E9PSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIkRYQiIsbnVsbCwiRUsiLCIzNjMiXSxbIkRYQiIsIjIwMjYtMDctMjYiLCJNVUMiLG51bGwsIkVLIiwiNDkiXV1d",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDTVVDGh4SCjIwMjYtMDgtMDFqBwgBEgNNVUNyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "MUC",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1516.0,
+        "currency": "EUR",
+        "duration_minutes": 1050,
+        "stops": 1,
+        "airline": "China Southern",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->DOH->MUC",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 19:30",
+            "to_airport": "DOH",
+            "to_name": "Hamad International Airport",
+            "to_time": "2026-07-26 22:50",
+            "airline": "China Southern",
+            "flight_number": "CZ 333",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 500,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "DOH",
+            "from_name": "Hamad International Airport",
+            "from_time": "2026-07-27 02:00",
+            "to_airport": "MUC",
+            "to_name": "Munich International Airport",
+            "to_time": "2026-07-27 07:00",
+            "airline": "Qatar Airways",
+            "flight_number": "QR 59",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 360,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Hamad International Airport",
+            "airport_id": "DOH",
+            "duration_minutes": 190
+          }
+        ],
+        "departure_token": "WyJDalJJYjNGcFdFb3hTWEpTY2xWQlJtSXpVVUZDUnkwdExTMHRMUzB0TFhaMGRXRXhNa0ZCUVVGQlIyNVNUblJOVEV4dWVtZEJFZ3BEV2pNek0zeFJValU1R2dzSWo2QUpFQUlhQTBWVlVqZ2NjSlhVQ2c9PSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIkRPSCIsbnVsbCwiQ1oiLCIzMzMiXSxbIkRPSCIsIjIwMjYtMDctMjciLCJNVUMiLG51bGwsIlFSIiwiNTkiXV1d",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDTVVDGh4SCjIwMjYtMDgtMDFqBwgBEgNNVUNyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "MUC",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1518.0,
+        "currency": "EUR",
+        "duration_minutes": 1125,
+        "stops": 1,
+        "airline": "Turkish Airlines",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->IST->MUC",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 23:00",
+            "to_airport": "IST",
+            "to_name": "Istanbul Airport",
+            "to_time": "2026-07-27 05:30",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 73",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 690,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "IST",
+            "from_name": "Istanbul Airport",
+            "from_time": "2026-07-27 10:00",
+            "to_airport": "MUC",
+            "to_name": "Munich International Airport",
+            "to_time": "2026-07-27 11:45",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 1641",
+            "aircraft": "Airbus A321 (Sharklets)",
+            "duration_minutes": 165,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Istanbul Airport",
+            "airport_id": "IST",
+            "duration_minutes": 270
+          }
+        ],
+        "departure_token": "WyJDalJJYjNGcFdFb3hTWEpTY2xWQlJtSXpVVUZDUnkwdExTMHRMUzB0TFhaMGRXRXhNa0ZCUVVGQlIyNVNUblJOVEV4dWVtZEJFZ3RVU3pjemZGUkxNVFkwTVJvTENObWhDUkFDR2dORlZWSTRISEQ5MVFvPSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIklTVCIsbnVsbCwiVEsiLCI3MyJdLFsiSVNUIiwiMjAyNi0wNy0yNyIsIk1VQyIsbnVsbCwiVEsiLCIxNjQxIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDTVVDGh4SCjIwMjYtMDgtMDFqBwgBEgNNVUNyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "MUC",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1542.0,
+        "currency": "EUR",
+        "duration_minutes": 1280,
+        "stops": 1,
+        "airline": "THAI",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->BKK->MUC",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 15:45",
+            "to_airport": "BKK",
+            "to_name": "Suvarnabhumi Airport",
+            "to_time": "2026-07-26 17:45",
+            "airline": "THAI",
+            "flight_number": "TG 669",
+            "aircraft": "Airbus A330",
+            "duration_minutes": 180,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "BKK",
+            "from_name": "Suvarnabhumi Airport",
+            "from_time": "2026-07-27 00:50",
+            "to_airport": "MUC",
+            "to_name": "Munich International Airport",
+            "to_time": "2026-07-27 07:05",
+            "airline": "THAI",
+            "flight_number": "TG 924",
+            "aircraft": "Airbus A350",
+            "duration_minutes": 675,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Suvarnabhumi Airport",
+            "airport_id": "BKK",
+            "duration_minutes": 425
+          }
+        ],
+        "departure_token": "WyJDalJJYjNGcFdFb3hTWEpTY2xWQlJtSXpVVUZDUnkwdExTMHRMUzB0TFhaMGRXRXhNa0ZCUVVGQlIyNVNUblJOVEV4dWVtZEJFZ3RVUnpZMk9YeFVSemt5TkJvTENLbTBDUkFDR2dORlZWSTRISEM0NndvPSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIkJLSyIsbnVsbCwiVEciLCI2NjkiXSxbIkJLSyIsIjIwMjYtMDctMjciLCJNVUMiLG51bGwsIlRHIiwiOTI0Il1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDTVVDGh4SCjIwMjYtMDgtMDFqBwgBEgNNVUNyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "MUC",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1516.0,
+        "currency": "EUR",
+        "duration_minutes": 1115,
+        "stops": 1,
+        "airline": "Qatar Airways",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->DOH->MUC",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 01:35",
+            "to_airport": "DOH",
+            "to_name": "Hamad International Airport",
+            "to_time": "2026-07-26 04:30",
+            "airline": "Qatar Airways",
+            "flight_number": "QR 875",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 475,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "DOH",
+            "from_name": "Hamad International Airport",
+            "from_time": "2026-07-26 09:10",
+            "to_airport": "MUC",
+            "to_name": "Munich International Airport",
+            "to_time": "2026-07-26 14:10",
+            "airline": "Qatar Airways",
+            "flight_number": "QR 57",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 360,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Hamad International Airport",
+            "airport_id": "DOH",
+            "duration_minutes": 280
+          }
+        ],
+        "departure_token": "WyJDalJJYjNGcFdFb3hTWEpTY2xWQlJtSXpVVUZDUnkwdExTMHRMUzB0TFhaMGRXRXhNa0ZCUVVGQlIyNVNUblJOVEV4dWVtZEJFZ3BSVWpnM05YeFJValUzR2dzSWo2QUpFQUlhQTBWVlVqZ2NjSlhVQ2c9PSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIkRPSCIsbnVsbCwiUVIiLCI4NzUiXSxbIkRPSCIsIjIwMjYtMDctMjYiLCJNVUMiLG51bGwsIlFSIiwiNTciXV1d",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDTVVDGh4SCjIwMjYtMDgtMDFqBwgBEgNNVUNyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "MUC",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1591.0,
+        "currency": "EUR",
+        "duration_minutes": 970,
+        "stops": 1,
+        "airline": "Turkish Airlines",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->IST->MUC",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 23:00",
+            "to_airport": "IST",
+            "to_name": "Istanbul Airport",
+            "to_time": "2026-07-27 05:30",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 73",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 690,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "IST",
+            "from_name": "Istanbul Airport",
+            "from_time": "2026-07-27 07:30",
+            "to_airport": "MUC",
+            "to_name": "Munich International Airport",
+            "to_time": "2026-07-27 09:10",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 1629",
+            "aircraft": "Airbus A321 (Sharklets)",
+            "duration_minutes": 160,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Istanbul Airport",
+            "airport_id": "IST",
+            "duration_minutes": 120
+          }
+        ],
+        "departure_token": "WyJDalJJYjNGcFdFb3hTWEpTY2xWQlJtSXpVVUZDUnkwdExTMHRMUzB0TFhaMGRXRXhNa0ZCUVVGQlIyNVNUblJOVEV4dWVtZEJFZ3RVU3pjemZGUkxNVFl5T1JvTENPemFDUkFDR2dORlZWSTRISERwbHdzPSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIklTVCIsbnVsbCwiVEsiLCI3MyJdLFsiSVNUIiwiMjAyNi0wNy0yNyIsIk1VQyIsbnVsbCwiVEsiLCIxNjI5Il1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDTVVDGh4SCjIwMjYtMDgtMDFqBwgBEgNNVUNyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "MUC",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1619.0,
+        "currency": "EUR",
+        "duration_minutes": 985,
+        "stops": 1,
+        "airline": "Air China",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->PEK->MUC",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 20:40",
+            "to_airport": "PEK",
+            "to_name": "Beijing Capital International Airport",
+            "to_time": "2026-07-27 00:05",
+            "airline": "Air China",
+            "flight_number": "CA 1366",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 205,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "PEK",
+            "from_name": "Beijing Capital International Airport",
+            "from_time": "2026-07-27 02:50",
+            "to_airport": "MUC",
+            "to_name": "Munich International Airport",
+            "to_time": "2026-07-27 07:05",
+            "airline": "Air China",
+            "flight_number": "CA 961",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 615,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Beijing Capital International Airport",
+            "airport_id": "PEK",
+            "duration_minutes": 165
+          }
+        ],
+        "departure_token": "WyJDalJJYjNGcFdFb3hTWEpTY2xWQlJtSXpVVUZDUnkwdExTMHRMUzB0TFhaMGRXRXhNa0ZCUVVGQlIyNVNUblJOVEV4dWVtZEJFZ3hEUVRFek5qWjhRMEU1TmpFYUN3am84QWtRQWhvRFJWVlNPQnh3a0xFTCIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIlBFSyIsbnVsbCwiQ0EiLCIxMzY2Il0sWyJQRUsiLCIyMDI2LTA3LTI3IiwiTVVDIixudWxsLCJDQSIsIjk2MSJdXV0=",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDTVVDGh4SCjIwMjYtMDgtMDFqBwgBEgNNVUNyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "MUC",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1672.0,
+        "currency": "EUR",
+        "duration_minutes": 1130,
+        "stops": 1,
+        "airline": "Air China",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->PEK->MUC",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 06:25",
+            "to_airport": "PEK",
+            "to_name": "Beijing Capital International Airport",
+            "to_time": "2026-07-26 09:35",
+            "airline": "Air China",
+            "flight_number": "CA 1386",
+            "aircraft": "Airbus A321",
+            "duration_minutes": 190,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "PEK",
+            "from_name": "Beijing Capital International Airport",
+            "from_time": "2026-07-26 13:25",
+            "to_airport": "MUC",
+            "to_name": "Munich International Airport",
+            "to_time": "2026-07-26 19:15",
+            "airline": "Lufthansa",
+            "flight_number": "LH 723",
+            "aircraft": "Airbus A350",
+            "duration_minutes": 710,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Beijing Capital International Airport",
+            "airport_id": "PEK",
+            "duration_minutes": 230
+          }
+        ],
+        "departure_token": "WyJDalJJYjNGcFdFb3hTWEpTY2xWQlJtSXpVVUZDUnkwdExTMHRMUzB0TFhaMGRXRXhNa0ZCUVVGQlIyNVNUblJOVEV4dWVtZEJFZ3hEUVRFek9EWjhURWczTWpNYUN3aVptZ29RQWhvRFJWVlNPQnh3NStBTCIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIlBFSyIsbnVsbCwiQ0EiLCIxMzg2Il0sWyJQRUsiLCIyMDI2LTA3LTI2IiwiTVVDIixudWxsLCJMSCIsIjcyMyJdXV0=",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDTVVDGh4SCjIwMjYtMDgtMDFqBwgBEgNNVUNyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "MUC",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 2175.0,
+        "currency": "EUR",
+        "duration_minutes": 945,
+        "stops": 1,
+        "airline": "Cathay Pacific",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->HKG->MUC",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 22:20",
+            "to_airport": "HKG",
+            "to_name": "Hong Kong International Airport",
+            "to_time": "2026-07-26 23:40",
+            "airline": "Cathay Pacific",
+            "flight_number": "CX 989",
+            "aircraft": "Airbus A330",
+            "duration_minutes": 80,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-27 01:00",
+            "to_airport": "MUC",
+            "to_name": "Munich International Airport",
+            "to_time": "2026-07-27 08:05",
+            "airline": "Cathay Pacific",
+            "flight_number": "CX 301",
+            "aircraft": "Airbus A350",
+            "duration_minutes": 785,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Hong Kong International Airport",
+            "airport_id": "HKG",
+            "duration_minutes": 80
+          }
+        ],
+        "departure_token": "WyJDalJJYjNGcFdFb3hTWEpTY2xWQlJtSXpVVUZDUnkwdExTMHRMUzB0TFhaMGRXRXhNa0ZCUVVGQlIyNVNUblJOVEV4dWVtZEJFZ3REV0RrNE9YeERXRE13TVJvTENNV2lEUkFDR2dORlZWSTRISERucEE4PSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIkhLRyIsbnVsbCwiQ1giLCI5ODkiXSxbIkhLRyIsIjIwMjYtMDctMjciLCJNVUMiLG51bGwsIkNYIiwiMzAxIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDTVVDGh4SCjIwMjYtMDgtMDFqBwgBEgNNVUNyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      }
+    ]
+  },
+  "CAN_FRA_2026-07-26_2026-08-03": {
+    "fetched_at": "2026-04-04 16:05",
+    "results": [
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-03",
+        "price": 1177.0,
+        "currency": "EUR",
+        "duration_minutes": 1680,
+        "stops": 1,
+        "airline": "China Southern",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->URC->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 19:20",
+            "to_airport": "URC",
+            "to_name": "Ürümqi Tianshan International Airport",
+            "to_time": "2026-07-27 00:35",
+            "airline": "China Southern",
+            "flight_number": "CZ 6884",
+            "aircraft": "Boeing 737MAX 8 Passenger",
+            "duration_minutes": 315,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "URC",
+            "from_name": "Ürümqi Tianshan International Airport",
+            "from_time": "2026-07-27 15:10",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-27 17:20",
+            "airline": "China Southern",
+            "flight_number": "CZ 6041",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 490,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Ürümqi Tianshan International Airport",
+            "airport_id": "URC",
+            "duration_minutes": 875
+          }
+        ],
+        "departure_token": "WyJDalJJWVRGaWNsZ3dVbFoxVlRSQlJrdzNRMEZDUnkwdExTMHRMUzB0TFMxMmRHRmhOMEZCUVVGQlIyNVNUbk0wU0ZSYU5GTkJFZzFEV2pZNE9EUjhRMW8yTURReEdnc0lvNWNIRUFJYUEwVlZVamdjY0lhakNBPT0iLFtbIkNBTiIsIjIwMjYtMDctMjYiLCJVUkMiLG51bGwsIkNaIiwiNjg4NCJdLFsiVVJDIiwiMjAyNi0wNy0yNyIsIkZSQSIsbnVsbCwiQ1oiLCI2MDQxIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDNqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-03",
+        "price": 1206.0,
+        "currency": "EUR",
+        "duration_minutes": 720,
+        "stops": 0,
+        "airline": "China Southern",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 00:50",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 06:50",
+            "airline": "China Southern",
+            "flight_number": "CZ 331",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 720,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [],
+        "departure_token": "WyJDalJJWVRGaWNsZ3dVbFoxVlRSQlJrdzNRMEZDUnkwdExTMHRMUzB0TFMxMmRHRmhOMEZCUVVGQlIyNVNUbk0wU0ZSYU5GTkJFZ1ZEV2pNek1Sb0xDUGl0QnhBQ0dnTkZWVkk0SEhDVXZRZz0iLFtbIkNBTiIsIjIwMjYtMDctMjYiLCJGUkEiLG51bGwsIkNaIiwiMzMxIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDNqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-03",
+        "price": 1292.0,
+        "currency": "EUR",
+        "duration_minutes": 1140,
+        "stops": 1,
+        "airline": "Qatar Airways",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->DOH->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 01:35",
+            "to_airport": "DOH",
+            "to_name": "Hamad International Airport",
+            "to_time": "2026-07-26 04:30",
+            "airline": "Qatar Airways",
+            "flight_number": "QR 875",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 475,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "DOH",
+            "from_name": "Hamad International Airport",
+            "from_time": "2026-07-26 09:15",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 14:35",
+            "airline": "Qatar Airways",
+            "flight_number": "QR 67",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 380,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Hamad International Airport",
+            "airport_id": "DOH",
+            "duration_minutes": 285
+          }
+        ],
+        "departure_token": "WyJDalJJWVRGaWNsZ3dVbFoxVlRSQlJrdzNRMEZDUnkwdExTMHRMUzB0TFMxMmRHRmhOMEZCUVVGQlIyNVNUbk0wU0ZSYU5GTkJFZ3BSVWpnM05YeFJValkzR2dzSXF2RUhFQUlhQTBWVlVqZ2NjT2FLQ1E9PSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIkRPSCIsbnVsbCwiUVIiLCI4NzUiXSxbIkRPSCIsIjIwMjYtMDctMjYiLCJGUkEiLG51bGwsIlFSIiwiNjciXV1d",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDNqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-03",
+        "price": 1344.0,
+        "currency": "EUR",
+        "duration_minutes": 1135,
+        "stops": 1,
+        "airline": "Emirates",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->DXB->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 00:20",
+            "to_airport": "DXB",
+            "to_name": "Dubai International Airport",
+            "to_time": "2026-07-26 04:00",
+            "airline": "Emirates",
+            "flight_number": "EK 363",
+            "aircraft": "Airbus A380",
+            "duration_minutes": 460,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "DXB",
+            "from_name": "Dubai International Airport",
+            "from_time": "2026-07-26 08:25",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 13:15",
+            "airline": "Emirates",
+            "flight_number": "EK 45",
+            "aircraft": "Airbus A380",
+            "duration_minutes": 410,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Dubai International Airport",
+            "airport_id": "DXB",
+            "duration_minutes": 265
+          }
+        ],
+        "departure_token": "WyJDalJJWVRGaWNsZ3dVbFoxVlRSQlJrdzNRMEZDUnkwdExTMHRMUzB0TFMxMmRHRmhOMEZCUVVGQlIyNVNUbk0wU0ZSYU5GTkJFZ3BGU3pNMk0zeEZTelExR2dzSTlwa0lFQUlhQTBWVlVqZ2NjTWk1Q1E9PSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIkRYQiIsbnVsbCwiRUsiLCIzNjMiXSxbIkRYQiIsIjIwMjYtMDctMjYiLCJGUkEiLG51bGwsIkVLIiwiNDUiXV1d",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDNqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-03",
+        "price": 1415.0,
+        "currency": "EUR",
+        "duration_minutes": 1230,
+        "stops": 1,
+        "airline": "THAI",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->BKK->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 15:45",
+            "to_airport": "BKK",
+            "to_name": "Suvarnabhumi Airport",
+            "to_time": "2026-07-26 17:45",
+            "airline": "THAI",
+            "flight_number": "TG 669",
+            "aircraft": "Airbus A330",
+            "duration_minutes": 180,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "BKK",
+            "from_name": "Suvarnabhumi Airport",
+            "from_time": "2026-07-26 23:45",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-27 06:15",
+            "airline": "THAI",
+            "flight_number": "TG 920",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 690,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Suvarnabhumi Airport",
+            "airport_id": "BKK",
+            "duration_minutes": 360
+          }
+        ],
+        "departure_token": "WyJDalJJWVRGaWNsZ3dVbFoxVlRSQlJrdzNRMEZDUnkwdExTMHRMUzB0TFMxMmRHRmhOMEZCUVVGQlIyNVNUbk0wU0ZSYU5GTkJFZ3RVUnpZMk9YeFVSemt5TUJvTENMTFJDQkFDR2dORlZWSTRISEM4K1FrPSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIkJLSyIsbnVsbCwiVEciLCI2NjkiXSxbIkJLSyIsIjIwMjYtMDctMjYiLCJGUkEiLG51bGwsIlRHIiwiOTIwIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDNqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-03",
+        "price": 1473.0,
+        "currency": "EUR",
+        "duration_minutes": 1240,
+        "stops": 1,
+        "airline": "Turkish Airlines",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->IST->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 23:00",
+            "to_airport": "IST",
+            "to_name": "Istanbul Airport",
+            "to_time": "2026-07-27 05:30",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 73",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 690,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "IST",
+            "from_name": "Istanbul Airport",
+            "from_time": "2026-07-27 11:30",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-27 13:40",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 1591",
+            "aircraft": "Airbus A330",
+            "duration_minutes": 190,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Istanbul Airport",
+            "airport_id": "IST",
+            "duration_minutes": 360
+          }
+        ],
+        "departure_token": "WyJDalJJWVRGaWNsZ3dVbFoxVlRSQlJrdzNRMEZDUnkwdExTMHRMUzB0TFMxMmRHRmhOMEZCUVVGQlIyNVNUbk0wU0ZSYU5GTkJFZ3RVU3pjemZGUkxNVFU1TVJvTENMYitDQkFDR2dORlZWSTRISENzclFvPSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIklTVCIsbnVsbCwiVEsiLCI3MyJdLFsiSVNUIiwiMjAyNi0wNy0yNyIsIkZSQSIsbnVsbCwiVEsiLCIxNTkxIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDNqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-03",
+        "price": 1546.0,
+        "currency": "EUR",
+        "duration_minutes": 1020,
+        "stops": 1,
+        "airline": "Turkish Airlines",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->IST->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 23:00",
+            "to_airport": "IST",
+            "to_name": "Istanbul Airport",
+            "to_time": "2026-07-27 05:30",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 73",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 690,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "IST",
+            "from_name": "Istanbul Airport",
+            "from_time": "2026-07-27 07:45",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-27 10:00",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 1587",
+            "aircraft": "Airbus A321neo",
+            "duration_minutes": 195,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Istanbul Airport",
+            "airport_id": "IST",
+            "duration_minutes": 135
+          }
+        ],
+        "departure_token": "WyJDalJJWVRGaWNsZ3dVbFoxVlRSQlJrdzNRMEZDUnkwdExTMHRMUzB0TFMxMmRHRmhOMEZCUVVGQlIyNVNUbk0wU0ZSYU5GTkJFZ3RVU3pjemZGUkxNVFU0TnhvTENNbTNDUkFDR2dORlZWSTRISENYN3dvPSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIklTVCIsbnVsbCwiVEsiLCI3MyJdLFsiSVNUIiwiMjAyNi0wNy0yNyIsIkZSQSIsbnVsbCwiVEsiLCIxNTg3Il1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDNqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-03",
+        "price": 7727.0,
+        "currency": "EUR",
+        "duration_minutes": 1625,
+        "stops": 1,
+        "airline": "Cathay Pacific",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->HKG->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 10:10",
+            "to_airport": "HKG",
+            "to_name": "Hong Kong International Airport",
+            "to_time": "2026-07-26 11:45",
+            "airline": "Cathay Pacific",
+            "flight_number": "CX 983",
+            "aircraft": "Airbus A330",
+            "duration_minutes": 95,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-26 23:55",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-27 07:15",
+            "airline": "Cathay Pacific",
+            "flight_number": "CX 289",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 800,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Hong Kong International Airport",
+            "airport_id": "HKG",
+            "duration_minutes": 730
+          }
+        ],
+        "departure_token": "WyJDalJJWVRGaWNsZ3dVbFoxVlRSQlJrdzNRMEZDUnkwdExTMHRMUzB0TFMxMmRHRmhOMEZCUVVGQlIyNVNUbk0wU0ZSYU5GTkJFZ3REV0RrNE0zeERXREk0T1JvTENLK1VMeEFDR2dORlZWSTRISENacWpZPSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIkhLRyIsbnVsbCwiQ1giLCI5ODMiXSxbIkhLRyIsIjIwMjYtMDctMjYiLCJGUkEiLG51bGwsIkNYIiwiMjg5Il1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDNqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      }
+    ]
+  },
+  "CAN_FRA_2026-07-25_2026-08-01": {
+    "fetched_at": "2026-04-04 16:05",
+    "results": [
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-01",
+        "price": 1204.0,
+        "currency": "EUR",
+        "duration_minutes": 1140,
+        "stops": 1,
+        "airline": "Qatar Airways",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->DOH->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-25 01:35",
+            "to_airport": "DOH",
+            "to_name": "Hamad International Airport",
+            "to_time": "2026-07-25 04:30",
+            "airline": "Qatar Airways",
+            "flight_number": "QR 875",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 475,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "DOH",
+            "from_name": "Hamad International Airport",
+            "from_time": "2026-07-25 09:15",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-25 14:35",
+            "airline": "Qatar Airways",
+            "flight_number": "QR 67",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 380,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Hamad International Airport",
+            "airport_id": "DOH",
+            "duration_minutes": 285
+          }
+        ],
+        "departure_token": "WyJDalJJWDJVelYycG1UMEpSWmxGQlJuRndUMUZDUnkwdExTMHRMUzB0TFhaMGIyY3lNa0ZCUVVGQlIyNVNUblJuU0ZjNVV5MUJFZ3BSVWpnM05YeFJValkzR2dzSXJxd0hFQUlhQTBWVlVqZ2NjS3k3Q0E9PSIsW1siQ0FOIiwiMjAyNi0wNy0yNSIsIkRPSCIsbnVsbCwiUVIiLCI4NzUiXSxbIkRPSCIsIjIwMjYtMDctMjUiLCJGUkEiLG51bGwsIlFSIiwiNjciXV1d",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI1agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-01",
+        "price": 1204.0,
+        "currency": "EUR",
+        "duration_minutes": 1135,
+        "stops": 1,
+        "airline": "Emirates",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->DXB->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-25 00:20",
+            "to_airport": "DXB",
+            "to_name": "Dubai International Airport",
+            "to_time": "2026-07-25 04:00",
+            "airline": "Emirates",
+            "flight_number": "EK 363",
+            "aircraft": "Airbus A380",
+            "duration_minutes": 460,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "DXB",
+            "from_name": "Dubai International Airport",
+            "from_time": "2026-07-25 08:25",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-25 13:15",
+            "airline": "Emirates",
+            "flight_number": "EK 45",
+            "aircraft": "Airbus A380",
+            "duration_minutes": 410,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Dubai International Airport",
+            "airport_id": "DXB",
+            "duration_minutes": 265
+          }
+        ],
+        "departure_token": "WyJDalJJWDJVelYycG1UMEpSWmxGQlJuRndUMUZDUnkwdExTMHRMUzB0TFhaMGIyY3lNa0ZCUVVGQlIyNVNUblJuU0ZjNVV5MUJFZ3BGU3pNMk0zeEZTelExR2dzSXg2d0hFQUlhQTBWVlVqZ2NjTWk3Q0E9PSIsW1siQ0FOIiwiMjAyNi0wNy0yNSIsIkRYQiIsbnVsbCwiRUsiLCIzNjMiXSxbIkRYQiIsIjIwMjYtMDctMjUiLCJGUkEiLG51bGwsIkVLIiwiNDUiXV1d",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI1agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-01",
+        "price": 1269.0,
+        "currency": "EUR",
+        "duration_minutes": 720,
+        "stops": 0,
+        "airline": "China Southern",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-25 00:50",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-25 06:50",
+            "airline": "China Southern",
+            "flight_number": "CZ 331",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 720,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [],
+        "departure_token": "WyJDalJJWDJVelYycG1UMEpSWmxGQlJuRndUMUZDUnkwdExTMHRMUzB0TFhaMGIyY3lNa0ZCUVVGQlIyNVNUblJuU0ZjNVV5MUJFZ1ZEV2pNek1Sb0xDSnJmQnhBQ0dnTkZWVkk0SEhEMTlRZz0iLFtbIkNBTiIsIjIwMjYtMDctMjUiLCJGUkEiLG51bGwsIkNaIiwiMzMxIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI1agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-01",
+        "price": 1487.0,
+        "currency": "EUR",
+        "duration_minutes": 1105,
+        "stops": 1,
+        "airline": "Turkish Airlines",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->IST->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-25 08:50",
+            "to_airport": "IST",
+            "to_name": "Istanbul Airport",
+            "to_time": "2026-07-25 15:20",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 299",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 690,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "IST",
+            "from_name": "Istanbul Airport",
+            "from_time": "2026-07-25 19:00",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-25 21:15",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 1597",
+            "aircraft": "Airbus A321neo",
+            "duration_minutes": 195,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Istanbul Airport",
+            "airport_id": "IST",
+            "duration_minutes": 220
+          }
+        ],
+        "departure_token": "WyJDalJJWDJVelYycG1UMEpSWmxGQlJuRndUMUZDUnkwdExTMHRMUzB0TFhaMGIyY3lNa0ZCUVVGQlIyNVNUblJuU0ZjNVV5MUJFZ3hVU3pJNU9YeFVTekUxT1RjYUN3aWhpUWtRQWhvRFJWVlNPQnh3NnJrSyIsW1siQ0FOIiwiMjAyNi0wNy0yNSIsIklTVCIsbnVsbCwiVEsiLCIyOTkiXSxbIklTVCIsIjIwMjYtMDctMjUiLCJGUkEiLG51bGwsIlRLIiwiMTU5NyJdXV0=",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI1agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-01",
+        "price": 1669.0,
+        "currency": "EUR",
+        "duration_minutes": 1025,
+        "stops": 1,
+        "airline": "Turkish Airlines",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->IST->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-25 23:00",
+            "to_airport": "IST",
+            "to_name": "Istanbul Airport",
+            "to_time": "2026-07-26 05:30",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 73",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 690,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "IST",
+            "from_name": "Istanbul Airport",
+            "from_time": "2026-07-26 07:55",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 10:05",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 1587",
+            "aircraft": "Airbus A330",
+            "duration_minutes": 190,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Istanbul Airport",
+            "airport_id": "IST",
+            "duration_minutes": 145
+          }
+        ],
+        "departure_token": "WyJDalJJWDJVelYycG1UMEpSWmxGQlJuRndUMUZDUnkwdExTMHRMUzB0TFhaMGIyY3lNa0ZCUVVGQlIyNVNUblJuU0ZjNVV5MUJFZ3RVU3pjemZGUkxNVFU0TnhvTENKS1hDaEFDR2dORlZWSTRISENrM1FzPSIsW1siQ0FOIiwiMjAyNi0wNy0yNSIsIklTVCIsbnVsbCwiVEsiLCI3MyJdLFsiSVNUIiwiMjAyNi0wNy0yNiIsIkZSQSIsbnVsbCwiVEsiLCIxNTg3Il1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI1agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-01",
+        "price": 2144.0,
+        "currency": "EUR",
+        "duration_minutes": 1935,
+        "stops": 1,
+        "airline": "Cathay Pacific",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->HKG->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-25 05:00",
+            "to_airport": "HKG",
+            "to_name": "Hong Kong International Airport",
+            "to_time": "2026-07-25 06:25",
+            "airline": "Cathay Pacific",
+            "flight_number": "CX 953",
+            "aircraft": "Airbus A330",
+            "duration_minutes": 85,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 23:55",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 07:15",
+            "airline": "Cathay Pacific",
+            "flight_number": "CX 289",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 800,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Hong Kong International Airport",
+            "airport_id": "HKG",
+            "duration_minutes": 1050
+          }
+        ],
+        "departure_token": "WyJDalJJWDJVelYycG1UMEpSWmxGQlJuRndUMUZDUnkwdExTMHRMUzB0TFhaMGIyY3lNa0ZCUVVGQlIyNVNUblJuU0ZjNVV5MUJFZ3REV0RrMU0zeERXREk0T1JvTENNQ0tEUkFDR2dORlZWSTRISENPaVE4PSIsW1siQ0FOIiwiMjAyNi0wNy0yNSIsIkhLRyIsbnVsbCwiQ1giLCI5NTMiXSxbIkhLRyIsIjIwMjYtMDctMjUiLCJGUkEiLG51bGwsIkNYIiwiMjg5Il1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI1agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-01",
+        "price": 2241.0,
+        "currency": "EUR",
+        "duration_minutes": 1625,
+        "stops": 1,
+        "airline": "Cathay Pacific",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->HKG->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-25 10:10",
+            "to_airport": "HKG",
+            "to_name": "Hong Kong International Airport",
+            "to_time": "2026-07-25 11:45",
+            "airline": "Cathay Pacific",
+            "flight_number": "CX 983",
+            "aircraft": "Airbus A330",
+            "duration_minutes": 95,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-25 23:55",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 07:15",
+            "airline": "Cathay Pacific",
+            "flight_number": "CX 289",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 800,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Hong Kong International Airport",
+            "airport_id": "HKG",
+            "duration_minutes": 730
+          }
+        ],
+        "departure_token": "WyJDalJJWDJVelYycG1UMEpSWmxGQlJuRndUMUZDUnkwdExTMHRMUzB0TFhaMGIyY3lNa0ZCUVVGQlIyNVNUblJuU0ZjNVV5MUJFZ3REV0RrNE0zeERXREk0T1JvTENLL1dEUkFDR2dORlZWSTRISERCNEE4PSIsW1siQ0FOIiwiMjAyNi0wNy0yNSIsIkhLRyIsbnVsbCwiQ1giLCI5ODMiXSxbIkhLRyIsIjIwMjYtMDctMjUiLCJGUkEiLG51bGwsIkNYIiwiMjg5Il1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI1agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-25",
+        "return_date": "2026-08-01",
+        "price": 4209.0,
+        "currency": "EUR",
+        "duration_minutes": 970,
+        "stops": 1,
+        "airline": "Air Astana",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->ALA->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-25 06:50",
+            "to_airport": "ALA",
+            "to_name": "Almaty International Airport",
+            "to_time": "2026-07-25 10:25",
+            "airline": "Air Astana",
+            "flight_number": "KC 188",
+            "aircraft": "Airbus A321neo",
+            "duration_minutes": 395,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "ALA",
+            "from_name": "Almaty International Airport",
+            "from_time": "2026-07-25 11:45",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-25 17:00",
+            "airline": "Air Astana",
+            "flight_number": "KC 221",
+            "aircraft": "Airbus A321neo",
+            "duration_minutes": 495,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Almaty International Airport",
+            "airport_id": "ALA",
+            "duration_minutes": 80
+          }
+        ],
+        "departure_token": "WyJDalJJWDJVelYycG1UMEpSWmxGQlJuRndUMUZDUnkwdExTMHRMUzB0TFhaMGIyY3lNa0ZCUVVGQlIyNVNUblJuU0ZjNVV5MUJFZ3RMUXpFNE9IeExRekl5TVJvTENNSFhHUkFDR2dORlZWSTRISEN3eXgwPSIsW1siQ0FOIiwiMjAyNi0wNy0yNSIsIkFMQSIsbnVsbCwiS0MiLCIxODgiXSxbIkFMQSIsIjIwMjYtMDctMjUiLCJGUkEiLG51bGwsIktDIiwiMjIxIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI1agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      }
+    ]
+  },
+  "CAN_FRA_2026-07-26_2026-08-01": {
+    "fetched_at": "2026-04-04 16:05",
+    "results": [
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1204.0,
+        "currency": "EUR",
+        "duration_minutes": 1140,
+        "stops": 1,
+        "airline": "Qatar Airways",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->DOH->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 01:35",
+            "to_airport": "DOH",
+            "to_name": "Hamad International Airport",
+            "to_time": "2026-07-26 04:30",
+            "airline": "Qatar Airways",
+            "flight_number": "QR 875",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 475,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "DOH",
+            "from_name": "Hamad International Airport",
+            "from_time": "2026-07-26 09:15",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 14:35",
+            "airline": "Qatar Airways",
+            "flight_number": "QR 67",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 380,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Hamad International Airport",
+            "airport_id": "DOH",
+            "duration_minutes": 285
+          }
+        ],
+        "departure_token": "WyJDalJJVjE5VFUySndWa1JvVVd0QlMyaFRjVUZDUnkwdExTMHRMUzB0TFc5NVkyd3hNVUZCUVVGQlIyNVNUbk0wUVVWSmJHMUJFZ3BSVWpnM05YeFJValkzR2dzSXJxd0hFQUlhQTBWVlVqZ2NjS3k3Q0E9PSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIkRPSCIsbnVsbCwiUVIiLCI4NzUiXSxbIkRPSCIsIjIwMjYtMDctMjYiLCJGUkEiLG51bGwsIlFSIiwiNjciXV1d",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1204.0,
+        "currency": "EUR",
+        "duration_minutes": 1135,
+        "stops": 1,
+        "airline": "Emirates",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->DXB->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 00:20",
+            "to_airport": "DXB",
+            "to_name": "Dubai International Airport",
+            "to_time": "2026-07-26 04:00",
+            "airline": "Emirates",
+            "flight_number": "EK 363",
+            "aircraft": "Airbus A380",
+            "duration_minutes": 460,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "DXB",
+            "from_name": "Dubai International Airport",
+            "from_time": "2026-07-26 08:25",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 13:15",
+            "airline": "Emirates",
+            "flight_number": "EK 45",
+            "aircraft": "Airbus A380",
+            "duration_minutes": 410,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Dubai International Airport",
+            "airport_id": "DXB",
+            "duration_minutes": 265
+          }
+        ],
+        "departure_token": "WyJDalJJVjE5VFUySndWa1JvVVd0QlMyaFRjVUZDUnkwdExTMHRMUzB0TFc5NVkyd3hNVUZCUVVGQlIyNVNUbk0wUVVWSmJHMUJFZ3BGU3pNMk0zeEZTelExR2dzSXg2d0hFQUlhQTBWVlVqZ2NjTWk3Q0E9PSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIkRYQiIsbnVsbCwiRUsiLCIzNjMiXSxbIkRYQiIsIjIwMjYtMDctMjYiLCJGUkEiLG51bGwsIkVLIiwiNDUiXV1d",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1269.0,
+        "currency": "EUR",
+        "duration_minutes": 720,
+        "stops": 0,
+        "airline": "China Southern",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 00:50",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-26 06:50",
+            "airline": "China Southern",
+            "flight_number": "CZ 331",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 720,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [],
+        "departure_token": "WyJDalJJVjE5VFUySndWa1JvVVd0QlMyaFRjVUZDUnkwdExTMHRMUzB0TFc5NVkyd3hNVUZCUVVGQlIyNVNUbk0wUVVWSmJHMUJFZ1ZEV2pNek1Sb0xDSnJmQnhBQ0dnTkZWVkk0SEhEMTlRZz0iLFtbIkNBTiIsIjIwMjYtMDctMjYiLCJGUkEiLG51bGwsIkNaIiwiMzMxIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1291.0,
+        "currency": "EUR",
+        "duration_minutes": 1680,
+        "stops": 1,
+        "airline": "China Southern",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->URC->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 19:20",
+            "to_airport": "URC",
+            "to_name": "Ürümqi Tianshan International Airport",
+            "to_time": "2026-07-27 00:35",
+            "airline": "China Southern",
+            "flight_number": "CZ 6884",
+            "aircraft": "Boeing 737MAX 8 Passenger",
+            "duration_minutes": 315,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "URC",
+            "from_name": "Ürümqi Tianshan International Airport",
+            "from_time": "2026-07-27 15:10",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-27 17:20",
+            "airline": "China Southern",
+            "flight_number": "CZ 6041",
+            "aircraft": "Boeing 787",
+            "duration_minutes": 490,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Ürümqi Tianshan International Airport",
+            "airport_id": "URC",
+            "duration_minutes": 875
+          }
+        ],
+        "departure_token": "WyJDalJJVjE5VFUySndWa1JvVVd0QlMyaFRjVUZDUnkwdExTMHRMUzB0TFc5NVkyd3hNVUZCUVVGQlIyNVNUbk0wUVVWSmJHMUJFZzFEV2pZNE9EUjhRMW8yTURReEdnc0krdThIRUFJYUEwVlZVamdjY0p1SkNRPT0iLFtbIkNBTiIsIjIwMjYtMDctMjYiLCJVUkMiLG51bGwsIkNaIiwiNjg4NCJdLFsiVVJDIiwiMjAyNi0wNy0yNyIsIkZSQSIsbnVsbCwiQ1oiLCI2MDQxIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1484.0,
+        "currency": "EUR",
+        "duration_minutes": 1230,
+        "stops": 1,
+        "airline": "THAI",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->BKK->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 15:45",
+            "to_airport": "BKK",
+            "to_name": "Suvarnabhumi Airport",
+            "to_time": "2026-07-26 17:45",
+            "airline": "THAI",
+            "flight_number": "TG 669",
+            "aircraft": "Airbus A330",
+            "duration_minutes": 180,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "BKK",
+            "from_name": "Suvarnabhumi Airport",
+            "from_time": "2026-07-26 23:45",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-27 06:15",
+            "airline": "THAI",
+            "flight_number": "TG 920",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 690,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Suvarnabhumi Airport",
+            "airport_id": "BKK",
+            "duration_minutes": 360
+          }
+        ],
+        "departure_token": "WyJDalJJVjE5VFUySndWa1JvVVd0QlMyaFRjVUZDUnkwdExTMHRMUzB0TFc5NVkyd3hNVUZCUVVGQlIyNVNUbk0wUVVWSmJHMUJFZ3RVUnpZMk9YeFVSemt5TUJvTENNMkdDUkFDR2dORlZWSTRISERpdGdvPSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIkJLSyIsbnVsbCwiVEciLCI2NjkiXSxbIkJLSyIsIjIwMjYtMDctMjYiLCJGUkEiLG51bGwsIlRHIiwiOTIwIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1669.0,
+        "currency": "EUR",
+        "duration_minutes": 1240,
+        "stops": 1,
+        "airline": "Turkish Airlines",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->IST->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 23:00",
+            "to_airport": "IST",
+            "to_name": "Istanbul Airport",
+            "to_time": "2026-07-27 05:30",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 73",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 690,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "IST",
+            "from_name": "Istanbul Airport",
+            "from_time": "2026-07-27 11:30",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-27 13:40",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 1591",
+            "aircraft": "Airbus A330",
+            "duration_minutes": 190,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Istanbul Airport",
+            "airport_id": "IST",
+            "duration_minutes": 360
+          }
+        ],
+        "departure_token": "WyJDalJJVjE5VFUySndWa1JvVVd0QlMyaFRjVUZDUnkwdExTMHRMUzB0TFc5NVkyd3hNVUZCUVVGQlIyNVNUbk0wUVVWSmJHMUJFZ3RVU3pjemZGUkxNVFU1TVJvTENKS1hDaEFDR2dORlZWSTRISENrM1FzPSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIklTVCIsbnVsbCwiVEsiLCI3MyJdLFsiSVNUIiwiMjAyNi0wNy0yNyIsIkZSQSIsbnVsbCwiVEsiLCIxNTkxIl1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1740.0,
+        "currency": "EUR",
+        "duration_minutes": 1020,
+        "stops": 1,
+        "airline": "Turkish Airlines",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->IST->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 23:00",
+            "to_airport": "IST",
+            "to_name": "Istanbul Airport",
+            "to_time": "2026-07-27 05:30",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 73",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 690,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "IST",
+            "from_name": "Istanbul Airport",
+            "from_time": "2026-07-27 07:45",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-27 10:00",
+            "airline": "Turkish Airlines",
+            "flight_number": "TK 1587",
+            "aircraft": "Airbus A321neo",
+            "duration_minutes": 195,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Istanbul Airport",
+            "airport_id": "IST",
+            "duration_minutes": 135
+          }
+        ],
+        "departure_token": "WyJDalJJVjE5VFUySndWa1JvVVd0QlMyaFRjVUZDUnkwdExTMHRMUzB0TFc5NVkyd3hNVUZCUVVGQlIyNVNUbk0wUVVWSmJHMUJFZ3RVU3pjemZGUkxNVFU0TnhvTENLZlBDaEFDR2dORlZWSTRISEQrblF3PSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIklTVCIsbnVsbCwiVEsiLCI3MyJdLFsiSVNUIiwiMjAyNi0wNy0yNyIsIkZSQSIsbnVsbCwiVEsiLCIxNTg3Il1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      },
+      {
+        "origin": "CAN",
+        "destination": "FRA",
+        "outbound_date": "2026-07-26",
+        "return_date": "2026-08-01",
+        "price": 1950.0,
+        "currency": "EUR",
+        "duration_minutes": 1625,
+        "stops": 1,
+        "airline": "Cathay Pacific",
+        "booking_class": "Economy",
+        "fare_brand": null,
+        "outbound_route": "CAN->HKG->FRA",
+        "outbound_segments": [
+          {
+            "from_airport": "CAN",
+            "from_name": "Guangzhou Baiyun International Airport",
+            "from_time": "2026-07-26 10:10",
+            "to_airport": "HKG",
+            "to_name": "Hong Kong International Airport",
+            "to_time": "2026-07-26 11:45",
+            "airline": "Cathay Pacific",
+            "flight_number": "CX 983",
+            "aircraft": "Airbus A330",
+            "duration_minutes": 95,
+            "overnight": false,
+            "booking_class": "Economy",
+            "fare_brand": null
+          },
+          {
+            "from_airport": "HKG",
+            "from_name": "Hong Kong International Airport",
+            "from_time": "2026-07-26 23:55",
+            "to_airport": "FRA",
+            "to_name": "Frankfurt Airport",
+            "to_time": "2026-07-27 07:15",
+            "airline": "Cathay Pacific",
+            "flight_number": "CX 289",
+            "aircraft": "Boeing 777",
+            "duration_minutes": 800,
+            "overnight": true,
+            "booking_class": "Economy",
+            "fare_brand": null
+          }
+        ],
+        "outbound_layovers": [
+          {
+            "airport": "Hong Kong International Airport",
+            "airport_id": "HKG",
+            "duration_minutes": 730
+          }
+        ],
+        "departure_token": "WyJDalJJVjE5VFUySndWa1JvVVd0QlMyaFRjVUZDUnkwdExTMHRMUzB0TFc5NVkyd3hNVUZCUVVGQlIyNVNUbk0wUVVWSmJHMUJFZ3REV0RrNE0zeERXREk0T1JvTENPTHlDeEFDR2dORlZWSTRISENuMmcwPSIsW1siQ0FOIiwiMjAyNi0wNy0yNiIsIkhLRyIsbnVsbCwiQ1giLCI5ODMiXSxbIkhLRyIsIjIwMjYtMDctMjYiLCJGUkEiLG51bGwsIkNYIiwiMjg5Il1dXQ==",
+        "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=EUR&tfs=CBwQAhoeEgoyMDI2LTA3LTI2agcIARIDQ0FOcgcIARIDRlJBGh4SCjIwMjYtMDgtMDFqBwgBEgNGUkFyBwgBEgNDQU5AAUgBcAGYAQE&tfu=EgIIAQ"
+      }
+    ]
   }
 }
