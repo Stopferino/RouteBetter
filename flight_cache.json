@@ -4037,5 +4037,31 @@
       "return_duration_minutes": 1090,
       "return_stops": 1
     }
+  },
+  "return__WyJDalJJYVZwRFRIaE5kRFJpWjFsQlMw": {
+    "fetched_at": "2026-04-04 12:15",
+    "data": {
+      "return_segments": [
+        {
+          "from_airport": "FRA",
+          "from_name": "Frankfurt Airport",
+          "from_time": "2026-08-02 14:05",
+          "to_airport": "CAN",
+          "to_name": "Guangzhou Baiyun International Airport",
+          "to_time": "2026-08-03 07:30",
+          "airline": "China Southern",
+          "flight_number": "CZ 332",
+          "aircraft": "Boeing 787",
+          "duration_minutes": 685,
+          "overnight": true,
+          "booking_class": "Economy",
+          "fare_brand": null
+        }
+      ],
+      "return_layovers": [],
+      "return_route": "FRA->CAN",
+      "return_duration_minutes": 685,
+      "return_stops": 0
+    }
   }
 }

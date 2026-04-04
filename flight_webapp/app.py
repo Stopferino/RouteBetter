@@ -71,12 +71,12 @@ async def search_stream(
         def sse(data: dict) -> str:
             return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
 
-        cache = {}
         cache_file = os.path.join(
             os.path.dirname(os.path.dirname(__file__)), "flight_cache.json"
         )
-        if use_cache:
-            cache = await loop.run_in_executor(None, load_cache, cache_file)
+        # Always load the cache so we can write fresh data back into it,
+        # even when the user has "use cache" disabled.
+        cache = await loop.run_in_executor(None, load_cache, cache_file)
 
         all_flights = []
         combinations = [
@@ -119,7 +119,9 @@ async def search_stream(
 
             flights = await loop.run_in_executor(None, do_fetch)
 
-            if use_cache and flights:
+            # Always persist fresh data so the next "use cache" search
+            # sees up-to-date results (with all current fields).
+            if flights:
                 set_cached(cache, origin, dest, od, rd, flights)
                 await loop.run_in_executor(None, save_cache, cache, cache_file)
 
@@ -135,6 +137,17 @@ async def search_stream(
             None,
             lambda: calculate_scores(all_flights, value_of_time=value_of_time),
         )
+
+        # Old cache entries may not have booking_class / fare_brand / currency.
+        # Pandas fills missing columns with NaN, which json.dumps cannot serialize.
+        # Fill those columns with safe defaults before any further processing.
+        for _col, _default in [("booking_class", "Economy"), ("currency", "EUR")]:
+            if _col in df.columns:
+                df[_col] = df[_col].fillna(_default)
+        if "fare_brand" in df.columns:
+            # fare_brand is nullable — store as object column with empty-string default
+            df["fare_brand"] = df["fare_brand"].where(df["fare_brand"].notna(), other="")
+
         try:
             df = await loop.run_in_executor(
                 None,
@@ -180,6 +193,7 @@ async def search_stream(
             })
 
             cached_ret = get_cached_return(cache, token) if use_cache else None
+            # Note: even when use_cache=False we still write to cache below
             if cached_ret:
                 flight.update(cached_ret)
                 candidate_flights[rank_idx] = flight
@@ -203,9 +217,9 @@ async def search_stream(
             if ret:
                 flight.update(ret)
                 candidate_flights[rank_idx] = flight
-                if use_cache:
-                    set_cached_return(cache, token, ret)
-                    await loop.run_in_executor(None, save_cache, cache, cache_file)
+                # Always persist return leg so next cached search benefits too
+                set_cached_return(cache, token, ret)
+                await loop.run_in_executor(None, save_cache, cache, cache_file)
                 yield sse({"type": "log", "message": f"✓ Return leg {rank_idx + 1} fetched"})
             else:
                 yield sse({"type": "log", "message": f"⚠ Return leg {rank_idx + 1} unavailable — using outbound score"})
