@@ -24,6 +24,7 @@
     .pulse-dot { animation: pulseDot 1.2s infinite; }
     @keyframes pulseDot { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
     ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+    .window-btn { transition: background 0.15s, color 0.15s; }
   </style>
 </head>
 
@@ -84,17 +85,43 @@
           </div>
         </div>
 
-        <!-- Dates -->
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Outbound</label>
-            <input type="date" x-model="outboundDate"
-                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+        <!-- Dates + Window -->
+        <div>
+          <div class="grid grid-cols-2 gap-3 mb-2">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Outbound</label>
+              <input type="date" x-model="outboundDate"
+                     class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Return</label>
+              <input type="date" x-model="returnDate"
+                     class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+            </div>
           </div>
+
+          <!-- Date Window Toggle -->
           <div>
-            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Return</label>
-            <input type="date" x-model="returnDate"
-                   class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Date Flexibility</label>
+            <div class="flex rounded-lg overflow-hidden border border-slate-200 text-sm">
+              <button type="button"
+                      class="flex-1 py-2 window-btn font-medium"
+                      :class="dateWindow === 0 ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'"
+                      @click="dateWindow = 0">
+                Exact date
+              </button>
+              <button type="button"
+                      class="flex-1 py-2 window-btn font-medium border-l border-slate-200"
+                      :class="dateWindow === 1 ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'"
+                      @click="dateWindow = 1">
+                ±1 day
+              </button>
+            </div>
+            <!-- API usage warning for ±1 day -->
+            <div x-show="dateWindow === 1"
+                 class="mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">
+              ⚠️ ±1 day searches up to <span class="font-bold" x-text="apiCallEstimate()"></span> route combinations — uses more API quota.
+            </div>
           </div>
         </div>
 
@@ -116,9 +143,10 @@
             <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Top Results</label>
             <select x-model.number="topN"
                     class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-              <template x-for="n in [3,5,8,10]">
-                <option :value="n" x-text="n"></option>
-              </template>
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="8">8</option>
+              <option value="10">10</option>
             </select>
           </div>
           <div>
@@ -246,13 +274,13 @@
           <!-- Price + Score -->
           <div class="text-right shrink-0">
             <div class="text-2xl font-bold text-slate-800">
-              <span x-text="flight.price.toFixed(0)"></span>
+              <span x-text="(flight.price || 0).toFixed(0)"></span>
               <span class="text-base font-normal text-slate-500"> EUR</span>
             </div>
             <div class="text-xs text-slate-400">round-trip</div>
             <div class="mt-1 inline-flex items-center gap-1 bg-blue-50 border border-blue-200 rounded-lg px-2 py-0.5">
               <span class="text-xs text-blue-600 font-semibold">Score:</span>
-              <span class="text-sm font-bold text-blue-700" x-text="flight.score.toFixed(0) + ' EUR'"></span>
+              <span class="text-sm font-bold text-blue-700" x-text="(flight.score || 0).toFixed(0) + ' EUR'"></span>
             </div>
           </div>
         </div>
@@ -289,12 +317,10 @@
             <template x-for="(seg, si) in flight.outbound_segments" :key="si">
               <div>
                 <div class="flex items-start gap-3 py-2">
-                  <!-- Times -->
                   <div class="text-center w-14 shrink-0">
                     <div class="font-mono font-bold text-slate-800 text-sm" x-text="fmtTime(seg.from_time)"></div>
                     <div class="font-mono text-xs text-slate-400" x-text="seg.from_airport"></div>
                   </div>
-                  <!-- Line + info -->
                   <div class="flex-1 segment-line">
                     <div class="flex items-center gap-2 flex-wrap">
                       <span class="font-semibold text-sm text-slate-700" x-text="seg.flight_number"></span>
@@ -304,13 +330,11 @@
                       <span x-show="seg.overnight" class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">🌙 overnight</span>
                     </div>
                   </div>
-                  <!-- Arrival -->
                   <div class="text-center w-14 shrink-0">
                     <div class="font-mono font-bold text-slate-800 text-sm" x-text="fmtTime(seg.to_time)"></div>
                     <div class="font-mono text-xs text-slate-400" x-text="seg.to_airport"></div>
                   </div>
                 </div>
-                <!-- Layover -->
                 <template x-if="si < flight.outbound_layovers.length">
                   <div class="ml-[74px] flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 mb-1">
                     <span>⏱</span>
@@ -325,7 +349,7 @@
           </div>
 
           <!-- Return Segments -->
-          <div x-show="flight.return_segments.length > 0">
+          <div x-show="flight.return_segments && flight.return_segments.length > 0">
             <div class="flex items-center gap-2 mb-3">
               <span class="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded">RETURN</span>
               <span class="text-xs text-slate-500" x-text="flight.return_date"></span>
@@ -363,7 +387,8 @@
               </div>
             </template>
           </div>
-          <div x-show="flight.return_segments.length === 0" class="text-xs text-slate-400 italic">
+          <div x-show="!flight.return_segments || flight.return_segments.length === 0"
+               class="text-xs text-slate-400 italic">
             Return leg details not yet fetched — re-run search to load.
           </div>
 
@@ -385,6 +410,7 @@ function flightApp() {
     returnDate: '2026-08-02',
     valueOfTime: 20,
     topN: 5,
+    dateWindow: 0,
     maxStops: '',
     useCache: true,
     searching: false,
@@ -397,9 +423,17 @@ function flightApp() {
     progressLabel: '',
     _es: null,
 
+    // Estimate number of API calls for the warning
+    apiCallEstimate() {
+      const routes = this.origins.length * this.destinations.length;
+      // ±1 day: 3 outbound × 3 return = 9 date combos (some may be filtered)
+      const dateCombos = this.dateWindow === 1 ? 9 : 1;
+      return routes * dateCombos;
+    },
+
     fmtMin(min) {
-      if (!min && min !== 0) return '?';
-      min = Math.round(min);
+      if (min === null || min === undefined || isNaN(min)) return '?';
+      min = Math.round(Number(min));
       return `${Math.floor(min / 60)}h ${String(min % 60).padStart(2, '0')}m`;
     },
 
@@ -429,6 +463,7 @@ function flightApp() {
         value_of_time: this.valueOfTime,
         top_n: this.topN,
         use_cache: this.useCache,
+        date_window: this.dateWindow,
       });
       if (this.maxStops !== '') params.set('max_stops', this.maxStops);
 
