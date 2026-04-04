@@ -6,6 +6,7 @@ FastAPI backend that serves the UI and streams search results via SSE.
 import asyncio
 import json
 import logging
+import math
 import os
 import sys
 from datetime import date as _date, timedelta
@@ -17,6 +18,18 @@ from fastapi import FastAPI, Query
 from fastapi.responses import HTMLResponse, StreamingResponse
 
 logger = logging.getLogger(__name__)
+
+
+def _sanitize_nan(obj):
+    """Recursively replace float NaN/Inf with None so json.dumps produces valid JSON."""
+    if isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+        return None
+    if isinstance(obj, dict):
+        return {k: _sanitize_nan(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_nan(v) for v in obj]
+    return obj
+
 
 app = FastAPI(title="Flight Optimizer")
 _TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), "templates", "index.html")
@@ -112,7 +125,7 @@ async def search_stream(
         global _active_searches
 
         def sse(data: dict) -> str:
-            return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+            return f"data: {json.dumps(_sanitize_nan(data), ensure_ascii=False)}\n\n"
 
         if _active_searches >= MAX_CONCURRENT_SEARCHES:
             yield sse({
@@ -251,9 +264,6 @@ async def search_stream(
             if cache_dirty:
                 await loop.run_in_executor(None, save_cache, cache, cache_file)
 
-            logger.warning(f"[DEBUG] Collected {len(all_flights)} flights from {completed_outbound}/{total} combinations  date_window={date_window}")
-            yield sse({"type": "log", "message": f"[DEBUG] Collected {len(all_flights)} flights from {completed_outbound}/{total} combinations"})
-
             if not all_flights:
                 yield sse({"type": "error", "message": "No flights found. Try different dates or airports, or check your API quota."})
                 return
@@ -263,9 +273,6 @@ async def search_stream(
                 None,
                 lambda: calculate_scores(all_flights, value_of_time=value_of_time),
             )
-
-            logger.warning(f"[DEBUG] After scoring: {len(df)} rows, max_stops={max_stops}")
-            yield sse({"type": "log", "message": f"[DEBUG] After scoring: {len(df)} rows, max_stops={max_stops}"})
 
             for _col, _default in [("booking_class", "Economy"), ("currency", "EUR")]:
                 if _col in df.columns:
@@ -283,9 +290,6 @@ async def search_stream(
                 yield sse({"type": "error", "message": f"Filter error: {filter_err}"})
                 return
             df = df.reset_index(drop=True)
-
-            logger.warning(f"[DEBUG] After filter: {len(df)} rows → effective_top_n={min(top_n, len(df))}")
-            yield sse({"type": "log", "message": f"[DEBUG] After filter: {len(df)} rows → effective_top_n={min(top_n, len(df))}"})
 
             effective_top_n = min(top_n, len(df))
             if effective_top_n == 0:
@@ -421,10 +425,10 @@ async def search_stream(
                     "stops": int(f.get("stops") or 0),
                     "return_stops": ret_stops_int,
                     "return_duration_minutes": f.get("return_duration_minutes"),
-                    "outbound_segments": f.get("outbound_segments") or [],
-                    "outbound_layovers": f.get("outbound_layovers") or [],
-                    "return_segments": f.get("return_segments") or [],
-                    "return_layovers": f.get("return_layovers") or [],
+                    "outbound_segments": f.get("outbound_segments") if isinstance(f.get("outbound_segments"), list) else [],
+                    "outbound_layovers": f.get("outbound_layovers") if isinstance(f.get("outbound_layovers"), list) else [],
+                    "return_segments": f.get("return_segments") if isinstance(f.get("return_segments"), list) else [],
+                    "return_layovers": f.get("return_layovers") if isinstance(f.get("return_layovers"), list) else [],
                     "booking_class": f.get("booking_class", "Economy"),
                     "fare_brand": f.get("fare_brand"),
                     "currency": f.get("currency", "EUR"),
