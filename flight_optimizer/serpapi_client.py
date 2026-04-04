@@ -413,10 +413,14 @@ def fetch_return_legs(
         logger.warning(f"Return leg API error: {data['error']}")
         return None
 
-    # Take the first best_flights entry as the paired return option
-    best = data.get("best_flights", [])
+    # Log top-level keys so we can diagnose what SerpApi returns for step-2 calls
+    top_keys = [k for k in data.keys() if k not in ("search_metadata", "search_parameters", "search_information")]
+    logger.info(f"Return leg response keys: {top_keys}")
+
+    # SerpApi may return return-leg options in best_flights OR other_flights
+    best = data.get("best_flights") or data.get("other_flights") or []
     if not best:
-        logger.warning("Return leg: no best_flights in response.")
+        logger.warning(f"Return leg: no flights in response. Keys present: {top_keys}")
         return None
 
     itinerary = best[0]
