@@ -58,7 +58,7 @@ async def search_stream(
 
     async def event_generator():
         from flight_optimizer.serpapi_client import fetch_flights, fetch_return_legs
-        from flight_optimizer.scorer import calculate_scores, apply_filters
+        from flight_optimizer.scorer import calculate_scores, apply_filters, recalculate_scores_with_return
         from flight_optimizer.exporter import export_to_excel
         from flight_optimizer.cache import (
             load_cache, get_cached, set_cached, save_cache,
@@ -144,29 +144,37 @@ async def search_stream(
         # Enforce top_n — clamp to available rows
         effective_top_n = min(top_n, len(df))
 
+        # Fetch return legs for a slightly larger pool so that re-scoring with
+        # combined round-trip duration produces the correct final ranking.
+        CANDIDATE_BUFFER = 3
+        candidate_n = min(effective_top_n + CANDIDATE_BUFFER, len(df))
+
         yield sse({
             "type": "log",
-            "message": f"Scored {len(df)} flights, fetching return details for top {effective_top_n}…",
+            "message": (
+                f"Scored {len(df)} flights (outbound). "
+                f"Fetching return details for {candidate_n} candidates to enable round-trip re-ranking…"
+            ),
         })
         yield sse({"type": "progress", "percent": 70, "label": "Fetching return leg details…"})
 
-        top_flights = df.head(effective_top_n).to_dict("records")
+        candidate_flights = df.head(candidate_n).to_dict("records")
 
-        for rank_idx, flight in enumerate(top_flights):
+        for rank_idx, flight in enumerate(candidate_flights):
             token = flight.get("departure_token", "")
             if not token:
                 continue
             yield sse({
                 "type": "progress",
-                "percent": 70 + int((rank_idx / max(effective_top_n, 1)) * 25),
-                "label": f"Return leg #{rank_idx + 1}: {flight.get('outbound_route', '?')}…",
+                "percent": 70 + int((rank_idx / max(candidate_n, 1)) * 22),
+                "label": f"Return leg {rank_idx + 1}/{candidate_n}: {flight.get('outbound_route', '?')}…",
             })
 
             cached_ret = get_cached_return(cache, token) if use_cache else None
             if cached_ret:
                 flight.update(cached_ret)
-                top_flights[rank_idx] = flight
-                yield sse({"type": "log", "message": f"✓ Return leg #{rank_idx + 1} from cache"})
+                candidate_flights[rank_idx] = flight
+                yield sse({"type": "log", "message": f"✓ Return leg {rank_idx + 1} from cache"})
                 continue
 
             def do_return(t=token, f=flight):
@@ -180,13 +188,18 @@ async def search_stream(
             ret = await loop.run_in_executor(None, do_return)
             if ret:
                 flight.update(ret)
-                top_flights[rank_idx] = flight
+                candidate_flights[rank_idx] = flight
                 if use_cache:
                     set_cached_return(cache, token, ret)
                     await loop.run_in_executor(None, save_cache, cache, cache_file)
-                yield sse({"type": "log", "message": f"✓ Return leg #{rank_idx + 1} fetched"})
+                yield sse({"type": "log", "message": f"✓ Return leg {rank_idx + 1} fetched"})
 
             await asyncio.sleep(1.0)
+
+        # Re-score using full round-trip duration, then take the true top N
+        yield sse({"type": "progress", "percent": 93, "label": "Re-ranking by round-trip score…"})
+        candidate_flights = recalculate_scores_with_return(candidate_flights, value_of_time)
+        top_flights = candidate_flights[:effective_top_n]
 
         yield sse({"type": "progress", "percent": 97, "label": "Preparing results…"})
 
@@ -222,7 +235,9 @@ async def search_stream(
         import tempfile, uuid
         tmp_id = str(uuid.uuid4())[:8]
         tmp_path = os.path.join(tempfile.gettempdir(), f"flight_results_{tmp_id}.xlsx")
-        final_df = pd.DataFrame(top_flights + df.iloc[effective_top_n:].to_dict("records"))
+        # Excel: top flights (re-ranked by round-trip score) + remaining flights not in candidate pool
+        remaining = df.iloc[candidate_n:].to_dict("records")
+        final_df = pd.DataFrame(top_flights + remaining)
         await loop.run_in_executor(None, lambda: export_to_excel(final_df, tmp_path))
 
         yield sse({
