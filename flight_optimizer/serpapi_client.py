@@ -79,16 +79,35 @@ def fetch_flights(
 
     logger.info(f"Abrufe: {origin} → {destination} | {outbound_date} ↔ {return_date}")
 
-    try:
-        response = requests.get(SERPAPI_BASE_URL, params=params, timeout=30)
-        # WICHTIG: raise_for_status() NICHT vor json() aufrufen,
-        # da sonst die API-Fehlermeldung verloren geht.
-        data = response.json()
-    except requests.RequestException as e:
-        logger.error(f"Netzwerkfehler bei {origin}→{destination}: {e}")
-        return []
-    except ValueError as e:
-        logger.error(f"Ungültige JSON-Antwort: {e}")
+    max_retries = 3
+    retry_delay = 5  # Sekunden zwischen Wiederholungen
+    data = None
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            response = requests.get(SERPAPI_BASE_URL, params=params, timeout=60)
+            data = response.json()
+            break  # Erfolgreich → Schleife beenden
+        except requests.Timeout:
+            if attempt < max_retries:
+                logger.warning(
+                    f"Timeout bei {origin}→{destination} (Versuch {attempt}/{max_retries}), "
+                    f"warte {retry_delay}s und versuche erneut..."
+                )
+                time.sleep(retry_delay)
+            else:
+                logger.warning(
+                    f"Timeout bei {origin}→{destination} nach {max_retries} Versuchen — übersprungen."
+                )
+                return []
+        except requests.RequestException as e:
+            logger.warning(f"Netzwerkfehler bei {origin}→{destination}: {e} — übersprungen.")
+            return []
+        except ValueError as e:
+            logger.error(f"Ungültige JSON-Antwort: {e}")
+            return []
+
+    if data is None:
         return []
 
     # Fehlerprüfung in der API-Antwort (auch bei HTTP 4xx/5xx)
