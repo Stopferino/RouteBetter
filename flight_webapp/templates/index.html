@@ -772,7 +772,7 @@ function flightApp() {
       this.usageLoading = true;
       for (let attempt = 0; attempt <= retries; attempt++) {
         try {
-          const r = await fetch('/api/usage');
+          const r = await fetch('/flight/usage');
           if (r.ok) {
             this.apiUsage = await r.json();
             this.usageLoading = false;

@@ -30,7 +30,7 @@ async def index():
         return HTMLResponse(content=f.read())
 
 
-@app.get("/api/usage")
+@app.get("/flight/usage")
 async def api_usage():
     """
     Fetches live usage from SerpApi's /account.json endpoint.
