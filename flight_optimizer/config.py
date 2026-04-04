@@ -8,10 +8,10 @@ ORIGIN_AIRPORTS = ["HKG", "SZX", "CAN"]
 DESTINATION_AIRPORTS = ["FRA", "MUC", "NUE"]
 
 # ─── Reisedaten ───────────────────────────────────────────────────────────────
-# Gewünschtes Hinflugdatum (YYYY-MM-DD)
-OUTBOUND_DATE = "2025-07-25"
-# Gewünschtes Rückflugdatum (YYYY-MM-DD)
-RETURN_DATE = "2025-08-02"
+# Gewünschtes Hinflugdatum (YYYY-MM-DD) — muss in der Zukunft liegen!
+OUTBOUND_DATE = "2026-06-15"
+# Gewünschtes Rückflugdatum (YYYY-MM-DD) — muss nach dem Hinflugdatum liegen!
+RETURN_DATE = "2026-06-29"
 
 # Datumsfenster: +/- Tage um das Wunschdatum herum
 DATE_WINDOW_DAYS = 1

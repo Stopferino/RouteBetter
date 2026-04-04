@@ -3,14 +3,33 @@ Flight Optimizer - SerpApi Google Flights Client
 """
 
 import os
+import sys
 import time
 import logging
+from datetime import date
 from typing import Optional
 import requests
 
 logger = logging.getLogger(__name__)
 
 SERPAPI_BASE_URL = "https://serpapi.com/search"
+
+
+def _validate_dates(outbound_date: str, return_date: str):
+    """Prüft, ob die Daten in der Zukunft liegen und ob Rückflug nach Hinflug ist."""
+    today = date.today()
+    out = date.fromisoformat(outbound_date)
+    ret = date.fromisoformat(return_date)
+
+    if out <= today:
+        raise ValueError(
+            f"Hinflugdatum {outbound_date} liegt in der Vergangenheit (heute: {today}). "
+            "Bitte ein zukünftiges Datum in config.py eintragen."
+        )
+    if ret <= out:
+        raise ValueError(
+            f"Rückflugdatum {return_date} muss nach dem Hinflugdatum {outbound_date} liegen."
+        )
 
 
 def fetch_flights(
@@ -37,7 +56,9 @@ def fetch_flights(
     """
     api_key = os.environ.get("SERPAPI_KEY")
     if not api_key:
-        raise EnvironmentError("SERPAPI_KEY nicht gesetzt. Bitte als Umgebungsvariable setzen.")
+        raise EnvironmentError(
+            "SERPAPI_KEY nicht gesetzt. Bitte als Umgebungsvariable / Secret setzen."
+        )
 
     params = {
         "engine": "google_flights",
@@ -52,19 +73,39 @@ def fetch_flights(
         "api_key": api_key,
     }
 
+    # Optionaler nativer Stopp-Filter (SerpApi: 0=nur Direkt, 1=max 1 Stopp, 2=max 2 Stopps)
+    if max_stops is not None and max_stops in (0, 1, 2):
+        params["stops"] = str(max_stops)
+
     logger.info(f"Abrufe: {origin} → {destination} | {outbound_date} ↔ {return_date}")
 
     try:
         response = requests.get(SERPAPI_BASE_URL, params=params, timeout=30)
-        response.raise_for_status()
+        # WICHTIG: raise_for_status() NICHT vor json() aufrufen,
+        # da sonst die API-Fehlermeldung verloren geht.
         data = response.json()
     except requests.RequestException as e:
-        logger.error(f"API-Fehler für {origin}→{destination}: {e}")
+        logger.error(f"Netzwerkfehler bei {origin}→{destination}: {e}")
+        return []
+    except ValueError as e:
+        logger.error(f"Ungültige JSON-Antwort: {e}")
         return []
 
-    # Fehlerprüfung in der API-Antwort
+    # Fehlerprüfung in der API-Antwort (auch bei HTTP 4xx/5xx)
     if "error" in data:
-        logger.error(f"SerpApi Fehler: {data['error']}")
+        err_msg = data["error"]
+        logger.error(f"SerpApi-Fehler: {err_msg}")
+
+        # Verständliche Hinweise für häufige Fehler
+        if "past" in err_msg.lower():
+            logger.error(
+                "  → Das Datum liegt in der Vergangenheit! "
+                "Bitte OUTBOUND_DATE und RETURN_DATE in config.py auf ein zukünftiges Datum setzen."
+            )
+            sys.exit(1)  # Sofort abbrechen, alle anderen Anfragen würden ebenfalls scheitern
+        if "api_key" in err_msg.lower() or "invalid" in err_msg.lower():
+            logger.error("  → Ungültiger oder abgelaufener SERPAPI_KEY.")
+            sys.exit(1)
         return []
 
     results = []
@@ -77,7 +118,7 @@ def fetch_flights(
                 if price is None:
                     continue
 
-                # Gesamtdauer des Roundtrips (Hin + Rück)
+                # Gesamtdauer des Roundtrips
                 total_duration = itinerary.get("total_duration")
                 if total_duration is None:
                     # Fallback: Summe aller Legs
@@ -87,18 +128,22 @@ def fetch_flights(
 
                 # Airline (erste Fluglinie im Itinerary)
                 flights_legs = itinerary.get("flights", [])
-                airline = flights_legs[0].get("airline", "Unbekannt") if flights_legs else "Unbekannt"
+                airline = (
+                    flights_legs[0].get("airline", "Unbekannt")
+                    if flights_legs
+                    else "Unbekannt"
+                )
 
                 # Anzahl Stopps (Layovers)
                 stops = len(itinerary.get("layovers", []))
 
-                # Optionaler Airline-Filter
+                # Optionaler Airline-Filter (Teilstring-Match)
                 if airline_filter and not any(
                     af.lower() in airline.lower() for af in airline_filter
                 ):
                     continue
 
-                # Optionaler Stopp-Filter
+                # Optionaler Stopp-Filter (Feinfilterung nach Python-Seite)
                 if max_stops is not None and stops > max_stops:
                     continue
 
@@ -137,8 +182,12 @@ def fetch_all_combinations(
     Ruft alle OD-Kombinationen x Datumspaare ab.
     delay_seconds verhindert Rate-Limiting.
     """
-    all_results = []
+    # Datumsvalidierung vor dem ersten API-Aufruf
+    for out_date in outbound_dates:
+        for ret_date in return_dates:
+            _validate_dates(out_date, ret_date)
 
+    all_results = []
     total = len(origins) * len(destinations) * len(outbound_dates) * len(return_dates)
     count = 0
 
@@ -147,7 +196,9 @@ def fetch_all_combinations(
             for out_date in outbound_dates:
                 for ret_date in return_dates:
                     count += 1
-                    logger.info(f"[{count}/{total}] {origin}→{destination} | {out_date}↔{ret_date}")
+                    logger.info(
+                        f"[{count}/{total}] {origin}→{destination} | {out_date}↔{ret_date}"
+                    )
 
                     flights = fetch_flights(
                         origin=origin,
