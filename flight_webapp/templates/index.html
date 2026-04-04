@@ -487,9 +487,9 @@
           <!-- Book on Google Flights -->
           <a :href="flight.booking_token
                ? `https://www.google.com/flights?hl=en&gl=us&booking_token=${flight.booking_token}`
-               : `https://www.google.com/travel/flights#flt=${flight.origin}.${flight.destination}.${flight.outbound_date}*${flight.destination}.${flight.origin}.${flight.return_date};c:EUR;e:1;sd:1;t:f`"
+               : `https://www.google.com/search?hl=en&gl=us&q=${encodeURIComponent('round trip flights ' + flight.origin + ' to ' + flight.destination + ' departing ' + flight.outbound_date + ' return ' + flight.return_date)}`"
              target="_blank" rel="noopener noreferrer"
-             :title="flight.booking_token ? 'Opens this exact flight selection on Google Flights' : 'Opens Google Flights pre-filled with this route (token unavailable — select the flight again)'"
+             :title="flight.booking_token ? 'Opens this exact flight selection on Google Flights' : 'Searches Google Flights for this route and dates'"
              class="ml-auto flex items-center gap-1 text-white font-semibold px-3 py-1 rounded-lg transition-colors no-underline"
              :class="flight.booking_token ? 'bg-blue-600 hover:bg-blue-700' : 'bg-slate-500 hover:bg-slate-600'">
             <span x-text="flight.booking_token ? '🎫 Book this flight' : '🔍 Search on Google Flights'"></span>

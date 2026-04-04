@@ -214,5 +214,44 @@
         "duration_minutes": 35.0
       }
     }
+  },
+  "shenzhen shuiwan 1979|erlangen hbf|HKG,MUN,NUE": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "Hauptbahnhof, Parkplatzstraße, Innenstadt, Erlangen, Bayern, 91054, Deutschland",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": [
+      49.5955417,
+      11.0005867
+    ],
+    "ai_powered": true,
+    "legs": {
+      "HKG": {
+        "time_minutes": 85.0,
+        "cost_eur": 27.0,
+        "mode": "Didi + ferry + Airport Express",
+        "notes": "Didi to Shenzhen Bay Port, ferry crossing, then bus/Metro to airport.",
+        "cost": 27.0,
+        "duration_minutes": 85.0
+      },
+      "NUE": {
+        "time_minutes": 40.0,
+        "cost_eur": 15.0,
+        "mode": "Public transport (U2 metro + regional train)",
+        "notes": "Estimated connection and transfer times included.",
+        "cost": 15.0,
+        "duration_minutes": 40.0
+      },
+      "MUN": {
+        "time_minutes": 50.0,
+        "cost_eur": 40.0,
+        "mode": "Taxi",
+        "notes": "Direct taxi ride from Nuremberg Airport to Erlangen.",
+        "cost": 40.0,
+        "duration_minutes": 50.0
+      }
+    }
   }
 }
