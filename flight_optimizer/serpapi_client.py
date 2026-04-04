@@ -145,32 +145,65 @@ def fetch_flights(
                 if price is None:
                     continue
 
-                # Total roundtrip duration
+                flights_legs = itinerary.get("flights", [])
+                raw_layovers = itinerary.get("layovers", [])
+
+                # ── Outbound duration ──────────────────────────────────────
                 total_duration = itinerary.get("total_duration")
                 if total_duration is None:
-                    # Fallback: sum all individual legs
-                    total_duration = sum(
-                        leg.get("duration", 0) for leg in itinerary.get("flights", [])
-                    )
+                    total_duration = sum(leg.get("duration", 0) for leg in flights_legs)
 
-                # Airline (first carrier in the itinerary)
-                flights_legs = itinerary.get("flights", [])
+                # ── Airline (first carrier) ────────────────────────────────
                 airline = (
                     flights_legs[0].get("airline", "Unknown")
-                    if flights_legs
-                    else "Unknown"
+                    if flights_legs else "Unknown"
                 )
 
-                # Number of stops (layovers)
-                stops = len(itinerary.get("layovers", []))
+                # ── Outbound stops ─────────────────────────────────────────
+                stops = len(raw_layovers)
 
-                # Optional airline filter (substring match)
+                # ── Outbound segment details ───────────────────────────────
+                outbound_segments = []
+                for leg in flights_legs:
+                    dep = leg.get("departure_airport", {})
+                    arr = leg.get("arrival_airport", {})
+                    outbound_segments.append({
+                        "from_airport": dep.get("id", "?"),
+                        "from_name": dep.get("name", ""),
+                        "from_time": dep.get("time", ""),
+                        "to_airport": arr.get("id", "?"),
+                        "to_name": arr.get("name", ""),
+                        "to_time": arr.get("time", ""),
+                        "airline": leg.get("airline", "Unknown"),
+                        "flight_number": leg.get("flight_number", ""),
+                        "aircraft": leg.get("airplane", ""),
+                        "duration_minutes": leg.get("duration", 0),
+                        "overnight": leg.get("overnight", False),
+                    })
+
+                # ── Outbound layover details ───────────────────────────────
+                outbound_layovers = []
+                for lay in raw_layovers:
+                    outbound_layovers.append({
+                        "airport": lay.get("name", "?"),
+                        "airport_id": lay.get("id", "?"),
+                        "duration_minutes": lay.get("duration", 0),
+                    })
+
+                # ── Outbound route string (e.g. "HKG->DOH->FRA") ──────────
+                if outbound_segments:
+                    route_airports = [outbound_segments[0]["from_airport"]]
+                    for seg in outbound_segments:
+                        route_airports.append(seg["to_airport"])
+                    outbound_route = "->".join(route_airports)
+                else:
+                    outbound_route = f"{origin}->{destination}"
+
+                # ── Optional filters ───────────────────────────────────────
                 if airline_filter and not any(
                     af.lower() in airline.lower() for af in airline_filter
                 ):
                     continue
-
-                # Optional stop filter (Python-side fine-filter)
                 if max_stops is not None and stops > max_stops:
                     continue
 
@@ -180,9 +213,14 @@ def fetch_flights(
                     "outbound_date": outbound_date,
                     "return_date": return_date,
                     "price": float(price),
+                    # Outbound leg summary (used by scorer)
                     "duration_minutes": int(total_duration),
-                    "airline": airline,
                     "stops": stops,
+                    "airline": airline,
+                    # Detailed outbound leg breakdown
+                    "outbound_route": outbound_route,
+                    "outbound_segments": outbound_segments,
+                    "outbound_layovers": outbound_layovers,
                     "flight_details": itinerary,
                 })
             except (KeyError, TypeError, ValueError) as e:
