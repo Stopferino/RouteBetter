@@ -5,10 +5,8 @@ Uses:
 - Nominatim (OpenStreetMap) for address geocoding — free, no API key.
 - OpenAI (via Replit AI proxy) to estimate realistic time + cost per transport mode.
 - OSRM (fallback) for raw driving distance when AI is unavailable.
-
-The AI is aware of realistic transport modes:
-  Departure side (HKG/SZX/CAN): metro, Didi, bus, specific cross-border routes.
-  Arrival side (FRA/MUC/NUE): Deutsche Bahn, regional bus, S-Bahn.
+- Disk cache: estimates are stored in ground_transport_cache.json and reused
+  across sessions for the same home/dest address + airport combination.
 """
 
 import json
@@ -39,10 +37,58 @@ AIRPORT_NAMES = {
     "NUE": "Nuremberg Airport (Flughafen Nürnberg)",
 }
 
+_ORIGIN_HINTS = {
+    "HKG": "Traveller takes Didi from home to Shenzhen Bay Port / Futian Checkpoint, crosses border, then bus or Airport Express to HKG.",
+    "SZX": "Traveller uses the Shenzhen Metro Airport Express Line.",
+    "CAN": "Traveller uses Didi from home.",
+}
+_DEST_HINTS = {
+    "FRA": "Traveller uses Deutsche Bahn ICE/RE or regional trains from Frankfurt Airport.",
+    "MUC": "Traveller uses S-Bahn (S1/S8), regional bus, or Deutsche Bahn from Munich Airport.",
+    "NUE": "Traveller uses public transport (U2 metro + regional train) or Deutsche Bahn from Nuremberg Airport.",
+}
+
 _NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
 _OSRM_URL      = "https://router.project-osrm.org/route/v1/driving"
 _HEADERS       = {"User-Agent": "FlightOptimizer/1.0 (personal research tool)"}
 _last_nominatim_call: float = 0.0
+
+
+# ── On-disk cache ──────────────────────────────────────────────────────────────
+
+_GT_CACHE_FILE = Path(__file__).parent / "ground_transport_cache.json"
+_GT_CACHE: dict = {}
+
+
+def _load_gt_cache():
+    global _GT_CACHE
+    if _GT_CACHE_FILE.exists():
+        try:
+            with open(_GT_CACHE_FILE, "r", encoding="utf-8") as f:
+                _GT_CACHE = json.load(f)
+            logger.info(f"Ground transport cache loaded: {len(_GT_CACHE)} entr(ies)")
+        except Exception as e:
+            logger.warning(f"Ground transport cache load error: {e}")
+            _GT_CACHE = {}
+
+
+def _save_gt_cache():
+    try:
+        with open(_GT_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(_GT_CACHE, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        logger.warning(f"Ground transport cache save error: {e}")
+
+
+def _gt_cache_key(
+    home_address: str, dest_address: str,
+    origin_airports: list, dest_airports: list,
+) -> str:
+    all_codes = sorted(set(origin_airports) | set(dest_airports))
+    return f"{home_address.lower().strip()}|{dest_address.lower().strip()}|{','.join(all_codes)}"
+
+
+_load_gt_cache()
 
 
 # ── Geocoding ──────────────────────────────────────────────────────────────────
@@ -92,7 +138,7 @@ def _osrm_driving(lat1: float, lon1: float, lat2: float, lon2: float) -> dict | 
 
 # ── AI estimation ──────────────────────────────────────────────────────────────
 
-def _call_openai(prompt: str, system: str, max_tokens: int = 1200) -> str | None:
+def _call_openai(prompt: str, system: str, max_tokens: int = 1400) -> str | None:
     """Call OpenAI via Replit AI proxy and return the raw text response."""
     base_url = os.environ.get("AI_INTEGRATIONS_OPENAI_BASE_URL", "").rstrip("/")
     api_key  = os.environ.get("AI_INTEGRATIONS_OPENAI_API_KEY", "dummy")
@@ -132,35 +178,62 @@ def _ai_transport_estimate(
     dest_address: str,
     home_coords: tuple | None,
     dest_coords: tuple | None,
+    origin_airports: list[str],
+    dest_airports: list[str],
 ) -> dict | None:
     """
     Ask the AI to estimate realistic travel time and cost for each airport leg.
-    Returns {"HKG": {...}, "SZX": {...}, ...} or None if AI is unavailable.
+    Returns {code: {...}} for all requested airports, or None if AI is unavailable.
     """
     system = (
         "You are a travel logistics expert who knows public transport, Didi, Deutsche Bahn, "
-        "metro systems, and airport ground transport in China and Germany very well. "
+        "metro systems, and airport ground transport worldwide. "
         "You respond ONLY with a valid JSON object, no markdown fences, no extra text."
     )
 
-    coord_hint_home = f" (approx coords {home_coords[0]:.4f},{home_coords[1]:.4f})" if home_coords else ""
-    coord_hint_dest = f" (approx coords {dest_coords[0]:.4f},{dest_coords[1]:.4f})" if dest_coords else ""
+    coord_hint_home = (
+        f" (approx coords {home_coords[0]:.4f},{home_coords[1]:.4f})"
+        if home_coords else ""
+    )
+    coord_hint_dest = (
+        f" (approx coords {dest_coords[0]:.4f},{dest_coords[1]:.4f})"
+        if dest_coords else ""
+    )
 
-    prompt = f"""
-Estimate realistic door-to-airport (or airport-to-door) travel for the following routes.
+    dep_lines = []
+    for code in origin_airports:
+        name = AIRPORT_NAMES.get(code, f"{code} Airport")
+        hint = _ORIGIN_HINTS.get(
+            code,
+            "Use your knowledge of local transport options (public transit, taxi, ride-sharing).",
+        )
+        dep_lines.append(f"- {code}: {name}. {hint}")
+
+    arr_lines = []
+    for code in dest_airports:
+        name = AIRPORT_NAMES.get(code, f"{code} Airport")
+        hint = _DEST_HINTS.get(
+            code,
+            "Use your knowledge of local transport options (public transit, taxi, ride-sharing).",
+        )
+        arr_lines.append(f"- {code}: {name}. {hint}")
+
+    all_codes = origin_airports + dest_airports
+    json_template = "{\n" + ",\n".join(
+        f'  "{code}": {{"time_minutes": ..., "cost_eur": ..., "mode": "...", "notes": "..."}}'
+        for code in all_codes
+    ) + "\n}"
+
+    prompt = f"""Estimate realistic door-to-airport (or airport-to-door) travel for the following routes.
 
 HOME ADDRESS: {home_address}{coord_hint_home}
-DESTINATION ADDRESS IN GERMANY: {dest_address}{coord_hint_dest}
+DESTINATION ADDRESS: {dest_address}{coord_hint_dest}
 
-DEPARTURE AIRPORTS (home → airport):
-- HKG: Hong Kong International Airport. The traveller typically takes a Didi from home to Shenzhen Bay Port / Futian Checkpoint, then crosses the border and takes the bus or Airport Express to HKG.
-- SZX: Shenzhen Bao'an International Airport. The traveller typically uses the Shenzhen Metro (Airport Express Line).
-- CAN: Guangzhou Baiyun International Airport. The traveller typically uses Didi from home.
+DEPARTURE AIRPORTS (home address → airport, one-way travel):
+{chr(10).join(dep_lines)}
 
-ARRIVAL AIRPORTS (airport → destination in Germany):
-- FRA: Frankfurt Airport → destination address. Traveller uses Deutsche Bahn ICE/RE or regional trains where possible.
-- MUC: Munich Airport → destination address. Traveller uses S-Bahn (S1/S8), regional bus, or Deutsche Bahn.
-- NUE: Nuremberg Airport → destination address. Traveller uses public transport (U2 metro + regional train) or Deutsche Bahn.
+ARRIVAL AIRPORTS (airport → destination address, one-way travel):
+{chr(10).join(arr_lines)}
 
 For EACH airport code, return an object with:
   - "time_minutes": one-way travel time estimate (integer)
@@ -169,21 +242,12 @@ For EACH airport code, return an object with:
   - "notes": one sentence of explanation
 
 Return EXACTLY this JSON structure (no markdown):
-{{
-  "HKG": {{"time_minutes": ..., "cost_eur": ..., "mode": "...", "notes": "..."}},
-  "SZX": {{"time_minutes": ..., "cost_eur": ..., "mode": "...", "notes": "..."}},
-  "CAN": {{"time_minutes": ..., "cost_eur": ..., "mode": "...", "notes": "..."}},
-  "FRA": {{"time_minutes": ..., "cost_eur": ..., "mode": "...", "notes": "..."}},
-  "MUC": {{"time_minutes": ..., "cost_eur": ..., "mode": "...", "notes": "..."}},
-  "NUE": {{"time_minutes": ..., "cost_eur": ..., "mode": "...", "notes": "..."}}
-}}
-""".strip()
+{json_template}""".strip()
 
-    raw = _call_openai(prompt, system, max_tokens=1200)
+    raw = _call_openai(prompt, system, max_tokens=1400)
     if not raw:
         return None
 
-    # Strip markdown fences if present
     text = raw.strip()
     if text.startswith("```"):
         lines = text.splitlines()
@@ -191,12 +255,10 @@ Return EXACTLY this JSON structure (no markdown):
 
     try:
         data = json.loads(text)
-        # Validate all 6 keys exist
-        expected = {"HKG", "SZX", "CAN", "FRA", "MUC", "NUE"}
+        expected = set(all_codes)
         if not expected.issubset(data.keys()):
             logger.warning(f"AI response missing some airport keys: {data.keys()}")
             return None
-        # Normalise: ensure numeric types
         for code in expected:
             entry = data[code]
             entry["time_minutes"] = float(entry.get("time_minutes") or 0)
@@ -209,14 +271,17 @@ Return EXACTLY this JSON structure (no markdown):
 
 # ── OSRM fallback leg builder ─────────────────────────────────────────────────
 
-def _fallback_legs(home_coords, dest_coords) -> dict:
+def _fallback_legs(home_coords, dest_coords, origin_airports, dest_airports) -> dict:
     """Build legs using OSRM driving estimates when AI is unavailable."""
     legs = {}
     DRIVING_EUR_PER_KM = 1.5
 
     if home_coords:
         hlat, hlon = home_coords
-        for code in ("HKG", "SZX", "CAN"):
+        for code in origin_airports:
+            if code not in AIRPORT_COORDS:
+                legs[code] = None
+                continue
             alat, alon = AIRPORT_COORDS[code]
             r = _osrm_driving(hlat, hlon, alat, alon)
             if r:
@@ -232,7 +297,10 @@ def _fallback_legs(home_coords, dest_coords) -> dict:
 
     if dest_coords:
         dlat, dlon = dest_coords
-        for code in ("FRA", "MUC", "NUE"):
+        for code in dest_airports:
+            if code not in AIRPORT_COORDS:
+                legs[code] = None
+                continue
             alat, alon = AIRPORT_COORDS[code]
             r = _osrm_driving(alat, alon, dlat, dlon)
             if r:
@@ -254,10 +322,14 @@ def _fallback_legs(home_coords, dest_coords) -> dict:
 def calculate_ground_transport(
     home_address: str,
     dest_address: str,
-    cost_per_km: float = 1.5,   # kept for backward compat but not used by AI path
+    origin_airports: list[str] | None = None,
+    dest_airports: list[str] | None = None,
+    cost_per_km: float = 1.5,
 ) -> dict:
     """
-    Geocode both addresses, then estimate ground transport for all 6 airports.
+    Geocode both addresses, then estimate ground transport for all requested airports.
+    Results are cached to disk; the same home+dest+airports combination is never
+    re-queried (AI or OSRM) as long as the cache file exists.
 
     Returns:
     {
@@ -267,12 +339,16 @@ def calculate_ground_transport(
       "dest_coords":  (lat, lon) | None,
       "ai_powered":   bool,
       "legs": {
-          "HKG": {"time_minutes": X, "cost_eur": Y, "mode": "...", "notes": "...", "cost": Y},
+          code: {"time_minutes": X, "cost_eur": Y, "cost": Y, "mode": "...", "notes": "..."},
           ...
       }
     }
-    The "cost" key mirrors "cost_eur" so the rest of app.py keeps working unchanged.
     """
+    if origin_airports is None:
+        origin_airports = ["HKG", "SZX", "CAN"]
+    if dest_airports is None:
+        dest_airports = ["FRA", "MUC", "NUE"]
+
     result = {
         "home_display": home_address,
         "dest_display": dest_address,
@@ -281,6 +357,21 @@ def calculate_ground_transport(
         "ai_powered":   False,
         "legs":         {},
     }
+
+    cache_key = _gt_cache_key(home_address, dest_address, origin_airports, dest_airports)
+    if cache_key in _GT_CACHE:
+        logger.info(f"Ground transport cache HIT ({cache_key[:60]}…)")
+        cached = _GT_CACHE[cache_key]
+        result.update(cached)
+        if result["home_coords"] and isinstance(result["home_coords"], list):
+            result["home_coords"] = tuple(result["home_coords"])
+        if result["dest_coords"] and isinstance(result["dest_coords"], list):
+            result["dest_coords"] = tuple(result["dest_coords"])
+        for leg in result["legs"].values():
+            if leg:
+                leg.setdefault("cost", leg.get("cost_eur", 0))
+                leg.setdefault("duration_minutes", leg.get("time_minutes", 0))
+        return result
 
     home_geo = geocode(home_address)
     dest_geo = geocode(dest_address)
@@ -297,26 +388,40 @@ def calculate_ground_transport(
     else:
         logger.warning("Could not geocode destination address")
 
-    # Try AI estimation first
     ai_legs = _ai_transport_estimate(
         home_address, dest_address,
         result["home_coords"], result["dest_coords"],
+        origin_airports, dest_airports,
     )
 
     if ai_legs:
         result["ai_powered"] = True
-        # Normalise: add "cost" alias (used by app.py scoring) = cost_eur
         for code, leg in ai_legs.items():
-            leg["cost"]         = leg["cost_eur"]
-            leg["duration_minutes"] = leg["time_minutes"]   # alias for UI
+            leg["cost"]             = leg["cost_eur"]
+            leg["duration_minutes"] = leg["time_minutes"]
         result["legs"] = ai_legs
     else:
         logger.warning("AI estimate failed; falling back to OSRM driving estimates")
-        legs = _fallback_legs(result["home_coords"], result["dest_coords"])
+        legs = _fallback_legs(
+            result["home_coords"], result["dest_coords"],
+            origin_airports, dest_airports,
+        )
         for code, leg in legs.items():
             if leg:
-                leg["cost"] = leg["cost_eur"]
+                leg["cost"]             = leg["cost_eur"]
                 leg["duration_minutes"] = leg["time_minutes"]
         result["legs"] = legs
+
+    cacheable = {
+        "home_display": result["home_display"],
+        "dest_display": result["dest_display"],
+        "home_coords":  list(result["home_coords"]) if result["home_coords"] else None,
+        "dest_coords":  list(result["dest_coords"]) if result["dest_coords"] else None,
+        "ai_powered":   result["ai_powered"],
+        "legs":         result["legs"],
+    }
+    _GT_CACHE[cache_key] = cacheable
+    _save_gt_cache()
+    logger.info(f"Ground transport result cached (total: {len(_GT_CACHE)} entries)")
 
     return result

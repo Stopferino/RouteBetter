@@ -91,7 +91,9 @@ async def search_stream(
                 ground_transport = await loop.run_in_executor(
                     None,
                     lambda: calculate_ground_transport(
-                        home_address.strip(), dest_address.strip(), ground_cost_per_km
+                        home_address.strip(), dest_address.strip(),
+                        origin_airports=origin_list,
+                        dest_airports=dest_list,
                     ),
                 )
                 if ground_transport["home_coords"]:

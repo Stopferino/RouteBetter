@@ -58,31 +58,33 @@
 
         <!-- Origins -->
         <div>
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Origin Airports</label>
-          <div class="grid grid-cols-3 gap-2">
-            <template x-for="apt in allOrigins" :key="apt">
-              <label class="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2 cursor-pointer border border-slate-200 hover:border-blue-400 transition-colors"
-                     :class="origins.includes(apt) ? 'border-blue-500 bg-blue-50' : ''">
-                <input type="checkbox" class="accent-blue-600 w-4 h-4" :value="apt"
-                       x-model="origins" />
-                <span class="font-mono font-semibold text-sm" x-text="apt"></span>
-              </label>
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Origin Airports</label>
+          <input type="text" x-model="originsRaw"
+                 placeholder="e.g. HKG; SZX; CAN"
+                 class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+          <div class="flex flex-wrap gap-1.5 mt-2 min-h-[24px]">
+            <template x-for="code in origins" :key="code">
+              <span class="bg-blue-600 text-white font-mono text-xs font-bold px-2 py-0.5 rounded" x-text="code"></span>
             </template>
+            <span x-show="origins.length === 0" class="text-xs text-red-500 italic">
+              No valid 3-letter codes — separate with ;
+            </span>
           </div>
         </div>
 
         <!-- Destinations -->
         <div>
-          <label class="block text-xs font-semibold text-slate-500 uppercase mb-2">Destination Airports</label>
-          <div class="grid grid-cols-3 gap-2">
-            <template x-for="apt in allDestinations" :key="apt">
-              <label class="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2 cursor-pointer border border-slate-200 hover:border-blue-400 transition-colors"
-                     :class="destinations.includes(apt) ? 'border-blue-500 bg-blue-50' : ''">
-                <input type="checkbox" class="accent-blue-600 w-4 h-4" :value="apt"
-                       x-model="destinations" />
-                <span class="font-mono font-semibold text-sm" x-text="apt"></span>
-              </label>
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Destination Airports</label>
+          <input type="text" x-model="destsRaw"
+                 placeholder="e.g. FRA; MUC; NUE"
+                 class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+          <div class="flex flex-wrap gap-1.5 mt-2 min-h-[24px]">
+            <template x-for="code in destinations" :key="code">
+              <span class="bg-emerald-600 text-white font-mono text-xs font-bold px-2 py-0.5 rounded" x-text="code"></span>
             </template>
+            <span x-show="destinations.length === 0" class="text-xs text-red-500 italic">
+              No valid 3-letter codes — separate with ;
+            </span>
           </div>
         </div>
 
@@ -400,11 +402,14 @@
             · <span x-text="(flight.return_stops ?? '?') + ' stop(s)'"></span>
           </span>
           <!-- Booking class badge -->
-          <span class="ml-auto flex items-center gap-1">
-            <span class="bg-sky-50 border border-sky-200 text-sky-700 px-2 py-0.5 rounded font-semibold"
-                  x-text="flight.fare_brand || flight.booking_class || 'Economy'"></span>
-            <span class="text-slate-400 italic" x-show="!flight.fare_brand" title="Requested via travel_class=Economy">· Economy requested</span>
-          </span>
+          <span class="bg-sky-50 border border-sky-200 text-sky-700 px-2 py-0.5 rounded font-semibold"
+                x-text="flight.fare_brand || flight.booking_class || 'Economy'"></span>
+          <!-- Book on Google Flights -->
+          <a :href="`https://www.google.com/travel/flights?hl=en#flt=${flight.origin}.${flight.destination}.${flight.outbound_date}*${flight.destination}.${flight.origin}.${flight.return_date};c:EUR;e:1;sd:1`"
+             target="_blank" rel="noopener noreferrer"
+             class="ml-auto flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1 rounded-lg transition-colors no-underline">
+            🔗 Book on Google Flights
+          </a>
         </div>
 
         <!-- Toggle Detail Button -->
@@ -564,10 +569,18 @@
 <script>
 function flightApp() {
   return {
-    allOrigins: ['HKG', 'SZX', 'CAN'],
-    allDestinations: ['FRA', 'MUC', 'NUE'],
-    origins: ['HKG', 'SZX', 'CAN'],
-    destinations: ['FRA', 'MUC', 'NUE'],
+    // Free-text airport inputs — user types IATA codes separated by ;
+    originsRaw: 'HKG; SZX; CAN',
+    destsRaw: 'FRA; MUC; NUE',
+
+    // Computed from raw strings: only valid 3-letter codes, uppercased
+    get origins() {
+      return this.originsRaw.split(';').map(s => s.trim().toUpperCase()).filter(s => /^[A-Z]{3}$/.test(s));
+    },
+    get destinations() {
+      return this.destsRaw.split(';').map(s => s.trim().toUpperCase()).filter(s => /^[A-Z]{3}$/.test(s));
+    },
+
     outboundDate: '2026-07-25',
     returnDate: '2026-08-02',
     valueOfTime: 20,
@@ -590,6 +603,20 @@ function flightApp() {
     homeAddress: '',
     destAddress: '',
     groundInfo: null,
+
+    // Restore session-persisted fields on load; save on change.
+    // sessionStorage resets when the browser window/tab is closed.
+    init() {
+      const ss = (k, d) => { const v = sessionStorage.getItem(k); return v !== null ? v : d; };
+      this.originsRaw  = ss('fo_originsRaw',  'HKG; SZX; CAN');
+      this.destsRaw    = ss('fo_destsRaw',    'FRA; MUC; NUE');
+      this.homeAddress = ss('fo_homeAddress', '');
+      this.destAddress = ss('fo_destAddress', '');
+      this.$watch('originsRaw',  v => sessionStorage.setItem('fo_originsRaw',  v));
+      this.$watch('destsRaw',    v => sessionStorage.setItem('fo_destsRaw',    v));
+      this.$watch('homeAddress', v => sessionStorage.setItem('fo_homeAddress', v));
+      this.$watch('destAddress', v => sessionStorage.setItem('fo_destAddress', v));
+    },
 
     apiCallEstimate() {
       const routes = this.origins.length * this.destinations.length;
