@@ -493,6 +493,8 @@ def fetch_return_legs(
         "return_route": route,
         "return_duration_minutes": itinerary.get("total_duration", total_dur),
         "return_stops": len(raw_layovers),
+        # booking_token from SerpApi step-2 can be used for Google Flights deep-link
+        "booking_token": itinerary.get("booking_token", ""),
     }
 
 

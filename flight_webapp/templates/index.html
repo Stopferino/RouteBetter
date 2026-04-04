@@ -476,10 +476,14 @@
           <span class="bg-sky-50 border border-sky-200 text-sky-700 px-2 py-0.5 rounded font-semibold"
                 x-text="flight.fare_brand || flight.booking_class || 'Economy'"></span>
           <!-- Book on Google Flights -->
-          <a :href="`https://www.google.com/travel/flights?hl=en#flt=${flight.origin}.${flight.destination}.${flight.outbound_date}*${flight.destination}.${flight.origin}.${flight.return_date};c:EUR;e:1;sd:1`"
+          <a :href="flight.booking_token
+               ? `https://www.google.com/flights?hl=en&gl=us&booking_token=${flight.booking_token}`
+               : `https://www.google.com/travel/flights#flt=${flight.origin}.${flight.destination}.${flight.outbound_date}*${flight.destination}.${flight.origin}.${flight.return_date};c:EUR;e:1;sd:1;t:f`"
              target="_blank" rel="noopener noreferrer"
-             class="ml-auto flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1 rounded-lg transition-colors no-underline">
-            🔗 Book on Google Flights
+             :title="flight.booking_token ? 'Opens this exact flight selection on Google Flights' : 'Opens Google Flights pre-filled with this route (token unavailable — select the flight again)'"
+             class="ml-auto flex items-center gap-1 text-white font-semibold px-3 py-1 rounded-lg transition-colors no-underline"
+             :class="flight.booking_token ? 'bg-blue-600 hover:bg-blue-700' : 'bg-slate-500 hover:bg-slate-600'">
+            <span x-text="flight.booking_token ? '🎫 Book this flight' : '🔍 Search on Google Flights'"></span>
           </a>
         </div>
 
