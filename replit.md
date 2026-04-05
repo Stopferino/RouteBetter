@@ -19,39 +19,42 @@ Runs on port **8000** via the "Flight Optimizer Web App" workflow.
 python run_optimizer.py
 ```
 
-### Projektstruktur
+### Project structure
 
 ```
 flight_optimizer/
-├── config.py          ← Konfiguration (Flughäfen, Daten, Value-of-Time, Filter)
-├── main.py            ← Hauptprogramm
-├── serpapi_client.py  ← SerpApi Google Flights API-Client
-├── scorer.py          ← Score-Berechnung (Preis + Dauer × VoT)
-├── exporter.py        ← Excel-Export (openpyxl)
-├── printer.py         ← Konsolenausgabe
-├── date_utils.py      ← Datumsfenster-Hilfsfunktionen
-└── requirements.txt   ← Python-Abhängigkeiten
-run_optimizer.py       ← Startskript (Wurzelverzeichnis)
+├── config.py              ← Configuration (airports, dates, value-of-time, filters)
+├── main.py                ← CLI entry point
+├── serpapi_client.py      ← SerpApi Google Flights API client
+├── scorer.py              ← Score calculation (price + duration × VoT + penalties)
+├── exporter.py            ← Excel export (openpyxl)
+├── printer.py             ← Console output formatting
+├── date_utils.py          ← Date window helpers
+├── cache.py               ← JSON-based flight result caching
+├── ground_transport.py    ← Door-to-door ground transport cost/time
+├── usage_tracker.py       ← SerpApi monthly quota tracking
+└── requirements.txt       ← Python dependencies
+run_optimizer.py           ← Root entry point script
 ```
 
-### Konfigurierbare Parameter (config.py)
+### Configurable parameters (config.py)
 
-| Parameter | Beschreibung | Standard |
+| Parameter | Description | Default |
 |---|---|---|
-| `ORIGIN_AIRPORTS` | Abflughäfen (IATA) | HKG, SZX, CAN |
-| `DESTINATION_AIRPORTS` | Zielflughäfen (IATA) | FRA, MUC, NUE |
-| `OUTBOUND_DATE` | Wunsch-Hinflugdatum | 2025-06-15 |
-| `RETURN_DATE` | Wunsch-Rückflugdatum | 2025-06-29 |
-| `DATE_WINDOW_DAYS` | ±Tage Datumsfenster | 1 |
-| `VALUE_OF_TIME_EUR_PER_HOUR` | Value-of-Time (€/h) | 50.0 |
-| `AIRLINE_FILTER` | Airline-Whitelist (leer = alle) | [] |
-| `MAX_STOPS` | Max. Stopps (None = alle) | None |
-| `TOP_N` | Anzahl Top-Ergebnisse | 5 |
-| `EXCEL_OUTPUT_FILE` | Ausgabedateiname | flight_results.xlsx |
+| `ORIGIN_AIRPORTS` | Departure airports (IATA codes) | HKG, SZX, CAN |
+| `DESTINATION_AIRPORTS` | Arrival airports (IATA codes) | FRA, MUC, NUE |
+| `OUTBOUND_DATE` | Desired outbound date | 2026-07-25 |
+| `RETURN_DATE` | Desired return date | 2026-08-02 |
+| `DATE_WINDOW_DAYS` | ±days around each target date | 0 |
+| `VALUE_OF_TIME_EUR_PER_HOUR` | Value of time (€/h) | 20.0 |
+| `AIRLINE_FILTER` | Airline whitelist (empty = all airlines) | [] |
+| `MAX_STOPS` | Max stops (None = no limit) | None |
+| `TOP_N` | Number of top results to show in CLI | 5 |
+| `EXCEL_OUTPUT_FILE` | Output filename for Excel export | flight_results.xlsx |
 
 ### Secrets
 
-- `SERPAPI_KEY` — SerpApi API-Key für Google Flights
+- `SERPAPI_KEY` — SerpApi API key for Google Flights
 
 ## Stack
 
