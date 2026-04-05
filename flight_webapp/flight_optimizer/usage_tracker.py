@@ -9,7 +9,7 @@ Also allows live fetch from SerpApi.
 import json
 import os
 from datetime import datetime
-import requests  # für Live-API
+import requests
 
 _USAGE_FILE = os.path.join(os.path.dirname(__file__), "serpapi_usage.json")
 MONTHLY_LIMIT = 250
@@ -19,7 +19,7 @@ def _load_api_key() -> str | None:
     key = os.environ.get("SERPAPI_API_KEY")
     if key:
         return key
-    env_path = os.path.join(os.path.dirname(__file__), "..", ".env")
+    env_path = os.path.join(os.path.dirname(__file__), "..", "..", ".env")
     env_path = os.path.normpath(env_path)
     if os.path.exists(env_path):
         with open(env_path) as f:
@@ -48,9 +48,7 @@ def _save(data: dict) -> None:
 
 
 def increment() -> int:
-    """Increment the counter for the current month. Returns the new count.
-    Call once per real SerpApi HTTP request (NOT for cache hits).
-    """
+    """Increment the local counter for the current month. Call once per real SerpApi request."""
     data = _load()
     current_month = datetime.now().strftime("%Y-%m")
     if data.get("month") != current_month:
@@ -61,13 +59,10 @@ def increment() -> int:
 
 
 def get_usage() -> dict:
-    """Returns usage dict: {count, month, limit, remaining, pct_used}."""
+    """Local usage summary."""
     data = _load()
     current_month = datetime.now().strftime("%Y-%m")
-    if data.get("month") != current_month:
-        count = 0
-    else:
-        count = data.get("count", 0)
+    count = data.get("count", 0) if data.get("month") == current_month else 0
     remaining = max(0, MONTHLY_LIMIT - count)
     pct_used = round(count / MONTHLY_LIMIT * 100, 1)
     return {
