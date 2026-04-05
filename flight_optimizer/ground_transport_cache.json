@@ -316,5 +316,74 @@
         "duration_minutes": 130.0
       }
     }
+  },
+  "shenzhen shuiwan 1979|erlangen hauptbahnhof|CAN,FRA,HKG,MUC,NUE,SZX": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "Hauptbahnhof, Parkplatzstraße, Innenstadt, Erlangen, Bayern, 91054, Deutschland",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": [
+      49.5955417,
+      11.0005867
+    ],
+    "ai_powered": false,
+    "legs": {
+      "HKG": {
+        "time_minutes": 41.0,
+        "cost_eur": 57.0,
+        "distance_km": 38.0,
+        "mode": "Driving (estimate)",
+        "notes": "OSRM driving fallback — AI unavailable",
+        "cost": 57.0,
+        "duration_minutes": 41.0
+      },
+      "SZX": {
+        "time_minutes": 22.9,
+        "cost_eur": 36.9,
+        "distance_km": 24.6,
+        "mode": "Driving (estimate)",
+        "notes": "OSRM driving fallback — AI unavailable",
+        "cost": 36.9,
+        "duration_minutes": 22.9
+      },
+      "CAN": {
+        "time_minutes": 99.3,
+        "cost_eur": 210.3,
+        "distance_km": 140.2,
+        "mode": "Driving (estimate)",
+        "notes": "OSRM driving fallback — AI unavailable",
+        "cost": 210.3,
+        "duration_minutes": 99.3
+      },
+      "FRA": {
+        "time_minutes": 139.7,
+        "cost_eur": 319.95,
+        "distance_km": 213.3,
+        "mode": "Driving (estimate)",
+        "notes": "OSRM driving fallback — AI unavailable",
+        "cost": 319.95,
+        "duration_minutes": 139.7
+      },
+      "MUC": {
+        "time_minutes": 106.5,
+        "cost_eur": 270.15,
+        "distance_km": 180.1,
+        "mode": "Driving (estimate)",
+        "notes": "OSRM driving fallback — AI unavailable",
+        "cost": 270.15,
+        "duration_minutes": 106.5
+      },
+      "NUE": {
+        "time_minutes": 16.0,
+        "cost_eur": 22.35,
+        "distance_km": 14.9,
+        "mode": "Driving (estimate)",
+        "notes": "OSRM driving fallback — AI unavailable",
+        "cost": 22.35,
+        "duration_minutes": 16.0
+      }
+    }
   }
 }
