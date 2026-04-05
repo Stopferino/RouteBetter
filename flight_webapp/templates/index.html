@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flight Optimizer — Find the Best-Value Round-Trip Flights</title>
+  <meta name="description" content="Score and rank round-trip flights by real value: price, travel time, stops, and door-to-door ground transport. HKG, SZX, CAN to FRA, MUC, NUE and more." />
+  <meta property="og:title" content="Flight Optimizer" />
+  <meta property="og:description" content="Find the best-value round-trip flights by scoring price, time, and stops together. Live results from Google Flights." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://og.tailgraph.com/og?fontFamily=Inter&title=Flight+Optimizer&titleTailwind=text-white+font-bold+text-6xl&bgTailwind=bg-blue-700&footer=Best+value+round-trip+flights" />
+  <meta name="theme-color" content="#1e3a5f" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    .gradient-header { background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%); }
+    .card-hover { transition: box-shadow 0.2s; }
+    @media (hover: hover) and (pointer: fine) {
+      .card-hover:hover { box-shadow: 0 8px 30px rgba(37,99,235,0.15); transform: translateY(-2px); }
+    }
+    .progress-bar { transition: width 0.5s ease-in-out; }
+    .log-scroll { max-height: 160px; overflow-y: auto; scroll-behavior: smooth; }
+    .rank-badge-1 { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .rank-badge-2 { background: linear-gradient(135deg, #94a3b8, #64748b); }
+    .rank-badge-3 { background: linear-gradient(135deg, #cd7c3a, #b45309); }
+    .rank-badge-n { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .segment-line { border-left: 2px dashed #cbd5e1; margin-left: 10px; padding-left: 14px; }
+    input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.6; cursor: pointer; }
+    .slide-down { animation: slideDown 0.35s ease forwards; }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+    .pulse-dot { animation: pulseDot 1.2s infinite; }
+    @keyframes pulseDot { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+    ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+    .window-btn { transition: background 0.15s, color 0.15s; }
+    .ground-tag { background: linear-gradient(135deg,#059669,#10b981); }
+  </style>
+</head>
+
+<body class="bg-slate-100 min-h-screen font-sans" x-data="flightApp()" x-cloak>
+
+<!-- ── HEADER ───────────────────────────────────────────────────────────────── -->
+<header class="gradient-header text-white shadow-lg">
+  <div class="max-w-screen-xl mx-auto px-6 py-4 flex items-center gap-4">
+    <span class="text-3xl">✈</span>
+    <div>
+      <h1 class="text-xl font-bold tracking-tight">Flight Optimizer</h1>
+      <p class="text-blue-200 text-xs">Find the best round-trip flights by price &amp; time value</p>
+    </div>
+    <div class="ml-auto text-right text-xs text-blue-200" x-show="results.length">
+      <span x-text="`${totalFound} flights analysed`"></span>
+    </div>
+  </div>
+</header>
+
+<!-- ── MAIN LAYOUT ───────────────────────────────────────────────────────────── -->
+<div class="max-w-screen-xl mx-auto px-4 py-6 flex gap-6 flex-col lg:flex-row">
+
+  <!-- ── SIDEBAR (Search Form) ─────────────────────────────────────────────── -->
+  <aside class="w-full lg:w-80 shrink-0">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200">
+      <div class="gradient-header text-white px-5 py-3 rounded-t-2xl">
+        <h2 class="font-semibold text-sm tracking-wide uppercase">Search Parameters</h2>
+      </div>
+      <form class="p-5 space-y-5" @submit.prevent="startSearch">
+
+        <!-- Origins -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Origin Airports</label>
+          <input type="text" x-model="originsRaw"
+                 placeholder="e.g. HKG; SZX; CAN"
+                 class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+          <div class="flex flex-wrap gap-1.5 mt-2 min-h-[24px]">
+            <template x-for="code in origins" :key="code">
+              <span :title="airportName(code) || 'Unknown airport — check the IATA code'"
+                    :class="airportName(code)
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-red-500 text-white ring-2 ring-red-300'"
+                    class="font-mono text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1">
+                <span x-text="code"></span>
+                <span x-show="!airportName(code)" class="text-red-100">⚠</span>
+              </span>
+            </template>
+            <span x-show="origins.length === 0" class="text-xs text-red-500 italic">No valid 3-letter codes — separate with ;</span>
+          </div>
+          <div x-show="invalidOrigins.length > 0"
+               class="mt-1.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-2.5 py-1.5 leading-snug">
+            Unknown code<span x-show="invalidOrigins.length > 1">s</span>:
+            <strong x-text="invalidOrigins.join(', ')"></strong> — please check and correct before searching.
+          </div>
+        </div>
+
+        <!-- Destinations -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Destination Airports</label>
+          <input type="text" x-model="destsRaw"
+                 placeholder="e.g. FRA; MUC; NUE"
+                 class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+          <div class="flex flex-wrap gap-1.5 mt-2 min-h-[24px]">
+            <template x-for="code in destinations" :key="code">
+              <span :title="airportName(code) || 'Unknown airport — check the IATA code'"
+                    :class="airportName(code)
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-red-500 text-white ring-2 ring-red-300'"
+                    class="font-mono text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1">
+                <span x-text="code"></span>
+                <span x-show="!airportName(code)" class="text-red-100">⚠</span>
+              </span>
+            </template>
+            <span x-show="destinations.length === 0" class="text-xs text-red-500 italic">No valid 3-letter codes — separate with ;</span>
+          </div>
+          <div x-show="invalidDestinations.length > 0"
+               class="mt-1.5 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-2.5 py-1.5 leading-snug">
+            Unknown code<span x-show="invalidDestinations.length > 1">s</span>:
+            <strong x-text="invalidDestinations.join(', ')"></strong> — please check and correct before searching.
+          </div>
+        </div>
+
+        <!-- Dates + Window -->
+        <div class="border border-slate-200 rounded-xl p-3 space-y-3">
+          <div class="space-y-2">
+            <div class="flex items-center gap-2">
+              <label class="text-xs font-semibold text-slate-500 uppercase shrink-0 w-20">Outbound</label>
+              <input type="date" x-model="outboundDate"
+                     class="flex-1 min-w-0 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="text-xs font-semibold text-slate-500 uppercase shrink-0 w-20">Return</label>
+              <input type="date" x-model="returnDate"
+                     class="flex-1 min-w-0 border border-slate-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+            </div>
+          </div>
+
+          <!-- Inline date error -->
+          <div x-show="outboundDate && returnDate && returnDate <= outboundDate"
+               class="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5">
+            ⚠ Return date must be after the outbound date.
+          </div>
+
+          <!-- Date Window Toggle -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Date Flexibility</label>
+            <div class="flex rounded-lg overflow-hidden border border-slate-200 text-sm">
+              <button type="button"
+                      class="flex-1 py-2 window-btn font-medium"
+                      :class="dateWindow === 0 ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'"
+                      @click="dateWindow = 0">
+                Exact date
+              </button>
+              <button type="button"
+                      class="flex-1 py-2 window-btn font-medium border-l border-slate-200"
+                      :class="dateWindow === 1 ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'"
+                      @click="dateWindow = 1">
+                ±1 day
+              </button>
+            </div>
+            <div x-show="dateWindow === 1"
+                 class="mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">
+              ⚠️ ±1 day searches up to <span class="font-bold" x-text="apiCallEstimate()"></span> route combinations — uses more API quota.
+            </div>
+          </div>
+        </div>
+
+        <!-- Ground Transport Section -->
+        <div class="border border-emerald-200 rounded-xl overflow-hidden">
+          <button type="button"
+                  class="w-full flex items-center justify-between px-4 py-2.5 bg-emerald-50 text-emerald-800 font-semibold text-xs uppercase tracking-wide"
+                  @click="showGroundForm = !showGroundForm">
+            <span>🚗 Door-to-door ground transport</span>
+            <span x-text="showGroundForm ? '▲' : '▼'" class="text-emerald-500"></span>
+          </button>
+          <div x-show="showGroundForm" class="p-4 space-y-3 bg-white">
+            <p class="text-xs text-slate-500">
+              Add your home &amp; destination address. Driving times to/from each airport will be included in the score.
+            </p>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Home address (near HKG/SZX/CAN)</label>
+              <input type="text" x-model="homeAddress" placeholder="e.g. Tsim Sha Tsui, Hong Kong"
+                     class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1">Destination address (near FRA/MUC/NUE)</label>
+              <input type="text" x-model="destAddress" placeholder="e.g. Marienplatz, Munich, Germany"
+                     class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" />
+            </div>
+            <div class="text-xs bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 text-emerald-700">
+              <span class="font-semibold">AI-estimated</span> — costs and times are calculated using realistic transport modes
+              (metro, Deutsche Bahn, Didi, bus) for your specific addresses. No API key needed.
+            </div>
+            <div x-show="(homeAddress || destAddress) && !(homeAddress && destAddress)"
+                 class="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2 border border-amber-200">
+              ⚠ Enter both addresses to enable ground transport scoring.
+            </div>
+          </div>
+        </div>
+
+        <!-- Cache toggle -->
+        <div class="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
+          <span class="text-xs font-semibold text-slate-500">Use Cache (save API quota)</span>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" x-model="useCache" class="sr-only peer" />
+            <div class="w-10 h-5 bg-slate-300 rounded-full peer peer-checked:bg-blue-600
+                        after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                        after:bg-white after:rounded-full after:h-4 after:w-4
+                        after:transition-all peer-checked:after:translate-x-5"></div>
+          </label>
+        </div>
+
+        <!-- Search Button -->
+        <button type="submit"
+                :disabled="searching || origins.length === 0 || destinations.length === 0 || hasInvalidAirports || !outboundDate || !returnDate || (outboundDate && returnDate && returnDate <= outboundDate)"
+                class="w-full gradient-header text-white font-semibold py-3 rounded-xl hover:opacity-90
+                       disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2">
+          <span x-show="!searching">🔍 Search Flights</span>
+          <span x-show="searching" class="flex items-center gap-2">
+            <span class="pulse-dot">●</span> Searching…
+          </span>
+        </button>
+
+        <!-- API Usage Counter -->
+        <div class="flex flex-col gap-1 px-1">
+          <div class="flex items-center gap-2">
+            <div class="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-500"
+                   :class="apiUsage.pct_used >= 80 ? 'bg-red-500' : apiUsage.pct_used >= 50 ? 'bg-amber-500' : 'bg-emerald-500'"
+                   :style="`width: ${Math.min(apiUsage.pct_used, 100)}%`"></div>
+            </div>
+            <span class="text-xs shrink-0"
+                  :class="apiUsage.pct_used >= 80 ? 'text-red-500 font-semibold' : 'text-slate-400'"
+                  x-text="`${apiUsage.count}/${apiUsage.limit}`"></span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-400">API calls this month</span>
+            <div class="flex items-center gap-1.5">
+              <!-- Loading spinner -->
+              <span x-show="usageLoading" class="text-xs text-slate-400 animate-pulse">fetching…</span>
+              <!-- Source badge (shown once loaded) -->
+              <span x-show="!usageLoading"
+                    class="text-xs px-1.5 py-0.5 rounded font-medium"
+                    :class="apiUsage.source === 'serpapi' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'"
+                    x-text="apiUsage.source === 'serpapi' ? '● live' : '● local'"></span>
+              <button @click="fetchUsage()" title="Refresh from SerpApi"
+                      class="text-slate-400 hover:text-slate-600 transition-colors text-xs leading-none"
+                      :class="usageLoading ? 'animate-spin' : ''">↻</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error -->
+        <div x-show="errorMsg" class="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700"
+             x-text="errorMsg"></div>
+      </form>
+    </div>
+
+    <!-- Score explanation -->
+    <div class="mt-3 bg-blue-50 border border-blue-200 rounded-xl p-4 text-xs text-blue-700 space-y-1">
+      <p class="font-semibold mb-1">📊 Contextual Score</p>
+      <p>= Price + Duration × VoT</p>
+      <p class="text-orange-600">+ Stops × €<span x-text="stopPenalty"></span>/stop</p>
+      <p class="text-indigo-600">+ Night departure (00–06) × 50% extra VoT</p>
+      <p class="text-amber-600">+ Layover &gt;2 h excess × 50% extra VoT</p>
+      <p x-show="homeAddress && destAddress" class="text-emerald-700 font-semibold">
+        + Ground transport (×2 round trip)
+      </p>
+      <p class="mt-1 text-blue-500">Lower score = better value</p>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT AREA ─────────────────────────────────────────────────── -->
+  <main id="results-area" class="flex-1 min-w-0 space-y-4">
+
+    <!-- Mobile: "Modify Search" back button — only shown on small screens after search starts -->
+    <div class="lg:hidden" x-show="searching || rawResults.length > 0 || showProgress">
+      <button @click="document.querySelector('aside').scrollIntoView({behavior:'smooth'})"
+              class="w-full flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl py-2.5 text-sm font-semibold text-slate-600 shadow-sm active:bg-slate-50">
+        ↑ Modify Search
+      </button>
+    </div>
+
+    <!-- Progress Panel -->
+    <div x-show="showProgress" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden slide-down">
+      <div class="px-5 py-3 border-b border-slate-100 flex items-center justify-between cursor-pointer"
+           @click="logsExpanded = !logsExpanded">
+        <span class="text-sm font-semibold text-slate-700">Progress</span>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-slate-400" x-text="`${progressPercent}%`"></span>
+          <span class="text-slate-400 text-xs" x-text="logsExpanded ? '▲' : '▼'"></span>
+        </div>
+      </div>
+      <div class="px-5 pt-3">
+        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+          <div class="h-2 rounded-full gradient-header progress-bar" :style="`width:${progressPercent}%`"></div>
+        </div>
+        <p class="text-xs text-slate-500 mt-1 mb-2" x-text="progressLabel"></p>
+      </div>
+      <div x-show="logsExpanded" class="log-scroll px-5 pb-3 space-y-0.5" x-ref="logBox">
+        <template x-for="(line, i) in logs" :key="i">
+          <p class="text-xs text-slate-500 font-mono" x-text="line"></p>
+        </template>
+      </div>
+    </div>
+
+    <!-- Ground transport summary banner -->
+    <div x-show="groundInfo"
+         class="bg-emerald-50 border border-emerald-200 rounded-xl px-5 py-3 text-xs text-emerald-800 slide-down">
+      <div class="flex items-center gap-2 mb-2">
+        <p class="font-semibold">🚗 Door-to-door ground transport included in scores</p>
+        <span x-show="groundInfo && groundInfo.ai_powered"
+              class="bg-emerald-700 text-white text-xs font-bold px-2 py-0.5 rounded">AI-estimated</span>
+        <span x-show="groundInfo && !groundInfo.ai_powered"
+              class="bg-slate-500 text-white text-xs font-bold px-2 py-0.5 rounded">Driving fallback</span>
+      </div>
+      <p><strong>Home:</strong> <span x-text="groundInfo && groundInfo.home_display"></span></p>
+      <p><strong>Destination:</strong> <span x-text="groundInfo && groundInfo.dest_display"></span></p>
+      <div class="mt-3 grid grid-cols-2 gap-2" x-show="groundInfo && groundInfo.legs">
+        <template x-for="[code, leg] in Object.entries((groundInfo && groundInfo.legs) || {})" :key="code">
+          <div x-show="leg" class="bg-white border border-emerald-200 rounded-lg px-3 py-2">
+            <div class="flex items-center justify-between mb-0.5">
+              <span class="font-mono font-bold text-emerald-800" x-text="code"></span>
+              <span class="font-semibold">
+                <span x-text="leg ? fmtMin(leg.time_minutes) : '?'"></span>
+                · €<span x-text="leg ? leg.cost_eur.toFixed(0) : '?'"></span>
+              </span>
+            </div>
+            <div class="text-emerald-600 text-xs" x-text="leg && leg.mode"></div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- ── LIVE FILTERS ─────────────────────────────────────────────────────── -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="font-semibold text-slate-700 text-sm">⚡ Live Filters</span>
+          <span class="ml-2 text-xs text-slate-400 hidden sm:inline">Updates instantly — no new search needed</span>
+        </div>
+        <span x-show="rescored"
+              class="text-xs bg-violet-100 text-violet-700 border border-violet-200 px-2 py-0.5 rounded-full">
+          re-ranked
+        </span>
+      </div>
+
+      <!-- Sliders row -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">
+            Value of Time: <span class="text-blue-600 font-bold" x-text="`${valueOfTime} EUR/h`"></span>
+          </label>
+          <input type="range" min="0" max="150" step="5" x-model.number="valueOfTime"
+                 class="w-full accent-blue-600" />
+          <div class="flex justify-between text-xs text-slate-400 mt-0.5"><span>0 EUR/h</span><span>150 EUR/h</span></div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">
+            Stop penalty: <span class="text-orange-500 font-bold" x-text="`€${stopPenalty}/stop`"></span>
+          </label>
+          <input type="range" min="0" max="200" step="25" x-model.number="stopPenalty"
+                 class="w-full accent-orange-500" />
+          <div class="flex justify-between text-xs text-slate-400 mt-0.5"><span>€0</span><span>€200</span></div>
+        </div>
+      </div>
+
+      <!-- Pill buttons row -->
+      <div class="flex flex-wrap gap-6">
+        <!-- Max stops -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Max stops</label>
+          <div class="flex gap-1 flex-wrap">
+            <template x-for="opt in [{label:'Any',val:''},{label:'Non-stop',val:'0'},{label:'Max 1',val:'1'},{label:'Max 2',val:'2'}]" :key="opt.val">
+              <button type="button"
+                      class="px-3 py-1 text-sm rounded-lg border transition-colors font-medium"
+                      :class="displayMaxStops === opt.val
+                        ? 'bg-slate-800 text-white border-slate-800'
+                        : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+                      @click="displayMaxStops = opt.val; applyFilters(); rescored = rawResults.length > 0"
+                      x-text="opt.label"></button>
+            </template>
+          </div>
+        </div>
+
+        <!-- Miles program filter -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 uppercase mb-1.5">Miles program</label>
+          <button type="button"
+                  class="flex items-center gap-1.5 px-3 py-1 text-sm rounded-lg border transition-colors font-medium"
+                  :class="starAllianceOnly
+                    ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
+                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+                  @click="starAllianceOnly = !starAllianceOnly; applyFilters(); rescored = rawResults.length > 0"
+                  title="Show only Star Alliance member airlines (Lufthansa, Air China, SWISS, Austrian, Singapore, Thai, Turkish, ANA…)">
+            <span>★</span>
+            <span>Star Alliance</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div x-show="!searching && rawResults.length === 0 && !errorMsg"
+         class="bg-white rounded-2xl shadow-sm border border-slate-200 p-16 text-center text-slate-400">
+      <div class="text-6xl mb-4">✈️</div>
+      <p class="text-lg font-semibold text-slate-500">Ready to search</p>
+      <p class="text-sm mt-2">Select airports and dates, then hit Search Flights.</p>
+    </div>
+
+    <!-- No results after filter -->
+    <div x-show="rawResults.length > 0 && results.length === 0 && !searching"
+         class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center text-slate-400">
+      <p class="text-lg font-semibold text-slate-500">No flights match this filter</p>
+      <p class="text-sm mt-1">
+        Try relaxing Max Stops, Show Top<span x-show="starAllianceOnly">, or turning off the Star Alliance filter</span>.
+      </p>
+    </div>
+
+    <!-- Results Header + Export -->
+    <div x-show="results.length > 0" class="flex items-center justify-between gap-3 flex-wrap">
+      <div>
+        <h2 class="text-lg font-bold text-slate-800">
+          Top <span x-text="results.length"></span> Flights
+        </h2>
+        <p class="text-xs text-slate-400 flex items-center gap-1.5 flex-wrap">
+          <span>from <span x-text="totalFound"></span> analysed</span>
+          <span x-show="displayMaxStops !== '' || starAllianceOnly"
+                class="text-slate-500">
+            · <span x-text="results.length"></span> match your filters
+          </span>
+          · sorted by score (lowest = best)
+          <span x-show="cacheAgeLabel"
+                class="bg-amber-50 border border-amber-200 text-amber-700 px-2 py-0.5 rounded-full text-xs font-medium"
+                x-text="`Prices from cache · ${cacheAgeLabel}`"></span>
+        </p>
+      </div>
+      <button x-show="exportId" @click="downloadExcel"
+              class="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors">
+        📥 Export Excel
+      </button>
+    </div>
+
+    <!-- Flight Cards -->
+    <template x-for="(flight, fi) in results" :key="fi">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 card-hover overflow-hidden">
+
+        <!-- Card Header -->
+        <div class="flex items-start gap-4 px-5 py-4">
+
+          <!-- Rank Badge -->
+          <div class="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg shadow"
+               :class="flight.rank === 1 ? 'rank-badge-1' : flight.rank === 2 ? 'rank-badge-2' : flight.rank === 3 ? 'rank-badge-3' : 'rank-badge-n'">
+            <span x-text="flight.rank"></span>
+          </div>
+
+          <!-- Route + Airline -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-bold text-blue-700 font-mono text-base" x-text="flight.outbound_route || `${flight.origin}→${flight.destination}`"></span>
+              <span class="text-slate-300">↔</span>
+              <span class="font-bold text-slate-500 font-mono text-sm" x-text="flight.return_route || `${flight.destination}→${flight.origin}`"></span>
+            </div>
+            <p class="text-sm text-slate-500 mt-0.5">
+              <span x-text="flight.airline"></span>
+              &nbsp;·&nbsp;
+              <span x-text="flight.outbound_date"></span> ↔ <span x-text="flight.return_date"></span>
+            </p>
+            <!-- Ground transport mini summary -->
+            <div x-show="flight.ground_total_cost != null" class="mt-1 flex items-center gap-2 flex-wrap text-xs text-emerald-700">
+              <span class="bg-emerald-50 border border-emerald-200 rounded px-2 py-0.5">
+                🚗 to airport: <strong x-text="fmtMin(flight.ground_dep_minutes)"></strong>
+                · €<span x-text="(flight.ground_dep_cost || 0).toFixed(0)"></span>
+              </span>
+              <span class="bg-emerald-50 border border-emerald-200 rounded px-2 py-0.5">
+                🏠 from airport: <strong x-text="fmtMin(flight.ground_arr_minutes)"></strong>
+                · €<span x-text="(flight.ground_arr_cost || 0).toFixed(0)"></span>
+              </span>
+              <span class="text-emerald-600 font-semibold">
+                (×2 round trip = €<span x-text="(flight.ground_total_cost || 0).toFixed(0)"></span>)
+              </span>
+            </div>
+          </div>
+
+          <!-- Price + Score -->
+          <div class="text-right shrink-0">
+            <!-- With ground transport: show door-to-door total prominently -->
+            <template x-if="flight.ground_total_cost != null">
+              <div>
+                <div class="text-2xl font-bold text-emerald-700">
+                  €<span x-text="((flight.price || 0) + (flight.ground_total_cost || 0)).toFixed(0)"></span>
+                </div>
+                <div class="text-xs text-emerald-600 font-semibold">door-to-door total</div>
+                <div class="text-xs text-slate-400 mt-0.5">
+                  €<span x-text="(flight.price || 0).toFixed(0)"></span> flight
+                  + €<span x-text="(flight.ground_total_cost || 0).toFixed(0)"></span> ground
+                </div>
+              </div>
+            </template>
+            <!-- Without ground transport: show flight price only -->
+            <template x-if="flight.ground_total_cost == null">
+              <div>
+                <div class="text-2xl font-bold text-slate-800">
+                  <span x-text="(flight.price || 0).toFixed(0)"></span>
+                  <span class="text-base font-normal text-slate-500"> EUR</span>
+                </div>
+                <div class="text-xs text-slate-400">round-trip</div>
+              </div>
+            </template>
+            <div class="mt-1 inline-flex items-center gap-1 bg-blue-50 border border-blue-200 rounded-lg px-2 py-0.5">
+              <span class="text-xs text-blue-600 font-semibold">Score:</span>
+              <span class="text-sm font-bold text-blue-700" x-text="(flight.score || 0).toFixed(0) + ' EUR'"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Strip -->
+        <div class="border-t border-slate-100 px-5 py-2 bg-slate-50 flex flex-wrap gap-4 text-xs text-slate-600 items-center">
+          <span>
+            🛫 <strong>Outbound:</strong>
+            <span x-text="flight.duration_str"></span>
+            · <span x-text="flight.stops + ' stop(s)'"></span>
+          </span>
+          <span x-show="flight.return_duration_minutes">
+            🛬 <strong>Return:</strong>
+            <span x-text="fmtMin(flight.return_duration_minutes)"></span>
+            · <span x-text="(flight.return_stops ?? '?') + ' stop(s)'"></span>
+          </span>
+          <!-- Booking class badge -->
+          <span class="bg-sky-50 border border-sky-200 text-sky-700 px-2 py-0.5 rounded font-semibold"
+                x-text="flight.fare_brand || flight.booking_class || 'Economy'"></span>
+          <!-- Book on Google Flights -->
+          <a :href="flight.booking_token
+               ? `https://www.google.com/flights?hl=en&gl=us&booking_token=${flight.booking_token}`
+               : flight.google_flights_url
+                 ? flight.google_flights_url
+                 : `https://www.kayak.com/flights/${flight.origin}-${flight.destination}/${flight.outbound_date}/${flight.return_date}`"
+             target="_blank" rel="noopener noreferrer"
+             :title="flight.booking_token
+               ? 'Opens this exact flight on Google Flights'
+               : flight.google_flights_url
+                 ? 'Opens Google Flights pre-filled with this route & dates'
+                 : 'Opens Kayak pre-filled with this route & dates'"
+             class="ml-auto flex items-center gap-1 text-white font-semibold px-3 py-1 rounded-lg transition-colors no-underline"
+             :class="flight.booking_token ? 'bg-blue-600 hover:bg-blue-700' : 'bg-slate-500 hover:bg-slate-600'">
+            <span x-text="flight.booking_token ? '🎫 Book this flight' : flight.google_flights_url ? '✈ Google Flights' : '✈ Kayak'"></span>
+          </a>
+        </div>
+
+        <!-- Toggle Detail Button -->
+        <button @click="flight._open = !flight._open"
+                class="w-full text-xs text-blue-500 hover:text-blue-700 py-2 border-t border-slate-100 flex items-center justify-center gap-1 transition-colors">
+          <span x-text="flight._open ? '▲ Hide detail' : '▼ Show flight detail'"></span>
+        </button>
+
+        <!-- Expandable Detail -->
+        <div x-show="flight._open" class="px-5 pb-5 pt-1 space-y-4 slide-down">
+
+          <!-- Door-to-door breakdown (only when ground transport active) -->
+          <div x-show="flight.ground_total_cost != null"
+               class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+            <p class="text-xs font-bold text-emerald-800 mb-2 uppercase tracking-wide">Door-to-door journey (round trip)</p>
+            <div class="space-y-2 text-xs text-emerald-700">
+              <div>
+                <div class="flex justify-between items-start">
+                  <span>🏠 Home → departure airport</span>
+                  <span class="text-right"><strong x-text="fmtMin(flight.ground_dep_minutes)"></strong>
+                    · €<span x-text="(flight.ground_dep_cost || 0).toFixed(0)"></span>/way</span>
+                </div>
+                <div x-show="flight.ground_dep_mode" class="text-emerald-500 pl-5 mt-0.5">
+                  <span x-text="flight.ground_dep_mode"></span>
+                </div>
+                <div x-show="flight.ground_dep_notes" class="text-emerald-400 italic pl-5">
+                  <span x-text="flight.ground_dep_notes"></span>
+                </div>
+              </div>
+              <div class="flex justify-between text-blue-700">
+                <span>✈ Outbound flight</span>
+                <span><strong x-text="flight.duration_str"></strong></span>
+              </div>
+              <div>
+                <div class="flex justify-between items-start">
+                  <span>🏨 Arrival airport → destination</span>
+                  <span class="text-right"><strong x-text="fmtMin(flight.ground_arr_minutes)"></strong>
+                    · €<span x-text="(flight.ground_arr_cost || 0).toFixed(0)"></span>/way</span>
+                </div>
+                <div x-show="flight.ground_arr_mode" class="text-emerald-500 pl-5 mt-0.5">
+                  <span x-text="flight.ground_arr_mode"></span>
+                </div>
+                <div x-show="flight.ground_arr_notes" class="text-emerald-400 italic pl-5">
+                  <span x-text="flight.ground_arr_notes"></span>
+                </div>
+              </div>
+              <div class="border-t border-emerald-200 pt-1">
+                <div class="flex justify-between text-blue-700">
+                  <span>✈ Return flight</span>
+                  <span><strong x-text="fmtMin(flight.return_duration_minutes)"></strong></span>
+                </div>
+              </div>
+              <div class="border-t border-emerald-200 pt-1 font-semibold flex justify-between text-emerald-800">
+                <span>Total ground transport (×2 round trip)</span>
+                <span>€<span x-text="(flight.ground_total_cost || 0).toFixed(0)"></span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Score Breakdown -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <p class="text-xs font-bold text-slate-600 uppercase tracking-wide mb-3">Score breakdown</p>
+            <div class="space-y-1.5 text-xs text-slate-700">
+              <div class="flex justify-between">
+                <span>Flight price</span>
+                <span class="font-mono">€<span x-text="(flight.price||0).toFixed(0)"></span></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">
+                  Time cost
+                  (<span x-text="fmtMin((flight.duration_minutes||0)+(flight.return_duration_minutes||0))"></span>
+                  × €<span x-text="valueOfTime"></span>/h)
+                </span>
+                <span class="font-mono text-slate-500">+€<span x-text="(flight.time_cost_base||0).toFixed(0)"></span></span>
+              </div>
+              <div x-show="flight.stops_penalty > 0" class="flex justify-between">
+                <span class="text-orange-600">
+                  🔀 Stops
+                  (<span x-text="(flight.stops||0)+(flight.return_stops||0)"></span>
+                  × €<span x-text="stopPenalty"></span>)
+                </span>
+                <span class="font-mono text-orange-600">+€<span x-text="(flight.stops_penalty||0).toFixed(0)"></span></span>
+              </div>
+              <div x-show="flight.night_penalty > 0" class="flex justify-between">
+                <span class="text-indigo-600">
+                  🌙 Night departure
+                  <span x-show="flight.out_is_night && flight.ret_is_night">(both legs)</span>
+                  <span x-show="flight.out_is_night && !flight.ret_is_night">(outbound)</span>
+                  <span x-show="!flight.out_is_night && flight.ret_is_night">(return)</span>
+                </span>
+                <span class="font-mono text-indigo-600">+€<span x-text="(flight.night_penalty||0).toFixed(0)"></span></span>
+              </div>
+              <div x-show="flight.layover_penalty > 0" class="flex justify-between">
+                <span class="text-amber-600">⏱ Long layover (>2 h excess)</span>
+                <span class="font-mono text-amber-600">+€<span x-text="(flight.layover_penalty||0).toFixed(0)"></span></span>
+              </div>
+              <div x-show="(flight.ground_total_cost||0) > 0" class="flex justify-between">
+                <span class="text-emerald-600">🚗 Ground transport (×2)</span>
+                <span class="font-mono text-emerald-600">+€<span x-text="(flight.ground_total_cost||0).toFixed(0)"></span></span>
+              </div>
+              <div class="border-t border-slate-300 pt-2 mt-2 font-bold flex justify-between text-slate-800">
+                <span>Total score</span>
+                <span class="font-mono">€<span x-text="(flight.score||0).toFixed(0)"></span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Outbound Segments -->
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded">OUTBOUND</span>
+              <span class="text-xs text-slate-500" x-text="flight.outbound_date"></span>
+            </div>
+            <template x-for="(seg, si) in flight.outbound_segments" :key="si">
+              <div>
+                <div class="flex items-start gap-3 py-2">
+                  <div class="text-center w-14 shrink-0">
+                    <div class="font-mono font-bold text-slate-800 text-sm" x-text="fmtTime(seg.from_time)"></div>
+                    <div class="font-mono text-xs text-slate-400" x-text="seg.from_airport"></div>
+                  </div>
+                  <div class="flex-1 segment-line">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="font-semibold text-sm text-slate-700" x-text="seg.flight_number"></span>
+                      <span class="text-xs text-slate-500" x-text="seg.airline"></span>
+                      <span class="text-xs bg-slate-100 px-2 py-0.5 rounded" x-text="fmtMin(seg.duration_minutes)"></span>
+                      <span class="text-xs text-slate-400" x-text="seg.aircraft"></span>
+                      <span x-show="seg.fare_brand || seg.booking_class"
+                            class="text-xs bg-sky-50 border border-sky-200 text-sky-700 px-2 py-0.5 rounded"
+                            x-text="seg.fare_brand || seg.booking_class"></span>
+                      <span x-show="seg.overnight" class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">🌙 overnight</span>
+                    </div>
+                  </div>
+                  <div class="text-center w-14 shrink-0">
+                    <div class="font-mono font-bold text-slate-800 text-sm" x-text="fmtTime(seg.to_time)"></div>
+                    <div class="font-mono text-xs text-slate-400" x-text="seg.to_airport"></div>
+                  </div>
+                </div>
+                <template x-if="si < flight.outbound_layovers.length">
+                  <div class="ml-[74px] flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 mb-1">
+                    <span>⏱</span>
+                    <span>Layover at <strong x-text="flight.outbound_layovers[si].airport_id"></strong></span>
+                    <span x-text="flight.outbound_layovers[si].airport"></span>
+                    <span class="font-semibold" x-text="fmtMin(flight.outbound_layovers[si].duration_minutes)"></span>
+                    <span x-show="flight.outbound_layovers[si].overnight" class="text-amber-600">🌙</span>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+
+          <!-- Return Segments -->
+          <div x-show="flight.return_segments && flight.return_segments.length > 0">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded">RETURN</span>
+              <span class="text-xs text-slate-500" x-text="flight.return_date"></span>
+            </div>
+            <template x-for="(seg, si) in flight.return_segments" :key="si">
+              <div>
+                <div class="flex items-start gap-3 py-2">
+                  <div class="text-center w-14 shrink-0">
+                    <div class="font-mono font-bold text-slate-800 text-sm" x-text="fmtTime(seg.from_time)"></div>
+                    <div class="font-mono text-xs text-slate-400" x-text="seg.from_airport"></div>
+                  </div>
+                  <div class="flex-1 segment-line">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="font-semibold text-sm text-slate-700" x-text="seg.flight_number"></span>
+                      <span class="text-xs text-slate-500" x-text="seg.airline"></span>
+                      <span class="text-xs bg-slate-100 px-2 py-0.5 rounded" x-text="fmtMin(seg.duration_minutes)"></span>
+                      <span class="text-xs text-slate-400" x-text="seg.aircraft"></span>
+                      <span x-show="seg.fare_brand || seg.booking_class"
+                            class="text-xs bg-sky-50 border border-sky-200 text-sky-700 px-2 py-0.5 rounded"
+                            x-text="seg.fare_brand || seg.booking_class"></span>
+                      <span x-show="seg.overnight" class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">🌙 overnight</span>
+                    </div>
+                  </div>
+                  <div class="text-center w-14 shrink-0">
+                    <div class="font-mono font-bold text-slate-800 text-sm" x-text="fmtTime(seg.to_time)"></div>
+                    <div class="font-mono text-xs text-slate-400" x-text="seg.to_airport"></div>
+                  </div>
+                </div>
+                <template x-if="si < flight.return_layovers.length">
+                  <div class="ml-[74px] flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 mb-1">
+                    <span>⏱</span>
+                    <span>Layover at <strong x-text="flight.return_layovers[si].airport_id"></strong></span>
+                    <span x-text="flight.return_layovers[si].airport"></span>
+                    <span class="font-semibold" x-text="fmtMin(flight.return_layovers[si].duration_minutes)"></span>
+                    <span x-show="flight.return_layovers[si].overnight" class="text-amber-600">🌙</span>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+          <div x-show="!flight.return_segments || flight.return_segments.length === 0"
+               class="text-xs text-slate-400 italic">
+            Return leg details not yet fetched — re-run search to load.
+          </div>
+
+        </div>
+      </div>
+    </template>
+
+  </main>
+</div>
+
+<script>
+function flightApp() {
+  return {
+    // ── IATA airport validation dictionary ───────────────────────────────────
+    IATA: {
+      // East & Southeast Asia
+      HKG:'Hong Kong Intl',SZX:'Shenzhen Bao\'an',CAN:'Guangzhou Baiyun',
+      PEK:'Beijing Capital',PKX:'Beijing Daxing',SHA:'Shanghai Hongqiao',PVG:'Shanghai Pudong',
+      CTU:'Chengdu Tianfu',TFU:'Chengdu Tianfu (new)',KMG:'Kunming Changshui',
+      XIY:'Xi\'an Xianyang',WUH:'Wuhan Tianhe',CSX:'Changsha Huanghua',
+      HAK:'Haikou Meilan',SYX:'Sanya Phoenix',NKG:'Nanjing Lukou',
+      HGH:'Hangzhou Xiaoshan',TAO:'Qingdao Jiaodong',XMN:'Xiamen Gaoqi',
+      CGQ:'Changchun Longjia',HRB:'Harbin Taiping',DLC:'Dalian Zhoushuizi',
+      TSN:'Tianjin Binhai',SJW:'Shijiazhuang Zhengding',TYN:'Taiyuan Wusu',
+      KWE:'Guiyang Longdongbao',NNG:'Nanning Wuxu',URC:'Urumqi Diwopu',
+      LHW:'Lanzhou Zhongchuan',MXZ:'Meixian',ZUH:'Zhuhai Jinwan',
+      NRT:'Tokyo Narita',HND:'Tokyo Haneda',KIX:'Osaka Kansai',ITM:'Osaka Itami',
+      NGO:'Nagoya Chubu',CTS:'Sapporo New Chitose',FUK:'Fukuoka',OKA:'Naha',
+      ICN:'Seoul Incheon',GMP:'Seoul Gimpo',PUS:'Busan Gimhae',
+      TPE:'Taipei Taoyuan',TSA:'Taipei Songshan',KHH:'Kaohsiung',RMQ:'Taichung',
+      SIN:'Singapore Changi',KUL:'Kuala Lumpur Intl',
+      BKK:'Bangkok Suvarnabhumi',DMK:'Bangkok Don Mueang',
+      HAN:'Hanoi Noi Bai',SGN:'Ho Chi Minh City',DAD:'Da Nang',
+      MNL:'Manila Ninoy Aquino',CEB:'Cebu Mactan',
+      CGK:'Jakarta Soekarno-Hatta',DPS:'Bali Ngurah Rai',SUB:'Surabaya Juanda',
+      RGN:'Yangon Intl',REP:'Siem Reap',PNH:'Phnom Penh',VTE:'Vientiane',
+      // South Asia
+      DEL:'Delhi Indira Gandhi',BOM:'Mumbai Chhatrapati Shivaji',
+      MAA:'Chennai Intl',BLR:'Bengaluru Kempegowda',CCU:'Kolkata Netaji',
+      HYD:'Hyderabad Rajiv Gandhi',GOI:'Goa Dabolim',COK:'Kochi Intl',
+      CMB:'Colombo Bandaranaike',DAC:'Dhaka Hazrat Shahjalal',KTM:'Kathmandu',
+      // Middle East
+      DXB:'Dubai Intl',AUH:'Abu Dhabi Intl',SHJ:'Sharjah',DWC:'Al Maktoum',
+      DOH:'Doha Hamad',RUH:'Riyadh King Khalid',JED:'Jeddah King Abdulaziz',
+      MED:'Madinah',AHB:'Abha',DMM:'Dammam King Fahd',
+      KWI:'Kuwait Intl',BAH:'Bahrain Intl',MCT:'Muscat Intl',AMM:'Amman Queen Alia',
+      BEY:'Beirut Rafic Hariri',TLV:'Tel Aviv Ben Gurion',CAI:'Cairo Intl',
+      IST:'Istanbul',SAW:'Istanbul Sabiha',ESB:'Ankara',ADB:'Izmir',
+      // Europe
+      LHR:'London Heathrow',LGW:'London Gatwick',STN:'London Stansted',
+      LTN:'London Luton',LCY:'London City',MAN:'Manchester',
+      CDG:'Paris Charles de Gaulle',ORY:'Paris Orly',
+      AMS:'Amsterdam Schiphol',
+      FRA:'Frankfurt',MUC:'Munich',BER:'Berlin Brandenburg',DUS:'Düsseldorf',
+      HAM:'Hamburg',CGN:'Cologne Bonn',STR:'Stuttgart',NUE:'Nuremberg',
+      LEJ:'Leipzig',DRS:'Dresden',HAJ:'Hannover',ERF:'Erfurt',FMO:'Münster',
+      BSL:'Basel Mulhouse',FDH:'Friedrichshafen',KSF:'Kassel',PAD:'Paderborn',
+      MAD:'Madrid Barajas',BCN:'Barcelona',PMI:'Palma de Mallorca',
+      AGP:'Málaga',ALC:'Alicante',VLC:'Valencia',IBZ:'Ibiza',TFS:'Tenerife South',
+      LPA:'Gran Canaria',FCO:'Rome Fiumicino',CIA:'Rome Ciampino',
+      MXP:'Milan Malpensa',LIN:'Milan Linate',BGY:'Milan Bergamo Orio',
+      NAP:'Naples',VCE:'Venice Marco Polo',BLQ:'Bologna',
+      ZRH:'Zurich',GVA:'Geneva',VIE:'Vienna',SZG:'Salzburg',INN:'Innsbruck',
+      BRU:'Brussels',LUX:'Luxembourg',
+      CPH:'Copenhagen',ARN:'Stockholm Arlanda',NYO:'Stockholm Skavsta',
+      GOT:'Gothenburg',OSL:'Oslo Gardermoen',HEL:'Helsinki',TLL:'Tallinn',
+      RIX:'Riga',VNO:'Vilnius',WAW:'Warsaw Chopin',KRK:'Krakow',
+      GDN:'Gdansk',WRO:'Wroclaw',POZ:'Poznan',
+      PRG:'Prague',BTS:'Bratislava',BUD:'Budapest',
+      OTP:'Bucharest Otopeni',CLJ:'Cluj-Napoca',SOF:'Sofia',
+      ATH:'Athens',SKG:'Thessaloniki',HER:'Heraklion',RHO:'Rhodes',
+      DUB:'Dublin',SNN:'Shannon',ORK:'Cork',
+      LIS:'Lisbon',OPO:'Porto',FAO:'Faro',
+      KEF:'Reykjavik',
+      SVO:'Moscow Sheremetyevo',DME:'Moscow Domodedovo',VKO:'Moscow Vnukovo',
+      LED:'St Petersburg',KZN:'Kazan',SVX:'Yekaterinburg',OVB:'Novosibirsk',
+      KJA:'Krasnoyarsk',IKT:'Irkutsk',VVO:'Vladivostok',
+      KBP:'Kyiv Boryspil',LWO:'Lviv',ODS:'Odessa',
+      SXF:'Berlin Schönefeld (closed)',TXL:'Berlin Tegel (closed)',
+      EVN:'Yerevan',TBS:'Tbilisi',
+      // Africa
+      CAI:'Cairo',JNB:'Johannesburg OR Tambo',CPT:'Cape Town',DUR:'Durban',
+      NBO:'Nairobi Jomo Kenyatta',ADD:'Addis Ababa Bole',
+      LOS:'Lagos Murtala Muhammed',ABV:'Abuja Nnamdi Azikiwe',
+      ACC:'Accra Kotoka',CMN:'Casablanca Mohammed V',TUN:'Tunis Carthage',
+      ALG:'Algiers Houari Boumediene',RAK:'Marrakech',MRU:'Mauritius',
+      // North America
+      JFK:'New York JFK',LGA:'New York LaGuardia',EWR:'Newark Liberty',
+      LAX:'Los Angeles',SFO:'San Francisco',SJC:'San Jose',OAK:'Oakland',
+      ORD:'Chicago O\'Hare',MDW:'Chicago Midway',
+      MIA:'Miami',FLL:'Fort Lauderdale',TPA:'Tampa',MCO:'Orlando',PBI:'West Palm Beach',
+      ATL:'Atlanta',CLT:'Charlotte',RDU:'Raleigh-Durham',IAD:'Washington Dulles',
+      DCA:'Washington National',BWI:'Baltimore',PHL:'Philadelphia',PIT:'Pittsburgh',
+      BOS:'Boston Logan',
+      DFW:'Dallas Fort Worth',DAL:'Dallas Love Field',IAH:'Houston Intercontinental',
+      HOU:'Houston Hobby',SAT:'San Antonio',AUS:'Austin',
+      DEN:'Denver',LAS:'Las Vegas',PHX:'Phoenix',SLC:'Salt Lake City',ABQ:'Albuquerque',
+      SEA:'Seattle',PDX:'Portland',SAN:'San Diego',
+      MSP:'Minneapolis',STL:'St Louis',MCI:'Kansas City',
+      DTW:'Detroit',CLE:'Cleveland',CMH:'Columbus',IND:'Indianapolis',MKE:'Milwaukee',
+      MSY:'New Orleans',MEM:'Memphis',BNA:'Nashville',
+      YYZ:'Toronto Pearson',YUL:'Montreal',YVR:'Vancouver',YYC:'Calgary',
+      YEG:'Edmonton',YHZ:'Halifax',
+      MEX:'Mexico City',GDL:'Guadalajara',MTY:'Monterrey',CUN:'Cancun',
+      // Central & South America
+      BOG:'Bogotá El Dorado',MDE:'Medellín',CLO:'Cali',
+      LIM:'Lima Jorge Chávez',SCL:'Santiago',EZE:'Buenos Aires Ezeiza',
+      AEP:'Buenos Aires Aeroparque',GRU:'São Paulo Guarulhos',
+      CGH:'São Paulo Congonhas',GIG:'Rio de Janeiro Galeão',SDU:'Rio Santos Dumont',
+      BSB:'Brasília',SSA:'Salvador',REC:'Recife',FOR:'Fortaleza',
+      CWB:'Curitiba',POA:'Porto Alegre',BEL:'Belém',
+      MVD:'Montevideo',ASU:'Asunción',VVI:'Santa Cruz de la Sierra',
+      UIO:'Quito',GYE:'Guayaquil',CCS:'Caracas',PTY:'Panama City',
+      SJO:'San José',GUA:'Guatemala City',SAL:'San Salvador',MGA:'Managua',
+      HAV:'Havana',SDQ:'Santo Domingo',SJU:'San Juan',KIN:'Kingston',
+      // Oceania
+      SYD:'Sydney Kingsford Smith',MEL:'Melbourne',BNE:'Brisbane',PER:'Perth',
+      ADL:'Adelaide',CBR:'Canberra',OOL:'Gold Coast',HBA:'Hobart',DRW:'Darwin',
+      AKL:'Auckland',CHC:'Christchurch',WLG:'Wellington',
+      NAN:'Nadi',PPT:'Papeete',
+    },
+
+    // Free-text airport inputs — user types IATA codes separated by ;
+    originsRaw: 'HKG; SZX; CAN',
+    destsRaw: 'FRA; MUC; NUE',
+
+    // Computed from raw strings: only valid 3-letter codes, uppercased
+    _parseCodes(raw) {
+      return raw.split(';').map(s => s.trim().toUpperCase()).filter(s => /^[A-Z]{3}$/.test(s));
+    },
+    get origins()      { return this._parseCodes(this.originsRaw); },
+    get destinations() { return this._parseCodes(this.destsRaw); },
+    get invalidOrigins()      { return this.origins.filter(c => !this.IATA[c]); },
+    get invalidDestinations() { return this.destinations.filter(c => !this.IATA[c]); },
+    get hasInvalidAirports()  { return this.invalidOrigins.length > 0 || this.invalidDestinations.length > 0; },
+    airportName(code) { return this.IATA[code] || null; },
+
+    outboundDate: '2026-07-25',
+    returnDate: '2026-08-02',
+    dateWindow: 0,
+    useCache: true,
+    searching: false,
+    rawResults: [],
+    results: [],
+    totalFound: 0,
+    exportId: null,
+    errorMsg: '',
+    logs: [],
+    progressPercent: 0,
+    progressLabel: '',
+    _es: null,
+
+    // Ground transport
+    showGroundForm: false,
+    homeAddress: '',
+    destAddress: '',
+    groundInfo: null,
+
+    // Live Filters — all update client-side instantly
+    valueOfTime: 20,
+    stopPenalty: 75,
+    displayMaxStops: '',
+    starAllianceOnly: false,
+
+    // API usage + re-scoring state
+    apiUsage: { count: 0, month: '', limit: 250, remaining: 250, pct_used: 0, source: '' },
+    usageLoading: true,
+    rescored: false,
+    cacheAgeLabel: null,
+
+    // Progress panel visibility
+    showProgress: false,
+    logsExpanded: true,
+
+    // Restore session-persisted fields on load; save on change.
+    // sessionStorage resets when the browser window/tab is closed.
+    init() {
+      const ss = (k, d) => { const v = sessionStorage.getItem(k); return v !== null ? v : d; };
+      this.originsRaw  = ss('fo_originsRaw',  'HKG; SZX; CAN');
+      this.destsRaw    = ss('fo_destsRaw',    'FRA; MUC; NUE');
+      this.homeAddress = ss('fo_homeAddress', '');
+      this.destAddress = ss('fo_destAddress', '');
+      this.$watch('originsRaw',  v => sessionStorage.setItem('fo_originsRaw',  v));
+      this.$watch('destsRaw',    v => sessionStorage.setItem('fo_destsRaw',    v));
+      this.$watch('homeAddress', v => sessionStorage.setItem('fo_homeAddress', v));
+      this.$watch('destAddress', v => sessionStorage.setItem('fo_destAddress', v));
+      // Live Filters: all four re-apply instantly on change (no new API call)
+      const liveReapply = () => { if (this.rawResults.length > 0) { this.applyFilters(); this.rescored = true; } };
+      this.$watch('valueOfTime',      liveReapply);
+      this.$watch('stopPenalty',      liveReapply);
+      this.$watch('starAllianceOnly', liveReapply);
+      this.fetchUsage();
+    },
+
+    async fetchUsage(retries = 4, delayMs = 600) {
+      this.usageLoading = true;
+      for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+          const r = await fetch('/flight/usage');
+          if (r.ok) {
+            this.apiUsage = await r.json();
+            this.usageLoading = false;
+            return;
+          }
+        } catch (_) {}
+        if (attempt < retries) await new Promise(res => setTimeout(res, delayMs * (attempt + 1)));
+      }
+      this.usageLoading = false;   // give up — stays on local defaults
+    },
+
+    applyFilters() {
+      const vot   = this.valueOfTime;
+      const sp    = this.stopPenalty;
+      const maxSt = this.displayMaxStops === '' ? Infinity : parseInt(this.displayMaxStops);
+
+      // 1. Re-score all raw results with current VoT + stop penalty
+      let pool = this.rawResults.map(f => {
+        const timeCostBase   = (f.total_flight_h   || 0) * vot;
+        const nightPenalty   = (f.night_hours       || 0) * vot * 0.5;
+        const layoverPenalty = (f.excess_layover_h  || 0) * vot * 0.5;
+        const stopsPenalty   = ((f.stops || 0) + (f.return_stops != null ? parseInt(f.return_stops) : 0)) * sp;
+        const groundCost     = f.ground_total_cost  || 0;
+        const groundTimeCost = (f.ground_time_h     || 0) * vot;
+        const score = (f.price || 0) + timeCostBase + nightPenalty + layoverPenalty + stopsPenalty + groundCost + groundTimeCost;
+        return {
+          ...f,
+          score:           Math.round(score          * 100) / 100,
+          time_cost_base:  Math.round(timeCostBase   * 100) / 100,
+          night_penalty:   Math.round(nightPenalty   * 100) / 100,
+          layover_penalty: Math.round(layoverPenalty * 100) / 100,
+          stops_penalty:   Math.round(stopsPenalty   * 100) / 100,
+        };
+      });
+
+      // 2. Filter by max stops (both legs)
+      pool = pool.filter(f => {
+        const outSt = f.stops || 0;
+        const retSt = f.return_stops != null ? parseInt(f.return_stops) : 0;
+        return Math.max(outSt, retSt) <= maxSt;
+      });
+
+      // 3. Star Alliance filter — keeps only flights whose main airline is a Star Alliance member
+      if (this.starAllianceOnly) {
+        const SA = ['lufthansa', 'swiss', 'austrian', 'brussels', 'air china',
+          'air india', 'singapore airlines', 'singapore', 'thai airways', 'thai',
+          'all nippon', 'turkish airlines', 'turkish', 'united airlines', 'united',
+          'air canada', 'shenzhen', 'asiana', 'tap air', 'tap portugal',
+          'lot polish', 'scandinavian', 'sas', 'ethiopian', 'egyptair',
+          'south african', 'avianca', 'copa airlines', 'croatia airlines',
+          'aegean', 'air new zealand'];
+        pool = pool.filter(f => {
+          const a = (f.airline || '').toLowerCase();
+          return SA.some(t => a.includes(t));
+        });
+      }
+
+      // 4. Sort by score, assign ranks, always show top 10
+      pool.sort((a, b) => a.score - b.score);
+      this.results = pool
+        .map((f, i) => ({ ...f, rank: i + 1 }))
+        .slice(0, 10);
+    },
+
+    apiCallEstimate() {
+      const routes = this.origins.length * this.destinations.length;
+      const dateCombos = this.dateWindow === 1 ? 9 : 1;
+      return routes * dateCombos;
+    },
+
+    fmtMin(min) {
+      if (min === null || min === undefined || isNaN(min)) return '?';
+      min = Math.round(Number(min));
+      return `${Math.floor(min / 60)}h ${String(min % 60).padStart(2, '0')}m`;
+    },
+
+    fmtTime(t) {
+      if (!t) return '?';
+      const parts = t.split(' ');
+      return parts[parts.length - 1];
+    },
+
+    startSearch() {
+      if (this.searching) return;
+      this.errorMsg = '';
+      if (this.outboundDate && this.returnDate && this.returnDate <= this.outboundDate) {
+        this.errorMsg = 'Return date must be after the outbound date.';
+        return;
+      }
+      this.results = [];
+      this.rawResults = [];
+      this.logs = [];
+      this.progressPercent = 0;
+      this.progressLabel = 'Starting…';
+      this.exportId = null;
+      this.groundInfo = null;
+      this.rescored = false;
+      this.cacheAgeLabel = null;
+      this.searching = true;
+      this.showProgress = true;
+      this.logsExpanded = true;
+
+      // On mobile, scroll down to show the progress/results area
+      if (window.innerWidth < 1024) {
+        this.$nextTick(() => {
+          const el = document.getElementById('results-area');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+
+      if (this._es) this._es.close();
+
+      const params = new URLSearchParams({
+        origins: this.origins.join(','),
+        destinations: this.destinations.join(','),
+        outbound_date: this.outboundDate,
+        return_date: this.returnDate,
+        use_cache: this.useCache,
+        date_window: this.dateWindow,
+      });
+      if (this.homeAddress.trim()) params.set('home_address', this.homeAddress.trim());
+      if (this.destAddress.trim()) params.set('dest_address', this.destAddress.trim());
+
+      this._es = new EventSource(`/search/stream?${params}`);
+
+      this._es.onmessage = (e) => {
+        let msg;
+        try { msg = JSON.parse(e.data); } catch { return; }
+
+        if (msg.type === 'log') {
+          this.logs.push(msg.message);
+          this.$nextTick(() => {
+            const box = this.$refs.logBox;
+            if (box) box.scrollTop = box.scrollHeight;
+          });
+        } else if (msg.type === 'progress') {
+          this.progressPercent = msg.percent;
+          this.progressLabel = msg.label;
+        } else if (msg.type === 'ground_transport') {
+          this.groundInfo = msg.data;
+        } else if (msg.type === 'results') {
+          this.rawResults = msg.flights.map(f => ({ ...f, _open: false }));
+          this.totalFound = msg.total_found;
+          this.exportId = msg.export_id;
+          this.cacheAgeLabel = msg.cache_age_label || null;
+          this.rescored = false;
+          this.applyFilters();
+          this.fetchUsage();
+        } else if (msg.type === 'error') {
+          this.errorMsg = msg.message;
+          this.searching = false;
+          this._es.close();
+        } else if (msg.type === 'done') {
+          this.searching = false;
+          this._es.close();
+          // Auto-collapse progress panel after a short pause so user sees 100%
+          setTimeout(() => { this.showProgress = false; this.logsExpanded = true; }, 1500);
+        }
+      };
+
+      this._es.onerror = () => {
+        if (this.searching) {
+          this.errorMsg = 'Connection error. Please try again.';
+          this.searching = false;
+          this._es.close();
+        }
+      };
+    },
+
+    downloadExcel() {
+      if (!this.exportId) return;
+      window.open(`/export/${this.exportId}`, '_blank');
+    },
+  };
+}
+</script>
+</body>
+</html>

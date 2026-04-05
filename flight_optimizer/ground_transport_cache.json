@@ -1,0 +1,389 @@
+{
+  "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国|9, goethestraße, zeckern, hemhofen, landkreis erlangen-höchstadt, bayern, 91334,|CAN,FRA,HKG,MUC,NUE,SZX": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "9, Goethestraße, Zeckern, Hemhofen, Landkreis Erlangen-Höchstadt, Bayern, 91334, Deutschland",
+    "home_coords": [
+      22.4926,
+      113.9137
+    ],
+    "dest_coords": [
+      49.6938,
+      10.935
+    ],
+    "ai_powered": true,
+    "legs": {
+      "SZX": {
+        "time_minutes": 60.0,
+        "cost_eur": 14.0,
+        "mode": "Didi",
+        "notes": "28km road via Shennan Ave/G107; ~45 km/h effective in Shenzhen traffic.",
+        "cost": 14.0,
+        "duration_minutes": 60.0
+      },
+      "HKG": {
+        "time_minutes": 85.0,
+        "cost_eur": 27.0,
+        "mode": "Didi to Shekou Ferry Terminal + cross-boundary ferry",
+        "notes": "5min Didi to Shekou pier + 30min pre-board + 35min ferry to HKG. Best option from Shekou.",
+        "cost": 27.0,
+        "duration_minutes": 85.0
+      },
+      "CAN": {
+        "time_minutes": 150.0,
+        "cost_eur": 48.0,
+        "mode": "Didi via Guangshen Expressway (G4)",
+        "notes": "~145km road: 30min Shenzhen urban exit + 70min G4 highway + 25min airport approach.",
+        "cost": 48.0,
+        "duration_minutes": 150.0
+      },
+      "NUE": {
+        "time_minutes": 40.0,
+        "cost_eur": 50.0,
+        "mode": "Taxi or own car via A73/B8",
+        "notes": "32km rural road via B8 then Autobahn spur; 35-45min. Taxi ~€50, own car much cheaper.",
+        "cost": 50.0,
+        "duration_minutes": 40.0
+      },
+      "MUC": {
+        "time_minutes": 115.0,
+        "cost_eur": 22.0,
+        "mode": "Own car via A9 + A92",
+        "notes": "178km Autobahn (A9 south then A92 east to airport); 100min highway + 15min rural exit. Train via Nürnberg+Munich Hbf takes 2h30+ — not practical.",
+        "cost": 22.0,
+        "duration_minutes": 115.0
+      },
+      "FRA": {
+        "time_minutes": 130.0,
+        "cost_eur": 73.0,
+        "mode": "Taxi to Erlangen Bf + RE to Nürnberg + ICE to Frankfurt Airport Fbf",
+        "notes": "15min taxi to Erlangen Bf (€15) + 20min RE to Nürnberg + 20min transfer + 80min ICE to Frankfurt Flughafen Fernbahnhof (€58 Sparpreis).",
+        "cost": 73.0,
+        "duration_minutes": 130.0
+      }
+    }
+  },
+  "shenzhen shuiwan 1979|hemhofen goethestr. 9|CAN,FRA,HKG,MUC,NUE,SZX": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "9, Goethestraße, Zeckern, Hemhofen, Landkreis Erlangen-Höchstadt, Bayern, 91334, Deutschland",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": [
+      49.6937595,
+      10.9350205
+    ],
+    "ai_powered": true,
+    "legs": {
+      "HKG": {
+        "time_minutes": 65.0,
+        "cost_eur": 27.0,
+        "mode": "Didi + ferry",
+        "notes": "Didi to Shenzhen Bay Port, ferry crossing, and transfer to HKG.",
+        "cost": 27.0,
+        "duration_minutes": 65.0
+      },
+      "SZX": {
+        "time_minutes": 30.0,
+        "cost_eur": 10.0,
+        "mode": "Metro",
+        "notes": "Directly from home to Airport Express using Shenzhen Metro.",
+        "cost": 10.0,
+        "duration_minutes": 30.0
+      },
+      "CAN": {
+        "time_minutes": 150.0,
+        "cost_eur": 48.0,
+        "mode": "Didi",
+        "notes": "Didi directly to Guangzhou Baiyun International Airport.",
+        "cost": 48.0,
+        "duration_minutes": 150.0
+      },
+      "FRA": {
+        "time_minutes": 130.0,
+        "cost_eur": 73.0,
+        "mode": "DB ICE + RE",
+        "notes": "Connections from Frankfurt Airport to Hemhofen.",
+        "cost": 73.0,
+        "duration_minutes": 130.0
+      },
+      "MUC": {
+        "time_minutes": 100.0,
+        "cost_eur": 50.0,
+        "mode": "DB + bus",
+        "notes": "Train and bus connections from Munich Airport to Hemhofen.",
+        "cost": 50.0,
+        "duration_minutes": 100.0
+      },
+      "NUE": {
+        "time_minutes": 30.0,
+        "cost_eur": 10.0,
+        "mode": "DB regional",
+        "notes": "Direct connections from Nuremberg Airport to Hemhofen.",
+        "cost": 10.0,
+        "duration_minutes": 30.0
+      }
+    }
+  },
+  "shenzhen shuiwan 1979|hemhofen goethestr. 9|HKG,NUE": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "9, Goethestraße, Zeckern, Hemhofen, Landkreis Erlangen-Höchstadt, Bayern, 91334, Deutschland",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": [
+      49.6937595,
+      10.9350205
+    ],
+    "ai_powered": true,
+    "legs": {
+      "HKG": {
+        "time_minutes": 85.0,
+        "cost_eur": 27.0,
+        "mode": "Didi + bus/Airport Express",
+        "notes": "Didi to Shenzhen Bay Port, border crossing, then bus/Airport Express to airport.",
+        "cost": 27.0,
+        "duration_minutes": 85.0
+      },
+      "NUE": {
+        "time_minutes": 130.0,
+        "cost_eur": 73.0,
+        "mode": "Public transport (U2 metro + regional train)",
+        "notes": "Surface transport via metro and regional train from Nuremberg Airport to destination.",
+        "cost": 73.0,
+        "duration_minutes": 130.0
+      }
+    }
+  },
+  "shenzhen shuiwan 1979|erlangen hautpbahnhof|HKG,NUE": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "Erlangen Hautpbahnhof",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": null,
+    "ai_powered": true,
+    "legs": {
+      "HKG": {
+        "time_minutes": 70.0,
+        "cost_eur": 27.0,
+        "mode": "Didi + bus/Airport Express",
+        "notes": "Didi to Shenzhen Bay Port (20 min) + border crossing (15 min) + bus/Airport Express (35 min)",
+        "cost": 27.0,
+        "duration_minutes": 70.0
+      },
+      "NUE": {
+        "time_minutes": 130.0,
+        "cost_eur": 73.0,
+        "mode": "Public transport (U2 metro + regional train)",
+        "notes": "Includes taxi to Erlangen Bf (15 min) + U2 metro to Nürnberg (20 min) + regional train to NUE (80 min)",
+        "cost": 73.0,
+        "duration_minutes": 130.0
+      }
+    }
+  },
+  "shenzhen shuiwan 1979|erlangen hbf|HKG,NUE": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "Hauptbahnhof, Parkplatzstraße, Innenstadt, Erlangen, Bayern, 91054, Deutschland",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": [
+      49.5955417,
+      11.0005867
+    ],
+    "ai_powered": true,
+    "legs": {
+      "HKG": {
+        "time_minutes": 85.0,
+        "cost_eur": 27.0,
+        "mode": "Didi + ferry + bus/Airport Express",
+        "notes": "Includes 20 min border crossing and transfer.",
+        "cost": 27.0,
+        "duration_minutes": 85.0
+      },
+      "NUE": {
+        "time_minutes": 35.0,
+        "cost_eur": 20.0,
+        "mode": "Public transport (U2 metro + regional train)",
+        "notes": "Includes connection times.",
+        "cost": 20.0,
+        "duration_minutes": 35.0
+      }
+    }
+  },
+  "shenzhen shuiwan 1979|erlangen hbf|HKG,MUN,NUE": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "Hauptbahnhof, Parkplatzstraße, Innenstadt, Erlangen, Bayern, 91054, Deutschland",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": [
+      49.5955417,
+      11.0005867
+    ],
+    "ai_powered": true,
+    "legs": {
+      "HKG": {
+        "time_minutes": 85.0,
+        "cost_eur": 27.0,
+        "mode": "Didi + ferry + Airport Express",
+        "notes": "Didi to Shenzhen Bay Port, ferry crossing, then bus/Metro to airport.",
+        "cost": 27.0,
+        "duration_minutes": 85.0
+      },
+      "NUE": {
+        "time_minutes": 40.0,
+        "cost_eur": 15.0,
+        "mode": "Public transport (U2 metro + regional train)",
+        "notes": "Estimated connection and transfer times included.",
+        "cost": 15.0,
+        "duration_minutes": 40.0
+      },
+      "MUN": {
+        "time_minutes": 50.0,
+        "cost_eur": 40.0,
+        "mode": "Taxi",
+        "notes": "Direct taxi ride from Nuremberg Airport to Erlangen.",
+        "cost": 40.0,
+        "duration_minutes": 50.0
+      }
+    }
+  },
+  "shenzhen shuiwan 1979|erlangen hbf|CAN,FRA,HKG,MUC,NUE,SZX": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "Hauptbahnhof, Parkplatzstraße, Innenstadt, Erlangen, Bayern, 91054, Deutschland",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": [
+      49.5955417,
+      11.0005867
+    ],
+    "ai_powered": true,
+    "legs": {
+      "HKG": {
+        "time_minutes": 85.0,
+        "cost_eur": 27.0,
+        "mode": "Didi+ferry",
+        "notes": "Didi to Shenzhen Bay Port, ferry crossing, bus or Airport Express to HKG.",
+        "cost": 27.0,
+        "duration_minutes": 85.0
+      },
+      "SZX": {
+        "time_minutes": 35.0,
+        "cost_eur": 10.0,
+        "mode": "Metro",
+        "notes": "Shenzhen Metro Airport Express Line directly to SZX.",
+        "cost": 10.0,
+        "duration_minutes": 35.0
+      },
+      "CAN": {
+        "time_minutes": 150.0,
+        "cost_eur": 48.0,
+        "mode": "Didi",
+        "notes": "Didi from home directly to CAN.",
+        "cost": 48.0,
+        "duration_minutes": 150.0
+      },
+      "NUE": {
+        "time_minutes": 30.0,
+        "cost_eur": 10.0,
+        "mode": "Public transport",
+        "notes": "U2 metro to Nuremberg city, then connecting regional train.",
+        "cost": 10.0,
+        "duration_minutes": 30.0
+      },
+      "MUC": {
+        "time_minutes": 120.0,
+        "cost_eur": 35.0,
+        "mode": "DB",
+        "notes": "Deutsche Bahn from Nuremberg to Munich.",
+        "cost": 35.0,
+        "duration_minutes": 120.0
+      },
+      "FRA": {
+        "time_minutes": 130.0,
+        "cost_eur": 73.0,
+        "mode": "DB ICE/RE",
+        "notes": "Deutsche Bahn ICE or RE from Nuremberg to Frankfurt Flughafen.",
+        "cost": 73.0,
+        "duration_minutes": 130.0
+      }
+    }
+  },
+  "shenzhen shuiwan 1979|erlangen hauptbahnhof|CAN,FRA,HKG,MUC,NUE,SZX": {
+    "home_display": "水湾1979, 招商街道, 南山区, 深圳市, 广东省, 518000, 中国",
+    "dest_display": "Hauptbahnhof, Parkplatzstraße, Innenstadt, Erlangen, Bayern, 91054, Deutschland",
+    "home_coords": [
+      22.4925961,
+      113.9137107
+    ],
+    "dest_coords": [
+      49.5955417,
+      11.0005867
+    ],
+    "ai_powered": false,
+    "legs": {
+      "HKG": {
+        "time_minutes": 41.0,
+        "cost_eur": 57.0,
+        "distance_km": 38.0,
+        "mode": "Driving (estimate)",
+        "notes": "OSRM driving fallback — AI unavailable",
+        "cost": 57.0,
+        "duration_minutes": 41.0
+      },
+      "SZX": {
+        "time_minutes": 22.9,
+        "cost_eur": 36.9,
+        "distance_km": 24.6,
+        "mode": "Driving (estimate)",
+        "notes": "OSRM driving fallback — AI unavailable",
+        "cost": 36.9,
+        "duration_minutes": 22.9
+      },
+      "CAN": {
+        "time_minutes": 99.3,
+        "cost_eur": 210.3,
+        "distance_km": 140.2,
+        "mode": "Driving (estimate)",
+        "notes": "OSRM driving fallback — AI unavailable",
+        "cost": 210.3,
+        "duration_minutes": 99.3
+      },
+      "FRA": {
+        "time_minutes": 139.7,
+        "cost_eur": 319.95,
+        "distance_km": 213.3,
+        "mode": "Driving (estimate)",
+        "notes": "OSRM driving fallback — AI unavailable",
+        "cost": 319.95,
+        "duration_minutes": 139.7
+      },
+      "MUC": {
+        "time_minutes": 106.5,
+        "cost_eur": 270.15,
+        "distance_km": 180.1,
+        "mode": "Driving (estimate)",
+        "notes": "OSRM driving fallback — AI unavailable",
+        "cost": 270.15,
+        "duration_minutes": 106.5
+      },
+      "NUE": {
+        "time_minutes": 16.0,
+        "cost_eur": 22.35,
+        "distance_km": 14.9,
+        "mode": "Driving (estimate)",
+        "notes": "OSRM driving fallback — AI unavailable",
+        "cost": 22.35,
+        "duration_minutes": 16.0
+      }
+    }
+  }
+}
