@@ -481,7 +481,12 @@ def fetch_return_legs(
             return None
 
     if data.get("error"):
-        logger.warning(f"Return leg API error: {data['error']}")
+        err_msg = data["error"]
+        logger.warning(f"Return leg API error: {err_msg}")
+        # Detect quota exhaustion so the caller can surface a specific warning
+        _quota_kws = ("run out", "upgrade", "monthly", "plan", "credit", "quota", "exceeded")
+        if any(kw in err_msg.lower() for kw in _quota_kws):
+            raise QuotaExhaustedError(err_msg)
         return None
 
     # Log top-level keys so we can diagnose what SerpApi returns for step-2 calls

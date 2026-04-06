@@ -153,9 +153,11 @@ async def search_stream(
             cache_age_hours_list: list[float] = []
 
             # ── Server-side date validation ────────────────────────────────────
+            # Use a new local var to avoid the UnboundLocalError that would occur
+            # if we tried to reassign the closure-captured date_combos.
             today = _date.today().isoformat()
-            valid_combos = [(od, rd) for od, rd in date_combos if od >= today and rd > today]
-            if not valid_combos:
+            active_combos = [(od, rd) for od, rd in date_combos if od >= today and rd > today]
+            if not active_combos:
                 yield sse({
                     "type": "error",
                     "message": (
@@ -164,7 +166,6 @@ async def search_stream(
                     ),
                 })
                 return
-            date_combos = valid_combos
 
             cache_file = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)), "flight_cache.json"
@@ -217,7 +218,7 @@ async def search_stream(
                 (o, d, od, rd)
                 for o in origin_list
                 for d in dest_list
-                for (od, rd) in date_combos
+                for (od, rd) in active_combos
             ]
             total = len(combinations)
 
