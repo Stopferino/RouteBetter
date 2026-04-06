@@ -152,16 +152,46 @@ async def search_stream(
             loop = asyncio.get_event_loop()
             cache_age_hours_list: list[float] = []
 
-            # ── Server-side date validation ────────────────────────────────────
-            # Use a new local var to avoid the UnboundLocalError that would occur
-            # if we tried to reassign the closure-captured date_combos.
+            # ── Strict boundary validation on raw user-input dates ─────────────
+            # This fires BEFORE any ±1-day window expansion so a past outbound
+            # date is always rejected, even if the window would produce some
+            # future variants.
             today = _date.today().isoformat()
+            if outbound_date < today:
+                yield sse({
+                    "type": "error",
+                    "message": (
+                        f"Outbound date {outbound_date} is in the past. "
+                        "Please choose a future departure date."
+                    ),
+                })
+                return
+            if return_date <= today:
+                yield sse({
+                    "type": "error",
+                    "message": (
+                        f"Return date {return_date} is in the past or today. "
+                        "Please choose a future return date."
+                    ),
+                })
+                return
+            if return_date <= outbound_date:
+                yield sse({
+                    "type": "error",
+                    "message": (
+                        f"Return date {return_date} must be after outbound date {outbound_date}."
+                    ),
+                })
+                return
+
+            # ── Secondary filter: drop any window-expanded combos that slipped past today ─
+            # (date_window expansion may produce negative-offset variants in the past)
             active_combos = [(od, rd) for od, rd in date_combos if od >= today and rd > today]
             if not active_combos:
                 yield sse({
                     "type": "error",
                     "message": (
-                        "All selected dates are in the past. "
+                        "No valid date combinations remain after applying the ±1 day window. "
                         "Please choose future dates and try again."
                     ),
                 })
