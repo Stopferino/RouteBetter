@@ -22,7 +22,12 @@
       .card-hover:hover { box-shadow: 0 8px 30px rgba(37,99,235,0.15); transform: translateY(-2px); }
     }
     .progress-bar { transition: width 0.5s ease-in-out; }
-    .log-scroll { max-height: 160px; overflow-y: auto; scroll-behavior: smooth; }
+    .log-scroll { max-height: 320px; overflow-y: auto; scroll-behavior: smooth; }
+    /* Force sidebar and results visible on large screens even when Alpine hides for mobile tabs */
+    @media (min-width: 1024px) {
+      #sidebar-panel { display: block !important; }
+      #results-area  { display: block !important; }
+    }
     .rank-badge-1 { background: linear-gradient(135deg, #f59e0b, #d97706); }
     .rank-badge-2 { background: linear-gradient(135deg, #94a3b8, #64748b); }
     .rank-badge-3 { background: linear-gradient(135deg, #cd7c3a, #b45309); }
@@ -55,11 +60,32 @@
   </div>
 </header>
 
+<!-- ── MOBILE TAB BAR (hidden on lg+) ───────────────────────────────────────── -->
+<div class="lg:hidden sticky top-0 z-20 bg-white border-b border-slate-200 shadow-sm flex">
+  <button type="button"
+          @click="mobileTab = 'search'"
+          class="flex-1 py-2.5 text-sm font-semibold border-b-2 transition-colors"
+          :class="mobileTab === 'search' ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-slate-500 hover:text-slate-700'">
+    ✈ Search
+  </button>
+  <button type="button"
+          @click="mobileTab = 'results'"
+          class="flex-1 py-2.5 text-sm font-semibold border-b-2 transition-colors relative"
+          :class="mobileTab === 'results' ? 'border-blue-600 text-blue-600 bg-blue-50' : 'border-transparent text-slate-500 hover:text-slate-700'">
+    Results
+    <span x-show="results.length > 0"
+          class="ml-1 inline-flex items-center justify-center bg-blue-600 text-white text-xs font-bold rounded-full w-5 h-5"
+          x-text="results.length"></span>
+    <span x-show="searching && results.length === 0"
+          class="ml-1 inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+  </button>
+</div>
+
 <!-- ── MAIN LAYOUT ───────────────────────────────────────────────────────────── -->
 <div class="max-w-screen-xl mx-auto px-4 py-6 flex gap-6 flex-col lg:flex-row">
 
   <!-- ── SIDEBAR (Search Form) ─────────────────────────────────────────────── -->
-  <aside class="w-full lg:w-80 shrink-0">
+  <aside id="sidebar-panel" class="w-full lg:w-80 shrink-0" x-show="mobileTab === 'search'">
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200">
       <div class="gradient-header text-white px-5 py-3 rounded-t-2xl">
         <h2 class="font-semibold text-sm tracking-wide uppercase">Search Parameters</h2>
@@ -269,15 +295,7 @@
   </aside>
 
   <!-- ── MAIN CONTENT AREA ─────────────────────────────────────────────────── -->
-  <main id="results-area" class="flex-1 min-w-0 space-y-4">
-
-    <!-- Mobile: "Modify Search" back button — only shown on small screens after search starts -->
-    <div class="lg:hidden" x-show="searching || rawResults.length > 0 || showProgress">
-      <button @click="document.querySelector('aside').scrollIntoView({behavior:'smooth'})"
-              class="w-full flex items-center justify-center gap-2 bg-white border border-slate-200 rounded-xl py-2.5 text-sm font-semibold text-slate-600 shadow-sm active:bg-slate-50">
-        ↑ Modify Search
-      </button>
-    </div>
+  <main id="results-area" class="flex-1 min-w-0 space-y-4" x-show="mobileTab === 'results'">
 
     <!-- Progress Panel -->
     <div x-show="showProgress" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden slide-down">
@@ -911,6 +929,9 @@ function flightApp() {
     showProgress: false,
     logsExpanded: true,
 
+    // Mobile tab switcher ('search' | 'results')
+    mobileTab: 'search',
+
     // Restore session-persisted fields on load; save on change.
     // sessionStorage resets when the browser window/tab is closed.
     init() {
@@ -919,6 +940,12 @@ function flightApp() {
       this.destsRaw    = ss('fo_destsRaw',    'FRA; MUC; NUE');
       this.homeAddress = ss('fo_homeAddress', '');
       this.destAddress = ss('fo_destAddress', '');
+
+      // Enforce future-only dates on both date inputs
+      const todayStr = new Date().toISOString().slice(0, 10);
+      this.$nextTick(() => {
+        document.querySelectorAll('input[type="date"]').forEach(el => { el.min = todayStr; });
+      });
       this.$watch('originsRaw',  v => sessionStorage.setItem('fo_originsRaw',  v));
       this.$watch('destsRaw',    v => sessionStorage.setItem('fo_destsRaw',    v));
       this.$watch('homeAddress', v => sessionStorage.setItem('fo_homeAddress', v));
@@ -1021,6 +1048,15 @@ function flightApp() {
     startSearch() {
       if (this.searching) return;
       this.errorMsg = '';
+      const today = new Date().toISOString().slice(0, 10);
+      if (this.outboundDate && this.outboundDate < today) {
+        this.errorMsg = 'Outbound date cannot be in the past. Please choose a future date.';
+        return;
+      }
+      if (this.returnDate && this.returnDate < today) {
+        this.errorMsg = 'Return date cannot be in the past. Please choose a future date.';
+        return;
+      }
       if (this.outboundDate && this.returnDate && this.returnDate <= this.outboundDate) {
         this.errorMsg = 'Return date must be after the outbound date.';
         return;
@@ -1038,12 +1074,9 @@ function flightApp() {
       this.showProgress = true;
       this.logsExpanded = true;
 
-      // On mobile, scroll down to show the progress/results area
+      // On mobile, switch to the Results tab so progress is immediately visible
       if (window.innerWidth < 1024) {
-        this.$nextTick(() => {
-          const el = document.getElementById('results-area');
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
+        this.mobileTab = 'results';
       }
 
       if (this._es) this._es.close();
@@ -1084,6 +1117,8 @@ function flightApp() {
           this.rescored = false;
           this.applyFilters();
           this.fetchUsage();
+          // Auto-switch to results tab on mobile when data arrives
+          if (window.innerWidth < 1024) this.mobileTab = 'results';
         } else if (msg.type === 'error') {
           this.errorMsg = msg.message;
           this.searching = false;

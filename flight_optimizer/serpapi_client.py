@@ -18,6 +18,12 @@ SERPAPI_BASE_URL = "https://serpapi.com/search"
 class QuotaExhaustedError(RuntimeError):
     """Raised when the SerpApi monthly search quota has been reached."""
 
+class PastDateError(ValueError):
+    """Raised when the outbound or return date is in the past."""
+
+class InvalidApiKeyError(RuntimeError):
+    """Raised when the SerpApi API key is invalid or expired."""
+
 # German airport IATA codes used to detect domestic DE segments
 GERMAN_AIRPORTS: frozenset = frozenset({
     "FRA", "MUC", "NUE", "DUS", "HAM", "BER", "TXL", "STR", "CGN",
@@ -141,14 +147,11 @@ def fetch_flights(
         logger.error(f"SerpApi error: {err_msg}")
 
         if "past" in err_msg.lower():
-            logger.error(
-                "  -> Date is in the past! "
-                "Please set OUTBOUND_DATE and RETURN_DATE to future dates in config.py."
-            )
-            sys.exit(1)
+            logger.error("  -> Date is in the past! Please use future dates.")
+            raise PastDateError(err_msg)
         if "api_key" in err_msg.lower() or "invalid" in err_msg.lower():
             logger.error("  -> Invalid or expired SERPAPI_KEY.")
-            sys.exit(1)
+            raise InvalidApiKeyError(err_msg)
 
         # Quota / plan limit exhausted — raise so the caller can surface a clear message
         _quota_kws = ("run out", "upgrade", "monthly", "plan", "credit", "quota", "exceeded")

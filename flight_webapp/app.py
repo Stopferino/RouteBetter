@@ -136,7 +136,10 @@ async def search_stream(
 
         _active_searches += 1
         try:
-            from flight_optimizer.serpapi_client import fetch_flights, fetch_return_legs, QuotaExhaustedError
+            from flight_optimizer.serpapi_client import (
+                fetch_flights, fetch_return_legs,
+                QuotaExhaustedError, PastDateError, InvalidApiKeyError,
+            )
             from flight_optimizer.scorer import calculate_scores, apply_filters, recalculate_scores_with_return
             from flight_optimizer.exporter import export_to_excel
             from flight_optimizer.cache import (
@@ -148,6 +151,20 @@ async def search_stream(
 
             loop = asyncio.get_event_loop()
             cache_age_hours_list: list[float] = []
+
+            # ── Server-side date validation ────────────────────────────────────
+            today = _date.today().isoformat()
+            valid_combos = [(od, rd) for od, rd in date_combos if od >= today and rd > today]
+            if not valid_combos:
+                yield sse({
+                    "type": "error",
+                    "message": (
+                        "All selected dates are in the past. "
+                        "Please choose future dates and try again."
+                    ),
+                })
+                return
+            date_combos = valid_combos
 
             cache_file = os.path.join(
                 os.path.dirname(os.path.dirname(__file__)), "flight_cache.json"
@@ -216,15 +233,17 @@ async def search_stream(
             # at OUTBOUND_CONCURRENCY to stay within SerpApi rate limits.
             outbound_sem = asyncio.Semaphore(OUTBOUND_CONCURRENCY)
             quota_hit = False
+            past_date_hit = False
+            api_key_hit = False
 
             async def fetch_one_route(origin, dest, od, rd):
-                nonlocal quota_hit
+                nonlocal quota_hit, past_date_hit, api_key_hit
                 label = f"{origin}→{dest}  {od} ↔ {rd}"
                 cached = get_cached(cache, origin, dest, od, rd) if use_cache else None
                 if cached is not None:
                     age = get_cache_age_hours(cache, origin, dest, od, rd)
                     return cached, True, age, label
-                if quota_hit:
+                if quota_hit or past_date_hit or api_key_hit:
                     return [], False, None, label
                 async with outbound_sem:
                     def _do(o=origin, d=dest, outd=od, retd=rd):
@@ -238,6 +257,12 @@ async def search_stream(
                         flights = await loop.run_in_executor(None, _do)
                     except QuotaExhaustedError:
                         quota_hit = True
+                        return [], False, None, label
+                    except PastDateError:
+                        past_date_hit = True
+                        return [], False, None, label
+                    except InvalidApiKeyError:
+                        api_key_hit = True
                         return [], False, None, label
                     if flights:
                         set_cached(cache, origin, dest, od, rd, flights)
@@ -272,6 +297,25 @@ async def search_stream(
             if cache_dirty:
                 await loop.run_in_executor(None, save_cache, cache, cache_file)
 
+            # Surface hard errors first — these abort the search with a clear message
+            if api_key_hit:
+                yield sse({
+                    "type": "error",
+                    "message": (
+                        "Invalid or expired SerpApi API key. "
+                        "Check that SERPAPI_KEY is set correctly in your environment."
+                    ),
+                })
+                return
+            if past_date_hit and not all_flights:
+                yield sse({
+                    "type": "error",
+                    "message": (
+                        "The search dates are in the past. "
+                        "Please choose future dates and try again."
+                    ),
+                })
+                return
             if quota_hit and not all_flights:
                 yield sse({
                     "type": "error",
@@ -339,8 +383,10 @@ async def search_stream(
 
             # ── Parallel return-leg fetch ──────────────────────────────────────
             return_sem = asyncio.Semaphore(RETURN_CONCURRENCY)
+            ret_quota_hit = False
 
             async def fetch_return_one(rank_idx, flight):
+                nonlocal ret_quota_hit
                 token = flight.get("departure_token", "")
                 if not token:
                     return rank_idx, flight, None, False
@@ -348,6 +394,8 @@ async def search_stream(
                 if cached_ret:
                     flight.update(cached_ret)
                     return rank_idx, flight, None, True  # (idx, flight, ret_data, from_cache)
+                if ret_quota_hit:
+                    return rank_idx, flight, None, False
                 async with return_sem:
                     def _do_ret(t=token, f=flight):
                         return fetch_return_legs(
@@ -358,6 +406,10 @@ async def search_stream(
                         )
                     try:
                         ret = await loop.run_in_executor(None, _do_ret)
+                    except QuotaExhaustedError:
+                        ret_quota_hit = True
+                        logger.warning(f"Return leg {rank_idx + 1}: quota exhausted")
+                        ret = None
                     except Exception as ret_err:
                         logger.warning(f"Return leg {rank_idx + 1} fetch raised: {ret_err}")
                         ret = None
@@ -392,6 +444,15 @@ async def search_stream(
 
             if return_cache_dirty:
                 await loop.run_in_executor(None, save_cache, cache, cache_file)
+
+            if ret_quota_hit:
+                yield sse({
+                    "type": "log",
+                    "message": (
+                        "⚠ SerpApi quota exhausted during return-leg fetch — "
+                        "some return details may be incomplete. Scores based on outbound data."
+                    ),
+                })
 
             yield sse({"type": "progress", "percent": 93, "label": "Re-ranking by round-trip score…"})
             candidate_flights = recalculate_scores_with_return(
