@@ -18,9 +18,14 @@ logger = logging.getLogger(__name__)
 GOOD_DEAL_THRESHOLD = 0.90      # price <= median * this → GOOD DEAL
 OVERPRICED_THRESHOLD = 1.10     # price >= median * this → OVERPRICED
 LOW_CONFIDENCE_THRESHOLD = 3    # fewer than this many valid flights → LOW confidence
+MEDIUM_CONFIDENCE_THRESHOLD = 5  # >= this many valid flights → at least MEDIUM confidence
+HIGH_CONFIDENCE_THRESHOLD = 10   # >= this many valid flights AND small spread → HIGH confidence
+HIGH_CONFIDENCE_SPREAD_LIMIT = 1.5  # (max_price - min_price) / median_price < this → eligible for HIGH
 VALID_DEAL_LABELS = frozenset({"GOOD DEAL", "MARKET PRICE", "OVERPRICED"})
 SHORT_ROUTE_DURATION_MINUTES = 90   # routes with median < this skip duration filter
 PRICE_OUTLIER_MULTIPLIER = 1.5      # price > median * this → outlier, reject
+DEAL_DOWNGRADE_DURATION_MULTIPLIER = 1.2   # duration > median * this → downgrade GOOD DEAL
+DEAL_EXTREME_DURATION_MULTIPLIER = 1.5     # duration > median * this → downgrade MARKET PRICE
 
 
 # ── Statistics ────────────────────────────────────────────────────────────────
@@ -48,9 +53,19 @@ def _compute_stats(flights: list[dict]) -> dict:
 
 # ── Deal classification ───────────────────────────────────────────────────────
 
-def classify_deal(price: float, median_price: float) -> str:
+def classify_deal(
+    price: float,
+    median_price: float,
+    duration: Optional[float] = None,
+    median_duration: Optional[float] = None,
+) -> str:
     """
     Classify a flight's price relative to the market median.
+
+    Optionally accepts *duration* and *median_duration* to apply a
+    duration-aware downgrade:
+      - GOOD DEAL → MARKET PRICE  if duration > DEAL_DOWNGRADE_DURATION_MULTIPLIER × median_duration
+      - MARKET PRICE → OVERPRICED if duration > DEAL_EXTREME_DURATION_MULTIPLIER  × median_duration
 
     Returns one of: "GOOD DEAL", "MARKET PRICE", "OVERPRICED"
     """
@@ -58,19 +73,44 @@ def classify_deal(price: float, median_price: float) -> str:
         return "MARKET PRICE"
     ratio = price / median_price
     if ratio <= GOOD_DEAL_THRESHOLD:
-        return "GOOD DEAL"
-    if ratio >= OVERPRICED_THRESHOLD:
-        return "OVERPRICED"
-    return "MARKET PRICE"
+        label = "GOOD DEAL"
+    elif ratio >= OVERPRICED_THRESHOLD:
+        label = "OVERPRICED"
+    else:
+        label = "MARKET PRICE"
+
+    # Duration-aware downgrade
+    if duration is not None and median_duration and median_duration > 0:
+        if label == "GOOD DEAL" and duration > DEAL_DOWNGRADE_DURATION_MULTIPLIER * median_duration:
+            label = "MARKET PRICE"
+        elif label == "MARKET PRICE" and duration > DEAL_EXTREME_DURATION_MULTIPLIER * median_duration:
+            label = "OVERPRICED"
+
+    return label
 
 
 # ── Confidence ────────────────────────────────────────────────────────────────
 
-def _compute_confidence(valid_flights: list[dict]) -> str:
-    """Return 'LOW' if the dataset is small, 'HIGH' otherwise."""
-    if len(valid_flights) < LOW_CONFIDENCE_THRESHOLD:
-        return "LOW"
-    return "HIGH"
+def _compute_confidence(valid_flights: list[dict], stats: dict) -> str:
+    """
+    Return confidence level based on dataset size and price spread.
+
+    - HIGH:   num_valid >= HIGH_CONFIDENCE_THRESHOLD and spread < HIGH_CONFIDENCE_SPREAD_LIMIT
+    - MEDIUM: num_valid >= MEDIUM_CONFIDENCE_THRESHOLD
+    - LOW:    otherwise
+    """
+    num_valid    = len(valid_flights)
+    median_price = float(stats.get("median_price") or 0)
+    min_price    = float(stats.get("min_price")    or 0)
+    max_price    = float(stats.get("max_price")    or 0)
+
+    spread = (max_price - min_price) / median_price if median_price > 0 else 0.0
+
+    if num_valid >= HIGH_CONFIDENCE_THRESHOLD and spread < HIGH_CONFIDENCE_SPREAD_LIMIT:
+        return "HIGH"
+    if num_valid >= MEDIUM_CONFIDENCE_THRESHOLD:
+        return "MEDIUM"
+    return "LOW"
 
 
 # ── Sanity validation ─────────────────────────────────────────────────────────
@@ -281,17 +321,27 @@ def run_decision_engine(
     ]
     rejected_count = len(working_flights) - len(valid_flights)
 
-    # ── Fallback: top-3 by score, re-validate (Step 4) ───────────────────────
+    # ── Fallback: top-3 by score with route diversity (Step 4) ───────────────────
     if not valid_flights:
         logger.warning(
             "run_decision_engine: all %d flight(s) failed sanity check — "
-            "falling back to top-3 scored candidates",
+            "falling back to top-3 diverse scored candidates",
             rejected_count,
         )
-        fallback_candidates = sorted(
+        sorted_candidates = sorted(
             working_flights,
             key=lambda f: float(f.get("score") or 0),
-        )[:3]
+        )
+        # Pick up to 3 with unique route signatures (stops + airline)
+        seen_signatures: set[tuple] = set()
+        fallback_candidates: list[dict] = []
+        for f in sorted_candidates:
+            sig = (f.get("stops"), f.get("airline"))
+            if sig not in seen_signatures:
+                seen_signatures.add(sig)
+                fallback_candidates.append(f)
+            if len(fallback_candidates) == 3:
+                break
         fallback_reasons: list[str] = []
         valid_flights = [
             f for f in fallback_candidates
@@ -304,7 +354,7 @@ def run_decision_engine(
         fallback_triggered = True
 
     # ── Confidence ───────────────────────────────────────────────────────
-    confidence = _compute_confidence(valid_flights)
+    confidence = _compute_confidence(valid_flights, stats)
 
     # ── Select best and alternatives ──────────────────────────────────────
     best_flight  = valid_flights[0]
@@ -314,6 +364,8 @@ def run_decision_engine(
     deal_label = classify_deal(
         float(best_flight.get("price") or 0),
         stats["median_price"],
+        duration=float(best_flight["duration_minutes"]) if best_flight.get("duration_minutes") is not None else None,
+        median_duration=stats["median_duration"] or None,
     )
 
     # ── Explanation ───────────────────────────────────────────────────────
@@ -335,9 +387,13 @@ def run_decision_engine(
         "explanation":  explanation,
         "alternatives": alternatives[:3],
         "meta": {
-            "total_flights": len(flights),
-            "valid_flights": len(valid_flights),
-            "premium_only":  premium_only,
+            "total_flights":   len(flights),
+            "valid_flights":   len(valid_flights),
+            "premium_only":    premium_only,
+            "price_vs_median": (
+                round(float(best_flight.get("price") or 0) / stats["median_price"], 2)
+                if stats["median_price"] > 0 else None
+            ),
         },
     }
 

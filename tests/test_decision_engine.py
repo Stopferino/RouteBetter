@@ -111,7 +111,7 @@ def test_classify_deal_direct():
 # ── Confidence tests ──────────────────────────────────────────────────────────
 
 def test_low_confidence_small_dataset():
-    """Fewer than 3 valid flights → confidence = LOW."""
+    """Fewer than 5 valid flights → confidence = LOW."""
     flights = _sorted_flights([
         _make_flight(price=400.0, score=550.0),
         _make_flight(price=500.0, score=650.0),
@@ -120,14 +120,35 @@ def test_low_confidence_small_dataset():
     assert result["deal"]["confidence"] == "LOW"
 
 
-def test_high_confidence_large_dataset():
-    """5+ valid flights → confidence = HIGH."""
+def test_medium_confidence_dataset():
+    """5–9 valid flights → confidence = MEDIUM."""
     flights = _sorted_flights([
         _make_flight(price=400.0 + i * 20, score=550.0 + i * 30)
         for i in range(6)
     ])
     result = run_decision_engine(flights)
+    assert result["deal"]["confidence"] == "MEDIUM"
+
+
+def test_high_confidence_large_dataset():
+    """10+ valid flights with small price spread → confidence = HIGH."""
+    flights = _sorted_flights([
+        _make_flight(price=490.0 + i * 2, score=550.0 + i * 10)
+        for i in range(10)
+    ])
+    result = run_decision_engine(flights)
     assert result["deal"]["confidence"] == "HIGH"
+
+
+def test_high_confidence_wide_spread_downgrades_to_medium():
+    """10+ valid flights but wide price spread → confidence = MEDIUM, not HIGH."""
+    # prices span 200–900 → spread = (900-200)/median > 1.5 → not HIGH
+    flights = _sorted_flights([
+        _make_flight(price=200.0 + i * 80, score=550.0 + i * 10)
+        for i in range(10)
+    ])
+    result = run_decision_engine(flights)
+    assert result["deal"]["confidence"] == "MEDIUM"
 
 
 # ── Validation (sanity check) tests ──────────────────────────────────────────
@@ -274,7 +295,7 @@ def test_endpoint_response_structure():
 
     # deal constraints
     assert result["deal"]["label"]      in VALID_DEAL_LABELS
-    assert result["deal"]["confidence"] in {"HIGH", "LOW"}
+    assert result["deal"]["confidence"] in {"HIGH", "MEDIUM", "LOW"}
 
     # explanation constraints
     assert isinstance(result["explanation"], str)
@@ -285,9 +306,10 @@ def test_endpoint_response_structure():
     assert len(result["alternatives"]) <= 3
 
     # meta constraints
-    assert "total_flights"  in result["meta"]
-    assert "valid_flights"  in result["meta"]
-    assert "premium_only"   in result["meta"]
+    assert "total_flights"   in result["meta"]
+    assert "valid_flights"   in result["meta"]
+    assert "premium_only"    in result["meta"]
+    assert "price_vs_median" in result["meta"]
 
 
 def test_debug_fields_present_when_requested():
@@ -489,3 +511,120 @@ def test_debug_rejection_reasons_populated():
     )
     result = run_decision_engine(flights, debug=True)
     assert len(result["debug"]["validation_rejection_reasons"]) > 0
+
+
+# ── New feature tests ─────────────────────────────────────────────────────────
+
+def test_duration_aware_good_deal_downgrade():
+    """
+    GOOD DEAL → MARKET PRICE when duration > 1.2 × median_duration.
+    The cheap flight (price=350, score=400) has duration=800 min;
+    median_duration from other flights is ~600 min → 800 > 1.2*600=720 → downgrade.
+    """
+    from flight_optimizer.decision_engine import classify_deal
+
+    # Direct unit-test of classify_deal with duration params
+    assert classify_deal(350.0, 500.0, duration=800.0, median_duration=600.0) == "MARKET PRICE"
+    # Without duration params the price alone would be a GOOD DEAL
+    assert classify_deal(350.0, 500.0) == "GOOD DEAL"
+
+
+def test_duration_aware_market_price_extreme_downgrade():
+    """
+    MARKET PRICE → OVERPRICED when duration > 1.5 × median_duration.
+    """
+    from flight_optimizer.decision_engine import classify_deal
+
+    # price is MARKET PRICE by ratio, but extreme duration → OVERPRICED
+    assert classify_deal(500.0, 500.0, duration=950.0, median_duration=600.0) == "OVERPRICED"
+    # duration just below extreme threshold → still MARKET PRICE
+    assert classify_deal(500.0, 500.0, duration=899.0, median_duration=600.0) == "MARKET PRICE"
+
+
+def test_duration_aware_downgrade_in_engine():
+    """
+    run_decision_engine applies duration-aware downgrade: a cheap but slow
+    best flight is reported as MARKET PRICE, not GOOD DEAL.
+    """
+    # Best flight: cheap (GOOD DEAL by price) but slow (duration = 800 > 1.2*600=720)
+    slow_cheap = _make_flight(price=350.0, duration_minutes=800, stops=0, score=400.0)
+    # Normal flights: market price, median duration ~600
+    normal_flights = [
+        _make_flight(price=500.0, duration_minutes=600, stops=1, score=600.0 + i)
+        for i in range(9)
+    ]
+    flights = _sorted_flights([slow_cheap] + normal_flights)
+    result = run_decision_engine(flights)
+    # Price alone would be GOOD DEAL, but long duration downgrades it
+    assert result["deal"]["label"] == "MARKET PRICE"
+
+
+def test_fallback_diversity_unique_routes():
+    """
+    In the fallback path, flights sharing the same route signature
+    (stops + airline) are deduplicated so up to 3 distinct routes are chosen.
+    """
+    # 4 flights all failing validation (3 stops), but 3 different airlines
+    flights = _sorted_flights([
+        _make_flight(stops=3, airline="AirA", price=500.0, score=600.0),
+        _make_flight(stops=3, airline="AirA", price=510.0, score=610.0),  # duplicate sig
+        _make_flight(stops=3, airline="AirB", price=520.0, score=620.0),
+        _make_flight(stops=3, airline="AirC", price=530.0, score=630.0),
+    ])
+    result = run_decision_engine(flights, debug=True)
+    # fallback was used
+    assert result["debug"]["fallback_used"] is True
+    # best flight comes from the diversity-filtered set (first unique → AirA, price=500)
+    assert result["best_flight"]["airline"] == "AirA"
+    assert result["best_flight"]["price"]   == 500.0
+
+
+def test_fallback_diversity_excludes_duplicate_signature():
+    """
+    When multiple flights share the same (stops, airline), only the first
+    (best-scored) one enters the fallback candidate list.
+    """
+    # 5 flights, all 3 stops, all same airline → only 1 enters fallback
+    flights = _sorted_flights([
+        _make_flight(stops=3, airline="SameAir", price=500.0 + i * 10, score=600.0 + i * 10)
+        for i in range(5)
+    ])
+    result = run_decision_engine(flights)
+    # Must not crash; best_flight comes from the single unique candidate
+    assert result["best_flight"]["price"] == 500.0
+
+
+def test_price_vs_median_in_meta():
+    """meta.price_vs_median is the best flight's price divided by median, rounded to 2dp."""
+    # All flights at same price → price_vs_median == 1.0
+    flights = _sorted_flights([
+        _make_flight(price=500.0, score=600.0 + i)
+        for i in range(5)
+    ])
+    result = run_decision_engine(flights)
+    assert "price_vs_median" in result["meta"]
+    assert result["meta"]["price_vs_median"] == 1.0
+
+
+def test_price_vs_median_good_deal_ratio():
+    """price_vs_median reflects a below-median price correctly."""
+    # best flight price=400, median will be ~500 (mix of 400 and 500s)
+    flights = _sorted_flights(
+        [_make_flight(price=400.0, score=450.0)]
+        + [_make_flight(price=500.0, score=650.0 + i) for i in range(9)]
+    )
+    result = run_decision_engine(flights)
+    median = 500.0  # median of [400, 500, 500, …, 500]
+    expected = round(400.0 / median, 2)
+    assert result["meta"]["price_vs_median"] == expected
+
+
+def test_price_vs_median_none_when_no_median():
+    """price_vs_median is None in meta when median_price is 0 (all prices are zero)."""
+    flights = _sorted_flights([
+        _make_flight(price=0.0, score=600.0 + i)
+        for i in range(5)
+    ])
+    result = run_decision_engine(flights)
+    assert result["meta"]["price_vs_median"] is None
+
