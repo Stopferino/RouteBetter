@@ -484,6 +484,9 @@ async def search_stream(
                 if cached_ret:
                     flight.update(cached_ret)
                     return rank_idx, flight, None, True  # (idx, flight, ret_data, from_cache)
+                # In simulation mode, skip live return-leg API calls entirely
+                if use_mock:
+                    return rank_idx, flight, None, False
                 if ret_quota_hit:
                     return rank_idx, flight, None, False
                 async with return_sem:
@@ -529,6 +532,8 @@ async def search_stream(
                     set_cached_return(cache, updated_flight.get("departure_token", ""), ret_data)
                     return_cache_dirty = True
                     yield sse({"type": "log", "message": f"✓ Return leg {rank_idx + 1} fetched"})
+                elif use_mock:
+                    yield sse({"type": "log", "message": f"⚙ Return leg {rank_idx + 1} skipped in simulation mode — using outbound score"})
                 else:
                     yield sse({"type": "log", "message": f"⚠ Return leg {rank_idx + 1} unavailable — using outbound score"})
 
