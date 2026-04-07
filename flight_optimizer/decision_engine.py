@@ -15,10 +15,12 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 # ── Constants ─────────────────────────────────────────────────────────────────
-GOOD_DEAL_THRESHOLD = 0.85      # price < median * this → GOOD DEAL
-OVERPRICED_THRESHOLD = 1.15     # price > median * this → OVERPRICED
+GOOD_DEAL_THRESHOLD = 0.90      # price <= median * this → GOOD DEAL
+OVERPRICED_THRESHOLD = 1.10     # price >= median * this → OVERPRICED
 LOW_CONFIDENCE_THRESHOLD = 3    # fewer than this many valid flights → LOW confidence
 VALID_DEAL_LABELS = frozenset({"GOOD DEAL", "MARKET PRICE", "OVERPRICED"})
+SHORT_ROUTE_DURATION_MINUTES = 90   # routes with median < this skip duration filter
+PRICE_OUTLIER_MULTIPLIER = 1.5      # price > median * this → outlier, reject
 
 
 # ── Statistics ────────────────────────────────────────────────────────────────
@@ -55,9 +57,9 @@ def classify_deal(price: float, median_price: float) -> str:
     if median_price <= 0:
         return "MARKET PRICE"
     ratio = price / median_price
-    if ratio < GOOD_DEAL_THRESHOLD:
+    if ratio <= GOOD_DEAL_THRESHOLD:
         return "GOOD DEAL"
-    if ratio > OVERPRICED_THRESHOLD:
+    if ratio >= OVERPRICED_THRESHOLD:
         return "OVERPRICED"
     return "MARKET PRICE"
 
@@ -73,16 +75,22 @@ def _compute_confidence(valid_flights: list[dict]) -> str:
 
 # ── Sanity validation ─────────────────────────────────────────────────────────
 
-def validate_recommendation(best_flight: dict, stats: dict) -> bool:
+def validate_recommendation(
+    best_flight: dict,
+    stats: dict,
+    _reasons: list | None = None,
+) -> bool:
     """
     Sanity-check a candidate flight recommendation.
 
     Rules:
       1. Completeness: price, duration_minutes, and stops must all be present.
       2. Duration sanity: duration_minutes <= median_duration * 1.5
+         (skipped when median_duration < SHORT_ROUTE_DURATION_MINUTES)
       3. Stops sanity:    stops < 3
-      4. Price sanity:    price <= stats["max_price"]
+      4. Price outlier:   price <= median_price * PRICE_OUTLIER_MULTIPLIER
 
+    Pass *_reasons* (a list) to collect human-readable rejection reasons.
     Returns True if the flight passes all checks, False otherwise.
     """
     # 1. Completeness
@@ -91,6 +99,8 @@ def validate_recommendation(best_flight: dict, stats: dict) -> bool:
             logger.warning(
                 "validate_recommendation: missing required field '%s'", field
             )
+            if _reasons is not None:
+                _reasons.append(f"missing field: {field}")
             return False
 
     price    = float(best_flight["price"])
@@ -98,31 +108,46 @@ def validate_recommendation(best_flight: dict, stats: dict) -> bool:
     stops    = int(best_flight["stops"])
 
     median_duration = float(stats.get("median_duration") or 0)
-    max_price       = float(stats.get("max_price") or float("inf"))
+    median_price    = float(stats.get("median_price") or 0)
 
-    # 2. Duration sanity
-    if median_duration > 0 and duration > median_duration * 1.5:
-        logger.warning(
-            "validate_recommendation: duration %.0fmin > median*1.5 (%.0fmin) — rejected",
-            duration,
-            median_duration * 1.5,
-        )
-        return False
+    # 2. Duration sanity (skip for short-haul routes)
+    if median_duration >= SHORT_ROUTE_DURATION_MINUTES:
+        if median_duration > 0 and duration > median_duration * 1.5:
+            limit = median_duration * 1.5
+            logger.warning(
+                "validate_recommendation: duration %.0fmin > median*1.5 (%.0fmin) — rejected",
+                duration,
+                limit,
+            )
+            if _reasons is not None:
+                _reasons.append(
+                    f"duration too long: {duration:.0f}min > {limit:.0f}min"
+                )
+            return False
 
     # 3. Stops sanity
     if stops >= 3:
         logger.warning(
             "validate_recommendation: %d stops >= 3 — rejected", stops
         )
+        if _reasons is not None:
+            _reasons.append(f"too many stops: {stops}")
         return False
 
-    # 4. Price sanity
-    if price > max_price:
+    # 4. Price outlier check
+    if median_price > 0 and price > PRICE_OUTLIER_MULTIPLIER * median_price:
+        limit = PRICE_OUTLIER_MULTIPLIER * median_price
         logger.warning(
-            "validate_recommendation: price %.2f > max_price %.2f — rejected",
+            "validate_recommendation: price %.2f > %.1f × median_price %.2f — rejected",
             price,
-            max_price,
+            PRICE_OUTLIER_MULTIPLIER,
+            median_price,
         )
+        if _reasons is not None:
+            _reasons.append(
+                f"price outlier: {price:.2f} > {limit:.2f} "
+                f"({PRICE_OUTLIER_MULTIPLIER}× median_price {median_price:.2f})"
+            )
         return False
 
     return True
@@ -246,26 +271,36 @@ def run_decision_engine(
         stats["median_duration"],
     )
 
-    # ── Sanity-validate candidates ────────────────────────────────────────
-    rejected_count = 0
+    # ── Sanity-validate candidates (Step 5: collect all valid first) ─────────
+    rejection_reasons: list[str] = []
     fallback_triggered = False
-    valid_flights: list[dict] = []
 
-    for flight in working_flights:
-        if validate_recommendation(flight, stats):
-            valid_flights.append(flight)
-        else:
-            rejected_count += 1
+    valid_flights: list[dict] = [
+        f for f in working_flights
+        if validate_recommendation(f, stats, rejection_reasons)
+    ]
+    rejected_count = len(working_flights) - len(valid_flights)
 
-    # If validation rejects everything, fall back to the unfiltered working set
+    # ── Fallback: top-3 by score, re-validate (Step 4) ───────────────────────
     if not valid_flights:
         logger.warning(
             "run_decision_engine: all %d flight(s) failed sanity check — "
-            "falling back to unfiltered working set",
+            "falling back to top-3 scored candidates",
             rejected_count,
         )
-        valid_flights = working_flights
-        rejected_count = 0
+        fallback_candidates = sorted(
+            working_flights,
+            key=lambda f: float(f.get("score") or 0),
+        )[:3]
+        fallback_reasons: list[str] = []
+        valid_flights = [
+            f for f in fallback_candidates
+            if validate_recommendation(f, stats, fallback_reasons)
+        ]
+        if not valid_flights:
+            # Last resort: accept the best-scored candidate unconditionally
+            valid_flights = fallback_candidates[:1]
+        rejection_reasons.extend(fallback_reasons)
         fallback_triggered = True
 
     # ── Confidence ───────────────────────────────────────────────────────
@@ -308,10 +343,13 @@ def run_decision_engine(
 
     if debug:
         result["debug"] = {
-            "median_duration":        stats["median_duration"],
-            "median_price":           stats["median_price"],
-            "rejected_flights_count": rejected_count,
-            "fallback_triggered":     fallback_triggered,
+            "median_duration":              stats["median_duration"],
+            "median_price":                 stats["median_price"],
+            "rejected_flights_count":       rejected_count,
+            "fallback_triggered":           fallback_triggered,
+            "fallback_used":                fallback_triggered,
+            "num_valid_flights":            len(valid_flights),
+            "validation_rejection_reasons": rejection_reasons,
         }
 
     # ── Guards ────────────────────────────────────────────────────────────

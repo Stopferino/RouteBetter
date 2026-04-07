@@ -321,3 +321,171 @@ def test_alternatives_max_three():
     ])
     result = run_decision_engine(flights)
     assert len(result["alternatives"]) <= 3
+
+
+# ── New threshold / validation tests (Steps 1–5) ─────────────────────────────
+
+def test_deal_thresholds_updated():
+    """
+    Verify the updated boundaries:
+      - price == 0.90 × median → GOOD DEAL  (inclusive)
+      - price == 1.10 × median → OVERPRICED (inclusive)
+      - price between 0.90 and 1.10 × median → MARKET PRICE
+    """
+    from flight_optimizer.decision_engine import classify_deal
+
+    median = 500.0
+    # Exactly at the GOOD DEAL boundary
+    assert classify_deal(median * 0.90, median) == "GOOD DEAL"
+    # Exactly at the OVERPRICED boundary
+    assert classify_deal(median * 1.10, median) == "OVERPRICED"
+    # Just inside MARKET PRICE from below (0.91 × median)
+    assert classify_deal(median * 0.91, median) == "MARKET PRICE"
+    # Just inside MARKET PRICE from above (1.09 × median)
+    assert classify_deal(median * 1.09, median) == "MARKET PRICE"
+
+
+def test_price_outlier_rejection():
+    """A flight priced > 1.5× median is rejected by validate_recommendation."""
+    # median_price = 500, so 1.5 × 500 = 750; price 800 is an outlier
+    flight = _make_flight(price=800.0, duration_minutes=600, stops=0)
+    stats  = _make_stats(median_price=500.0, median_duration=600.0)
+    assert validate_recommendation(flight, stats) is False
+
+
+def test_price_outlier_boundary_passes():
+    """A flight priced exactly at 1.5× median passes (boundary is exclusive)."""
+    flight = _make_flight(price=750.0, duration_minutes=600, stops=0)
+    stats  = _make_stats(median_price=500.0, median_duration=600.0)
+    assert validate_recommendation(flight, stats) is True
+
+
+def test_short_route_duration_skip():
+    """
+    When median_duration < 90 minutes, the duration filter is skipped
+    entirely so that short-haul routes are not over-filtered.
+    """
+    # median 60 min → skip duration filter; flight's 200 min should be accepted
+    flight = _make_flight(price=100.0, duration_minutes=200, stops=0)
+    stats  = _make_stats(median_price=100.0, median_duration=60.0)
+    assert validate_recommendation(flight, stats) is True
+
+
+def test_duration_filter_still_applied_above_threshold():
+    """Duration filter applies when median_duration >= 90 minutes."""
+    # median 120 min → filter active; 300 > 120 × 1.5 = 180 → rejected
+    flight = _make_flight(price=500.0, duration_minutes=300, stops=0)
+    stats  = _make_stats(median_price=500.0, median_duration=120.0)
+    assert validate_recommendation(flight, stats) is False
+
+
+def test_safe_fallback_top3_only():
+    """
+    When all flights fail validation, the fallback only considers top-3 by
+    score.  The best_flight must come from those top-3, not from the rest.
+    """
+    # 5 flights with 3 stops (all fail validation)
+    # Scores: 600, 610, 620, 630, 640 — top-3 lowest-scored (best) are 600, 610, 620
+    flights = _sorted_flights([
+        _make_flight(stops=3, price=500.0 + i * 10, score=600.0 + i * 10)
+        for i in range(5)
+    ])
+    result = run_decision_engine(flights)
+    # best_flight must be one of the top-3-scored flights
+    top3_prices = {500.0, 510.0, 520.0}
+    assert result["best_flight"]["price"] in top3_prices
+    assert result["best_flight"] is not None
+
+
+def test_valid_flight_selection_logic():
+    """
+    All valid flights are collected first, then the best (lowest-scored) is
+    chosen.  A high-scored expensive flight ranked first should NOT be chosen
+    over a lower-scored cheaper flight that also passes validation.
+    """
+    # cheap flight has best score (lowest), expensive has second-best score
+    cheap_flight     = _make_flight(price=400.0, duration_minutes=600, stops=0, score=500.0)
+    expensive_flight = _make_flight(price=900.0, duration_minutes=600, stops=0, score=600.0)
+    normal_flights   = [
+        _make_flight(price=500.0, duration_minutes=600, stops=1, score=700.0 + i)
+        for i in range(8)
+    ]
+    flights = _sorted_flights([cheap_flight, expensive_flight] + normal_flights)
+    result  = run_decision_engine(flights)
+    # The cheap flight (best score, passes validation) should be chosen
+    assert result["best_flight"]["price"] == 400.0
+
+
+def test_never_recommend_extreme_duration():
+    """
+    A very cheap flight with duration > 2× median must NOT be selected
+    as best_flight when better alternatives exist.
+
+    Step 6 human sanity test.
+    """
+    # cheap_extreme: great price, but 2 × 600 = 1200 min duration (way over 1.5 × median)
+    cheap_extreme = _make_flight(
+        price=100.0, duration_minutes=1300, stops=0, score=400.0
+    )
+    # normal flights: reasonable price and duration
+    normal_flights = _sorted_flights([
+        _make_flight(price=500.0, duration_minutes=600, stops=1, score=600.0 + i)
+        for i in range(5)
+    ])
+    # median_duration will be ~600 (set by the normal flights); 1300 > 600 × 1.5 = 900
+    flights = _sorted_flights([cheap_extreme] + normal_flights)
+    result  = run_decision_engine(flights)
+    assert result["best_flight"]["duration_minutes"] != 1300, (
+        "Extreme-duration flight must never be selected as best_flight"
+    )
+
+
+def test_extreme_duration_rejection():
+    """validate_recommendation directly rejects a flight with extreme duration."""
+    flight = _make_flight(price=100.0, duration_minutes=1500, stops=0)
+    # median 600 min, 1500 > 900 → rejected
+    stats  = _make_stats(median_price=500.0, median_duration=600.0)
+    assert validate_recommendation(flight, stats) is False
+
+
+# ── Debug output new fields ───────────────────────────────────────────────────
+
+def test_debug_new_fields_present():
+    """debug block contains the new fields added in Step 8."""
+    flights = _sorted_flights([
+        _make_flight(price=500.0 + i * 10, score=650.0 + i * 10)
+        for i in range(5)
+    ])
+    result = run_decision_engine(flights, debug=True)
+    debug  = result["debug"]
+    assert "fallback_used"                in debug
+    assert "num_valid_flights"            in debug
+    assert "validation_rejection_reasons" in debug
+    assert isinstance(debug["validation_rejection_reasons"], list)
+    assert isinstance(debug["fallback_used"], bool)
+    assert isinstance(debug["num_valid_flights"], int)
+
+
+def test_debug_fallback_used_true_when_all_rejected():
+    """fallback_used is True in debug when all flights fail validation."""
+    flights = _sorted_flights([
+        _make_flight(stops=3, score=600.0 + i * 10)
+        for i in range(5)
+    ])
+    result = run_decision_engine(flights, debug=True)
+    assert result["debug"]["fallback_used"] is True
+
+
+def test_debug_rejection_reasons_populated():
+    """validation_rejection_reasons is non-empty when at least one flight is rejected."""
+    # 1 outlier flight (duration=2000), 4 normal (duration=600)
+    # median_duration = 600; 2000 > 600×1.5=900 → rejected and reason recorded
+    flights = _sorted_flights(
+        [_make_flight(duration_minutes=2000, stops=0, score=400.0)]
+        + [
+            _make_flight(duration_minutes=600, stops=0, score=600.0 + i * 10)
+            for i in range(4)
+        ]
+    )
+    result = run_decision_engine(flights, debug=True)
+    assert len(result["debug"]["validation_rejection_reasons"]) > 0
