@@ -18,7 +18,7 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 # Fields every stored flight dict must contain
-_REQUIRED_FLIGHT_FIELDS: frozenset = frozenset({
+_REQUIRED_FLIGHT_FIELDS: frozenset[str] = frozenset({
     "price", "duration_minutes", "stops", "airline",
 })
 

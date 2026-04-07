@@ -127,8 +127,9 @@ def step2_live_api_call(
         _fail(f"API FAILED — monthly quota exhausted: {exc}")
     except PastDateError as exc:
         _fail(f"API FAILED — date in the past: {exc}")
-    except Exception as exc:  # noqa: BLE001
-        _fail(f"API FAILED — unexpected error: {exc}")
+    except (OSError, ValueError, RuntimeError) as exc:
+        _fail(f"API FAILED — unexpected error: {type(exc).__name__}: {exc}")
+        logger.debug("Full traceback:", exc_info=True)
 
     return []
 
@@ -172,7 +173,7 @@ def step4_mock_data(
     if mock:
         _ok(f"{len(mock)} mock flight(s) generated from cache")
         sample = mock[0]
-        route = sample.get("outbound_route", f"{sample.get('origin','?')}->{sample.get('destination','?')}")
+        route = sample.get("outbound_route", f"{sample.get('origin', '?')}->{sample.get('destination', '?')}")
         print(
             f"  Sample mock #1: {sample.get('airline', 'Unknown'):<20}"
             f"  {route:<15}"

@@ -112,12 +112,12 @@ async def debug_pipeline():
     mock_flights = load_mock_flights_from_cache(cache_file)
 
     return {
-        "api_key_present":     api_key_present,
-        "use_mock_data":       config.USE_MOCK_DATA,
-        "mock_fallback":       config.MOCK_FALLBACK,
-        "cache":               cache_report,
+        "api_key_present": api_key_present,
+        "use_mock_data": config.USE_MOCK_DATA,
+        "mock_fallback": config.MOCK_FALLBACK,
+        "cache": cache_report,
         "mock_flights_available": len(mock_flights) > 0,
-        "mock_flights_count":  len(mock_flights),
+        "mock_flights_count": len(mock_flights),
     }
 
 
@@ -301,19 +301,21 @@ async def search_stream(
             past_date_hit = False
             api_key_hit = False
 
+            async def _load_mock_for_route(od: str, rd: str) -> list[dict]:
+                """Helper: load mock flights for a single (outbound, return) date pair."""
+                from flight_optimizer.mock_data import load_mock_flights_from_cache as _lmfc
+                return await loop.run_in_executor(
+                    None,
+                    lambda: _lmfc(cache_file, outbound_date=od, return_date=rd),
+                )
+
             async def fetch_one_route(origin, dest, od, rd):
                 nonlocal quota_hit, past_date_hit, api_key_hit
                 label = f"{origin}→{dest}  {od} ↔ {rd}"
 
                 # ── Simulation mode: serve mock data immediately ───────────────
                 if use_mock:
-                    from flight_optimizer.mock_data import load_mock_flights_from_cache
-                    mocks = await loop.run_in_executor(
-                        None,
-                        lambda cf=cache_file, od_=od, rd_=rd: load_mock_flights_from_cache(
-                            cf, outbound_date=od_, return_date=rd_
-                        ),
-                    )
+                    mocks = await _load_mock_for_route(od, rd)
                     return mocks, False, None, label
 
                 cached = get_cached(cache, origin, dest, od, rd) if use_cache else None
@@ -334,33 +336,15 @@ async def search_stream(
                         flights = await loop.run_in_executor(None, _do)
                     except QuotaExhaustedError:
                         quota_hit = True
-                        # Fallback to mock on quota exhaustion
-                        from flight_optimizer.mock_data import load_mock_flights_from_cache
-                        mocks = await loop.run_in_executor(
-                            None,
-                            lambda cf=cache_file, od_=od, rd_=rd: load_mock_flights_from_cache(
-                                cf, outbound_date=od_, return_date=rd_
-                            ),
-                        )
-                        if mocks:
-                            return mocks, False, None, label
-                        return [], False, None, label
+                        mocks = await _load_mock_for_route(od, rd)
+                        return mocks, False, None, label
                     except PastDateError:
                         past_date_hit = True
                         return [], False, None, label
                     except InvalidApiKeyError:
                         api_key_hit = True
-                        # Fallback to mock on invalid key
-                        from flight_optimizer.mock_data import load_mock_flights_from_cache
-                        mocks = await loop.run_in_executor(
-                            None,
-                            lambda cf=cache_file, od_=od, rd_=rd: load_mock_flights_from_cache(
-                                cf, outbound_date=od_, return_date=rd_
-                            ),
-                        )
-                        if mocks:
-                            return mocks, False, None, label
-                        return [], False, None, label
+                        mocks = await _load_mock_for_route(od, rd)
+                        return mocks, False, None, label
                     if flights:
                         set_cached(cache, origin, dest, od, rd, flights)
                     return flights, False, None, label

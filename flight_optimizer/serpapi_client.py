@@ -413,10 +413,11 @@ def fetch_all_combinations(
                     api_calls += 1
                     all_results.extend(flights)
 
-                    # Store real (non-mock) results in cache
-                    if cache is not None and flights and not any(
-                        f.get("_is_mock") for f in flights
-                    ):
+                    # Store real (non-mock) results in cache.
+                    # We know flights are mock when api_failed is True and mock_fallback was used;
+                    # use that flag rather than iterating the list.
+                    is_mock_batch = api_failed and mock_fallback
+                    if cache is not None and flights and not is_mock_batch:
                         set_cached(cache, origin, destination, out_date, ret_date, flights)
                         if cache_file:
                             save_cache(cache, cache_file)
