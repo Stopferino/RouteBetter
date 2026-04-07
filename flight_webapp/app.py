@@ -92,6 +92,36 @@ async def api_usage():
     return local
 
 
+@app.get("/debug/pipeline")
+async def debug_pipeline():
+    """
+    Runs the pipeline integrity check and returns a JSON report:
+      - api_key_present: bool
+      - cache: check_cache_integrity() result
+      - mock_flights_available: bool
+      - mock_flights_count: int
+    """
+    from flight_optimizer.mock_data import check_cache_integrity, load_mock_flights_from_cache
+    from flight_optimizer import config
+
+    cache_file = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "flight_cache.json"
+    )
+    api_key_present = bool(os.environ.get("SERPAPI_KEY", ""))
+    cache_report = check_cache_integrity(cache_file)
+    mock_flights = load_mock_flights_from_cache(cache_file)
+
+    return {
+        "api_key_present":     api_key_present,
+        "use_mock_data":       config.USE_MOCK_DATA,
+        "mock_fallback":       config.MOCK_FALLBACK,
+        "cache":               cache_report,
+        "mock_flights_available": len(mock_flights) > 0,
+        "mock_flights_count":  len(mock_flights),
+    }
+
+
+
 @app.get("/search/stream")
 async def search_stream(
     origins: str = Query(..., description="Comma-separated origin codes"),
@@ -107,6 +137,7 @@ async def search_stream(
     dest_address: str = Query("", description="Destination address near arrival airport"),
     ground_cost_per_km: float = Query(1.5, description="Kept for backward compat"),
     stop_penalty: float = Query(75.0, description="EUR penalty per stop (outbound+return)"),
+    use_mock: bool = Query(False, description="Use mock/simulated data instead of live API"),
 ):
     origin_list = [o.strip().upper() for o in origins.split(",") if o.strip()]
     dest_list = [d.strip().upper() for d in destinations.split(",") if d.strip()]
@@ -252,6 +283,9 @@ async def search_stream(
             ]
             total = len(combinations)
 
+            if use_mock:
+                yield sse({"type": "log", "message": "⚙ Simulation mode: using mock data (real API skipped)"})
+
             yield sse({
                 "type": "log",
                 "message": f"Starting search: {total} combination(s) "
@@ -270,6 +304,18 @@ async def search_stream(
             async def fetch_one_route(origin, dest, od, rd):
                 nonlocal quota_hit, past_date_hit, api_key_hit
                 label = f"{origin}→{dest}  {od} ↔ {rd}"
+
+                # ── Simulation mode: serve mock data immediately ───────────────
+                if use_mock:
+                    from flight_optimizer.mock_data import load_mock_flights_from_cache
+                    mocks = await loop.run_in_executor(
+                        None,
+                        lambda cf=cache_file, od_=od, rd_=rd: load_mock_flights_from_cache(
+                            cf, outbound_date=od_, return_date=rd_
+                        ),
+                    )
+                    return mocks, False, None, label
+
                 cached = get_cached(cache, origin, dest, od, rd) if use_cache else None
                 if cached is not None:
                     age = get_cache_age_hours(cache, origin, dest, od, rd)
@@ -288,12 +334,32 @@ async def search_stream(
                         flights = await loop.run_in_executor(None, _do)
                     except QuotaExhaustedError:
                         quota_hit = True
+                        # Fallback to mock on quota exhaustion
+                        from flight_optimizer.mock_data import load_mock_flights_from_cache
+                        mocks = await loop.run_in_executor(
+                            None,
+                            lambda cf=cache_file, od_=od, rd_=rd: load_mock_flights_from_cache(
+                                cf, outbound_date=od_, return_date=rd_
+                            ),
+                        )
+                        if mocks:
+                            return mocks, False, None, label
                         return [], False, None, label
                     except PastDateError:
                         past_date_hit = True
                         return [], False, None, label
                     except InvalidApiKeyError:
                         api_key_hit = True
+                        # Fallback to mock on invalid key
+                        from flight_optimizer.mock_data import load_mock_flights_from_cache
+                        mocks = await loop.run_in_executor(
+                            None,
+                            lambda cf=cache_file, od_=od, rd_=rd: load_mock_flights_from_cache(
+                                cf, outbound_date=od_, return_date=rd_
+                            ),
+                        )
+                        if mocks:
+                            return mocks, False, None, label
                         return [], False, None, label
                     if flights:
                         set_cached(cache, origin, dest, od, rd, flights)
@@ -318,6 +384,8 @@ async def search_stream(
                     if age is not None:
                         cache_age_hours_list.append(age)
                     yield sse({"type": "log", "message": f"✓ Cache: {label} ({len(flights)} result(s))"})
+                elif use_mock or any(f.get("_is_mock") for f in flights):
+                    yield sse({"type": "log", "message": f"⚙ Mock: {label} ({len(flights)} simulated flight(s))"})
                 else:
                     yield sse({"type": "log", "message": f"✓ Live: {label} ({len(flights)} flight(s))"})
                     if flights:
@@ -329,7 +397,7 @@ async def search_stream(
                 await loop.run_in_executor(None, save_cache, cache, cache_file)
 
             # Surface hard errors first — these abort the search with a clear message
-            if api_key_hit:
+            if api_key_hit and not all_flights:
                 yield sse({
                     "type": "error",
                     "message": (
@@ -338,6 +406,13 @@ async def search_stream(
                     ),
                 })
                 return
+            elif api_key_hit:
+                yield sse({
+                    "type": "log",
+                    "message": (
+                        "⚠ Invalid API key detected — showing mock/cached data as fallback."
+                    ),
+                })
             if past_date_hit and not all_flights:
                 yield sse({
                     "type": "error",
@@ -361,7 +436,7 @@ async def search_stream(
                 yield sse({
                     "type": "log",
                     "message": (
-                        "⚠ SerpApi quota exhausted mid-search — showing cached results only. "
+                        "⚠ SerpApi quota exhausted mid-search — showing cached/mock results. "
                         "Some routes may be missing."
                     ),
                 })

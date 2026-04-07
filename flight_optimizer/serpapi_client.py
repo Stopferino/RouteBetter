@@ -303,13 +303,38 @@ def fetch_all_combinations(
     delay_seconds: float = 1.0,
     cache: Optional[dict] = None,
     cache_file: Optional[str] = None,
+    use_mock: bool = False,
+    mock_fallback: bool = True,
 ) -> list[dict]:
     """
     Fetches all origin/destination combinations x date pairs.
     delay_seconds prevents rate limiting.
     cache: optional cache dictionary (from cache.py)
+
+    Args:
+        use_mock:      If True, skip live API and return mock data generated from
+                       the cache.  Equivalent to setting USE_MOCK_DATA=True in
+                       config.py.
+        mock_fallback: If True, fall back to mock data automatically when the
+                       live API call fails (no key, quota exhausted, error).
     """
     from flight_optimizer.cache import get_cached, set_cached, save_cache
+
+    # ── Simulation mode: skip all API calls ────────────────────────────────────
+    if use_mock:
+        from flight_optimizer.mock_data import load_mock_flights_from_cache
+        logger.info("USE_MOCK_DATA=True — skipping live API, using mock data from cache")
+        all_mock: list[dict] = []
+        for out_date in outbound_dates:
+            for ret_date in return_dates:
+                mocks = load_mock_flights_from_cache(
+                    cache_file or "flight_cache.json",
+                    outbound_date=out_date,
+                    return_date=ret_date,
+                )
+                all_mock.extend(mocks)
+        logger.info(f"Mock mode: {len(all_mock)} mock flight(s) returned")
+        return all_mock
 
     # Validate all dates before making any API calls
     for out_date in outbound_dates:
@@ -321,6 +346,7 @@ def fetch_all_combinations(
     count = 0
     api_calls = 0
     cache_hits = 0
+    api_failed = False  # tracks whether any hard API failure occurred
 
     for origin in origins:
         for destination in destinations:
@@ -340,22 +366,57 @@ def fetch_all_combinations(
                             continue
 
                     # Make API request
-                    flights = fetch_flights(
-                        origin=origin,
-                        destination=destination,
-                        outbound_date=out_date,
-                        return_date=ret_date,
-                        currency=currency,
-                        hl=hl,
-                        gl=gl,
-                        max_stops=max_stops,
-                        airline_filter=airline_filter,
-                    )
+                    try:
+                        logger.info(
+                            f"  → Calling SerpApi: {origin}→{destination} "
+                            f"{out_date} ↔ {ret_date}"
+                        )
+                        flights = fetch_flights(
+                            origin=origin,
+                            destination=destination,
+                            outbound_date=out_date,
+                            return_date=ret_date,
+                            currency=currency,
+                            hl=hl,
+                            gl=gl,
+                            max_stops=max_stops,
+                            airline_filter=airline_filter,
+                        )
+                        logger.info(
+                            f"  ← SerpApi response: {len(flights)} flight(s) for "
+                            f"{origin}→{destination}"
+                        )
+                    except (QuotaExhaustedError, InvalidApiKeyError, EnvironmentError) as exc:
+                        logger.warning(f"  ← API call failed ({type(exc).__name__}): {exc}")
+                        api_failed = True
+                        if mock_fallback:
+                            logger.info(
+                                "  ↩ MOCK_FALLBACK=True — switching to mock data for this route"
+                            )
+                            from flight_optimizer.mock_data import load_mock_flights_from_cache
+                            flights = load_mock_flights_from_cache(
+                                cache_file or "flight_cache.json",
+                                outbound_date=out_date,
+                                return_date=ret_date,
+                            )
+                            if flights:
+                                logger.info(
+                                    f"  ↩ Mock fallback: {len(flights)} mock flight(s) used"
+                                )
+                            else:
+                                logger.warning(
+                                    "  ↩ Mock fallback: no cached data available — 0 flights"
+                                )
+                        else:
+                            flights = []
+
                     api_calls += 1
                     all_results.extend(flights)
 
-                    # Store result in cache
-                    if cache is not None:
+                    # Store real (non-mock) results in cache
+                    if cache is not None and flights and not any(
+                        f.get("_is_mock") for f in flights
+                    ):
                         set_cached(cache, origin, destination, out_date, ret_date, flights)
                         if cache_file:
                             save_cache(cache, cache_file)
@@ -366,6 +427,7 @@ def fetch_all_combinations(
     logger.info(
         f"Done: {api_calls} API request(s), {cache_hits} loaded from cache "
         f"(saved: {cache_hits} of {total} searches)"
+        + (" [some calls fell back to mock data]" if api_failed and mock_fallback else "")
     )
     return all_results
 
