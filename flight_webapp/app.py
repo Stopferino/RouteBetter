@@ -681,6 +681,174 @@ async def search_stream(
     )
 
 
+@app.get("/flight/recommend")
+async def flight_recommend(
+    origins: str = Query(..., description="Comma-separated origin airport codes"),
+    destinations: str = Query(..., description="Comma-separated destination airport codes"),
+    outbound_date: str = Query(..., description="Outbound date (YYYY-MM-DD)"),
+    return_date: str = Query(..., description="Return date (YYYY-MM-DD)"),
+    value_of_time: float = Query(20.0, description="Value of time in EUR/hour"),
+    max_stops: Optional[int] = Query(None, description="Maximum stops (None = no limit)"),
+    use_mock: bool = Query(False, description="Use mock/cached data instead of live API"),
+    debug: bool = Query(False, description="Include extra debug fields in response"),
+):
+    """
+    Return a single structured flight recommendation with deal analysis.
+
+    Response schema:
+      {
+        "best_flight":  {...},
+        "deal":         {"label": "GOOD DEAL"|"MARKET PRICE"|"OVERPRICED",
+                         "confidence": "HIGH"|"LOW"},
+        "explanation":  "<non-empty string>",
+        "alternatives": [...],   // max 3
+        "meta":         {...},
+        "debug":        {...}    // only when ?debug=true
+      }
+    """
+    from fastapi import HTTPException
+    from fastapi.responses import JSONResponse
+    from flight_optimizer.scorer import (
+        calculate_scores, apply_filters, recalculate_scores_with_return,
+    )
+    from flight_optimizer.decision_engine import run_decision_engine
+
+    origin_list = [o.strip().upper() for o in origins.split(",") if o.strip()]
+    dest_list   = [d.strip().upper() for d in destinations.split(",") if d.strip()]
+
+    loop       = asyncio.get_event_loop()
+    cache_file = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "flight_cache.json"
+    )
+
+    # ── Collect flights ────────────────────────────────────────────────────
+    all_flights: list[dict] = []
+
+    if use_mock:
+        # Simulation mode: never calls external APIs
+        from flight_optimizer.mock_data import load_mock_flights_from_cache
+        all_flights = await loop.run_in_executor(
+            None,
+            lambda: load_mock_flights_from_cache(
+                cache_file,
+                outbound_date=outbound_date,
+                return_date=return_date,
+            ),
+        )
+    else:
+        from flight_optimizer.cache import load_cache, get_cached
+        from flight_optimizer.serpapi_client import (
+            fetch_flights, QuotaExhaustedError, InvalidApiKeyError,
+        )
+
+        cache = await loop.run_in_executor(None, load_cache, cache_file)
+
+        for origin in origin_list:
+            for dest in dest_list:
+                cached = get_cached(cache, origin, dest, outbound_date, return_date)
+                if cached:
+                    all_flights.extend(cached)
+                    continue
+                try:
+                    fetched = await loop.run_in_executor(
+                        None,
+                        lambda o=origin, d=dest: fetch_flights(
+                            origin=o, destination=d,
+                            outbound_date=outbound_date,
+                            return_date=return_date,
+                            currency="EUR", hl="en", gl="us",
+                            max_stops=max_stops,
+                        ),
+                    )
+                    all_flights.extend(fetched)
+                except (QuotaExhaustedError, InvalidApiKeyError):
+                    # Fallback to mock when live API is unavailable
+                    from flight_optimizer.mock_data import load_mock_flights_from_cache as load_mock_flights
+                    mocks = await loop.run_in_executor(
+                        None,
+                        lambda: load_mock_flights(
+                            cache_file,
+                            outbound_date=outbound_date,
+                            return_date=return_date,
+                        ),
+                    )
+                    all_flights.extend(mocks)
+
+    if not all_flights:
+        raise HTTPException(status_code=404, detail="No flights found for the given parameters.")
+
+    logger.info(
+        "/flight/recommend: %d raw flights collected (mock=%s)",
+        len(all_flights), use_mock,
+    )
+
+    # ── Score and filter ───────────────────────────────────────────────────
+    df = await loop.run_in_executor(
+        None,
+        lambda: calculate_scores(all_flights, value_of_time=value_of_time),
+    )
+
+    # Fill defaults for required columns
+    for col, default in [("booking_class", "Economy"), ("currency", "EUR")]:
+        if col in df.columns:
+            df[col] = df[col].fillna(default)
+
+    original_df = df.copy()
+    try:
+        df = await loop.run_in_executor(
+            None,
+            lambda: apply_filters(df, max_stops=max_stops),
+        )
+    except Exception as filter_err:
+        logger.warning(
+            "/flight/recommend: apply_filters failed (%s) — using unfiltered set",
+            filter_err,
+        )
+        df = original_df
+
+    # If economy-only filter (via max_stops or other) yields nothing, revert
+    if df.empty:
+        logger.warning(
+            "/flight/recommend: empty set after filtering — falling back to unfiltered"
+        )
+        df = original_df
+
+    flights_list = await loop.run_in_executor(
+        None,
+        lambda: recalculate_scores_with_return(df.to_dict("records"), value_of_time),
+    )
+
+    logger.info(
+        "/flight/recommend: %d flights after scoring/filtering",
+        len(flights_list),
+    )
+
+    # ── Decision engine ────────────────────────────────────────────────────
+    try:
+        decision = run_decision_engine(flights_list, debug=debug)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+
+    # ── Build response ─────────────────────────────────────────────────────
+    response: dict = {
+        "best_flight":  _sanitize_nan(decision["best_flight"]),
+        "deal":         decision["deal"],
+        "explanation":  decision["explanation"],
+        "alternatives": [_sanitize_nan(f) for f in decision["alternatives"][:3]],
+        "meta":         decision["meta"],
+    }
+    if debug and "debug" in decision:
+        response["debug"] = decision["debug"]
+
+    # ── Response guards ────────────────────────────────────────────────────
+    assert response["best_flight"] is not None
+    assert len(response["alternatives"]) <= 3
+    assert response["explanation"]
+    assert response["deal"]["label"] in {"GOOD DEAL", "MARKET PRICE", "OVERPRICED"}
+
+    return JSONResponse(content=response)
+
+
 @app.get("/export/{export_id}")
 async def download_excel(export_id: str):
     import tempfile
