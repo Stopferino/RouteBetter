@@ -691,6 +691,7 @@ async def flight_recommend(
     max_stops: Optional[int] = Query(None, description="Maximum stops (None = no limit)"),
     use_mock: bool = Query(False, description="Use mock/cached data instead of live API"),
     debug: bool = Query(False, description="Include extra debug fields in response"),
+    max_personality: bool = Query(True, description="Use Max's personality voice in the explanation"),
 ):
     """
     Return a single structured flight recommendation with deal analysis.
@@ -825,7 +826,7 @@ async def flight_recommend(
 
     # ── Decision engine ────────────────────────────────────────────────────
     try:
-        decision = run_decision_engine(flights_list, debug=debug)
+        decision = run_decision_engine(flights_list, debug=debug, max_personality=max_personality)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 

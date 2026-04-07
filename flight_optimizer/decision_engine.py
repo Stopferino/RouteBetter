@@ -5,7 +5,10 @@ Provides the recommendation layer on top of the scoring pipeline.
 
 Public API:
   validate_recommendation(best_flight, stats) -> bool
-  run_decision_engine(flights, debug=False)   -> dict
+  classify_deal(price, median_price, duration, median_duration) -> str
+  generate_decision_explanation(best_flight, stats, deal_label,
+                                alternatives, max_personality) -> str
+  run_decision_engine(flights, debug=False, max_personality=True) -> dict
 """
 
 import logging
@@ -195,15 +198,25 @@ def validate_recommendation(
 
 # ── Explanation generator ─────────────────────────────────────────────────────
 
-def _generate_explanation(
+def generate_decision_explanation(
     best_flight: dict,
     stats: dict,
     deal_label: str,
+    alternatives: Optional[list] = None,
+    max_personality: bool = True,
 ) -> str:
     """
     Generate a human-readable explanation of the recommendation.
 
-    Always includes a negative tradeoff so users are fully informed.
+    Always includes one positive aspect and one negative tradeoff so users
+    are fully informed.
+
+    When *max_personality* is True, injects Max's opinionated voice:
+      - Expresses dislikes (long layovers, multi-stop routes, overpaying)
+      - Highlights acceptable tradeoffs (e.g. "1 stop worth €X saved")
+      - Appends a brief summary of alternatives
+
+    When *max_personality* is False, returns a neutral factual explanation.
     """
     price        = float(best_flight.get("price") or 0)
     duration_min = int(best_flight.get("duration_minutes") or 0)
@@ -221,37 +234,128 @@ def _generate_explanation(
     # ── Positive aspect ───────────────────────────────────────────────────
     if deal_label == "GOOD DEAL" and median_price > 0:
         pct_below = round((1 - price / median_price) * 100)
-        positive = f"Excellent value at €{price:.0f} — {pct_below}% below market median"
+        if max_personality:
+            positive = (
+                f"Max's pick: €{price:.0f} is {pct_below}% below market — that's real savings"
+            )
+        else:
+            positive = f"Excellent value at €{price:.0f} — {pct_below}% below market median"
     elif deal_label == "OVERPRICED" and median_price > 0:
         pct_above = round((price / median_price - 1) * 100)
-        positive = f"Premium option at €{price:.0f} — {pct_above}% above market median"
+        if max_personality:
+            positive = (
+                f"Heads up: €{price:.0f} is {pct_above}% above market — "
+                "Max wouldn't overpay unless there's no alternative"
+            )
+        else:
+            positive = f"Premium option at €{price:.0f} — {pct_above}% above market median"
     else:
-        positive = f"Fair market price at €{price:.0f}"
+        if max_personality:
+            positive = f"Solid market-rate option at €{price:.0f}"
+        else:
+            positive = f"Fair market price at €{price:.0f}"
 
     # ── Negative tradeoff (always present) ───────────────────────────────
     if stops >= 2:
-        tradeoff = f"requires {stops_str}, adding connection time and complexity"
+        if max_personality:
+            tradeoff = (
+                f"Max dislikes multi-stop routes — {stops_str} means more connections "
+                "and longer layover time"
+            )
+        else:
+            tradeoff = f"requires {stops_str}, adding connection time and complexity"
     elif stops == 1:
-        tradeoff = (
-            f"requires {stops_str} and total flight time is {dur_str}, "
-            "which may be tiring"
-        )
+        savings_str = ""
+        if deal_label == "GOOD DEAL" and median_price > 0:
+            saved = round(median_price - price)
+            if saved > 0:
+                savings_str = f", saving you €{saved} vs. the market"
+        if max_personality:
+            if savings_str:
+                tradeoff = (
+                    f"it's 1 stop{savings_str} — Max thinks that tradeoff is worth it, "
+                    f"though the total journey is {dur_str}"
+                )
+            else:
+                tradeoff = (
+                    f"requires 1 stop and total journey time is {dur_str} — "
+                    "Max finds multi-leg travel a bit tiring"
+                )
+        else:
+            tradeoff = (
+                f"requires {stops_str} and total flight time is {dur_str}, "
+                "which may be tiring"
+            )
     elif median_duration > 0 and duration_min > median_duration * 1.1:
-        tradeoff = (
-            f"the flight duration of {dur_str} is above average for this route "
-            f"({int(median_duration // 60)}h {int(median_duration % 60):02d}m typical)"
-        )
+        if max_personality:
+            tradeoff = (
+                f"the {dur_str} flight is longer than usual for this route "
+                f"({int(median_duration // 60)}h {int(median_duration % 60):02d}m typical) — "
+                "Max prefers shorter options when they exist"
+            )
+        else:
+            tradeoff = (
+                f"the flight duration of {dur_str} is above average for this route "
+                f"({int(median_duration // 60)}h {int(median_duration % 60):02d}m typical)"
+            )
     else:
-        tradeoff = "limited availability may reduce booking flexibility"
+        if max_personality:
+            tradeoff = "limited availability may mean fewer options — book early to lock in this price"
+        else:
+            tradeoff = "limited availability may reduce booking flexibility"
 
-    # ── Assemble ──────────────────────────────────────────────────────────
+    # ── Assemble base explanation ─────────────────────────────────────────
     parts = [positive]
     if airline:
         parts.append(f"operated by {airline}")
     parts.append(f"({stops_str}, {dur_str})")
     parts.append(f"— though {tradeoff}.")
 
-    return " ".join(parts)
+    explanation = " ".join(parts)
+
+    # ── Alternatives summary (personality mode only) ──────────────────────
+    if max_personality and alternatives:
+        alt_summaries: list[str] = []
+        for alt in alternatives[:3]:
+            alt_price   = float(alt.get("price") or 0)
+            alt_stops   = int(alt.get("stops") or 0)
+            alt_airline = alt.get("airline") or "Unknown"
+            alt_stops_str = (
+                "non-stop" if alt_stops == 0
+                else f"{alt_stops} stop{'s' if alt_stops != 1 else ''}"
+            )
+            if alt_price > 0:
+                alt_summaries.append(f"{alt_airline} {alt_stops_str} at €{alt_price:.0f}")
+        if alt_summaries:
+            explanation += f" Also consider: {'; '.join(alt_summaries)}."
+
+    return explanation
+
+
+def _generate_max_tip(best_flight: dict, stats: dict, deal_label: str) -> str:
+    """Return a short Max-voice tip for debug output."""
+    price        = float(best_flight.get("price") or 0)
+    stops        = int(best_flight.get("stops") or 0)
+    median_price = float(stats.get("median_price") or 0)
+
+    if deal_label == "GOOD DEAL":
+        saved = round(median_price - price) if median_price > 0 else 0
+        if stops == 0:
+            return (
+                f"Max says: Non-stop and €{saved} cheaper than median — book it before it's gone."
+                if saved > 0 else "Max says: Non-stop at a great price — go for it."
+            )
+        return (
+            f"Max says: Worth the stop — you're saving €{saved}."
+            if saved > 0 else "Max says: Good value even with a connection."
+        )
+    if deal_label == "OVERPRICED":
+        return "Max says: Too pricey. Try adjusting dates or check the alternatives above."
+    if stops >= 2:
+        return "Max says: Multiple connections? Only if the savings are massive."
+    if stops == 1:
+        return "Max says: One stop is manageable — just check the layover duration."
+    return "Max says: Solid non-stop at a fair price. No red flags."
 
 
 # ── Main engine ───────────────────────────────────────────────────────────────
@@ -259,12 +363,20 @@ def _generate_explanation(
 def run_decision_engine(
     flights: list[dict],
     debug: bool = False,
+    max_personality: bool = True,
 ) -> dict:
     """
     Run the decision engine on a list of pre-scored flights.
 
     Expects *flights* to be sorted by score ascending (best first), which is
     the natural output of scorer.recalculate_scores_with_return().
+
+    Parameters
+    ----------
+    flights:         Pre-scored flight dicts, sorted by score (best first).
+    debug:           When True, include extra diagnostic fields in the result.
+    max_personality: When True (default), use Max's opinionated explanation
+                     voice and include alternatives commentary.
 
     Returns:
     {
@@ -369,7 +481,13 @@ def run_decision_engine(
     )
 
     # ── Explanation ───────────────────────────────────────────────────────
-    explanation = _generate_explanation(best_flight, stats, deal_label)
+    explanation = generate_decision_explanation(
+        best_flight,
+        stats,
+        deal_label,
+        alternatives=alternatives,
+        max_personality=max_personality,
+    )
 
     # ── Structured logging ────────────────────────────────────────────────
     logger.info(
@@ -406,6 +524,8 @@ def run_decision_engine(
             "fallback_used":                fallback_triggered,
             "num_valid_flights":            len(valid_flights),
             "validation_rejection_reasons": rejection_reasons,
+            "price_vs_median":              result["meta"]["price_vs_median"],
+            "max_personality_tip":          _generate_max_tip(best_flight, stats, deal_label),
         }
 
     # ── Guards ────────────────────────────────────────────────────────────

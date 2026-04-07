@@ -7,6 +7,9 @@ Covers:
   - Sanity/validation layer (duration filter, stops filter)
   - Edge cases (premium fallback, no valid flights)
   - Explanation quality (must include a negative tradeoff)
+  - Max personality voice (max_personality=True/False)
+  - Alternatives in personality explanation
+  - Debug fields (max_personality_tip, price_vs_median)
   - Response structure
 """
 
@@ -21,6 +24,7 @@ from flight_optimizer.decision_engine import (
     run_decision_engine,
     validate_recommendation,
     classify_deal,
+    generate_decision_explanation,
     VALID_DEAL_LABELS,
 )
 
@@ -628,3 +632,183 @@ def test_price_vs_median_none_when_no_median():
     result = run_decision_engine(flights)
     assert result["meta"]["price_vs_median"] is None
 
+
+
+# ── Max personality tests ─────────────────────────────────────────────────────
+
+def test_max_personality_on_by_default():
+    """run_decision_engine uses Max's personality by default (max_personality=True)."""
+    flights = _sorted_flights([
+        _make_flight(price=400.0, score=450.0)]
+        + [_make_flight(price=500.0, score=650.0 + i) for i in range(9)]
+    )
+    result = run_decision_engine(flights)
+    # Max personality inserts "Max's pick" for GOOD DEAL
+    assert "max" in result["explanation"].lower()
+
+
+def test_max_personality_false_neutral_tone():
+    """max_personality=False produces neutral, non-personalised explanation."""
+    flights = _sorted_flights([
+        _make_flight(price=400.0, score=450.0)]
+        + [_make_flight(price=500.0, score=650.0 + i) for i in range(9)]
+    )
+    result = run_decision_engine(flights, max_personality=False)
+    explanation = result["explanation"].lower()
+    # Neutral mode should NOT contain Max's name
+    assert "max's" not in explanation
+    # But must still include a negative tradeoff
+    negative_markers = ("though", "but", "—", "however", "tiring", "complex", "above average")
+    assert any(m in explanation for m in negative_markers)
+
+
+def test_max_personality_overpriced_tone():
+    """Max's voice warns against overpaying for OVERPRICED flights."""
+    flights = _sorted_flights(
+        [_make_flight(price=700.0, score=500.0)]
+        + [_make_flight(price=500.0, score=650.0 + i) for i in range(9)]
+    )
+    result = run_decision_engine(flights)
+    assert result["deal"]["label"] == "OVERPRICED"
+    # Max's personality uses "Heads up" for overpriced
+    assert "heads up" in result["explanation"].lower()
+
+
+def test_max_personality_multistop_warning():
+    """Max's voice warns about multi-stop routes."""
+    flights = _sorted_flights([
+        _make_flight(price=400.0, stops=2, score=500.0)]
+        + [_make_flight(price=500.0, stops=2, score=600.0 + i) for i in range(9)]
+    )
+    result = run_decision_engine(flights)
+    assert "max dislikes" in result["explanation"].lower()
+
+
+def test_max_personality_1stop_tradeoff():
+    """For a 1-stop GOOD DEAL, Max mentions the savings tradeoff."""
+    flights = _sorted_flights(
+        [_make_flight(price=350.0, stops=1, score=450.0)]
+        + [_make_flight(price=550.0, stops=0, score=600.0 + i) for i in range(9)]
+    )
+    result = run_decision_engine(flights)
+    assert result["deal"]["label"] == "GOOD DEAL"
+    explanation = result["explanation"].lower()
+    # Should mention savings or tradeoff
+    assert any(m in explanation for m in ("saving", "worth", "tradeoff", "stop"))
+
+
+def test_max_personality_alternatives_in_explanation():
+    """With alternatives present, max_personality=True appends them to the explanation."""
+    flights = _sorted_flights([
+        _make_flight(price=400.0, airline="AirA", stops=0, score=450.0),
+        _make_flight(price=500.0, airline="AirB", stops=1, score=550.0),
+        _make_flight(price=520.0, airline="AirC", stops=0, score=600.0),
+        _make_flight(price=530.0, airline="AirD", stops=1, score=650.0),
+    ])
+    result = run_decision_engine(flights, max_personality=True)
+    # Alternatives should be embedded in explanation as "Also consider:"
+    assert "also consider" in result["explanation"].lower()
+
+
+def test_max_personality_false_no_alternatives_summary():
+    """With max_personality=False, alternatives are NOT embedded in the explanation."""
+    flights = _sorted_flights([
+        _make_flight(price=400.0, airline="AirA", stops=0, score=450.0),
+        _make_flight(price=500.0, airline="AirB", stops=1, score=550.0),
+        _make_flight(price=520.0, airline="AirC", stops=0, score=600.0),
+        _make_flight(price=530.0, airline="AirD", stops=1, score=650.0),
+    ])
+    result = run_decision_engine(flights, max_personality=False)
+    assert "also consider" not in result["explanation"].lower()
+
+
+# ── generate_decision_explanation direct tests ────────────────────────────────
+
+def test_generate_decision_explanation_is_public():
+    """generate_decision_explanation is importable as a public API."""
+    flight = _make_flight(price=450.0, stops=0, duration_minutes=600)
+    stats  = _make_stats(median_price=500.0)
+    result = generate_decision_explanation(flight, stats, "GOOD DEAL")
+    assert isinstance(result, str)
+    assert len(result) > 0
+
+
+def test_generate_decision_explanation_personality_toggle():
+    """Toggling max_personality changes explanation content."""
+    flight = _make_flight(price=450.0, stops=0, duration_minutes=600)
+    stats  = _make_stats(median_price=500.0)
+    with_personality    = generate_decision_explanation(flight, stats, "GOOD DEAL", max_personality=True)
+    without_personality = generate_decision_explanation(flight, stats, "GOOD DEAL", max_personality=False)
+    assert with_personality != without_personality
+
+
+def test_generate_decision_explanation_alternatives_appended():
+    """Alternatives are appended when max_personality=True and alternatives are given."""
+    flight = _make_flight(price=400.0, stops=0, airline="AirA", duration_minutes=600)
+    stats  = _make_stats(median_price=500.0)
+    alts   = [_make_flight(price=480.0, stops=1, airline="AirB")]
+    result = generate_decision_explanation(
+        flight, stats, "GOOD DEAL", alternatives=alts, max_personality=True
+    )
+    assert "airb" in result.lower()
+    assert "also consider" in result.lower()
+
+
+def test_generate_decision_explanation_no_alternatives_without_personality():
+    """Alternatives are NOT appended when max_personality=False."""
+    flight = _make_flight(price=400.0, stops=0, airline="AirA", duration_minutes=600)
+    stats  = _make_stats(median_price=500.0)
+    alts   = [_make_flight(price=480.0, stops=1, airline="AirB")]
+    result = generate_decision_explanation(
+        flight, stats, "GOOD DEAL", alternatives=alts, max_personality=False
+    )
+    assert "also consider" not in result.lower()
+
+
+# ── Debug fields: max_personality_tip and price_vs_median ─────────────────────
+
+def test_debug_max_personality_tip_present():
+    """When debug=True, debug dict includes max_personality_tip."""
+    flights = _sorted_flights([
+        _make_flight(price=500.0 + i * 10, score=650.0 + i * 10)
+        for i in range(5)
+    ])
+    result = run_decision_engine(flights, debug=True)
+    assert "max_personality_tip" in result["debug"]
+    assert isinstance(result["debug"]["max_personality_tip"], str)
+    assert len(result["debug"]["max_personality_tip"]) > 0
+
+
+def test_debug_price_vs_median_present():
+    """When debug=True, debug dict includes price_vs_median."""
+    flights = _sorted_flights([
+        _make_flight(price=400.0, score=450.0)]
+        + [_make_flight(price=500.0, score=650.0 + i) for i in range(4)]
+    )
+    result = run_decision_engine(flights, debug=True)
+    assert "price_vs_median" in result["debug"]
+
+
+def test_debug_max_tip_good_deal_content():
+    """max_personality_tip for a GOOD DEAL mentions booking recommendation."""
+    flights = _sorted_flights(
+        [_make_flight(price=350.0, stops=0, score=450.0)]
+        + [_make_flight(price=550.0, stops=0, score=600.0 + i) for i in range(9)]
+    )
+    result = run_decision_engine(flights, debug=True)
+    assert result["deal"]["label"] == "GOOD DEAL"
+    tip = result["debug"]["max_personality_tip"].lower()
+    assert "max says" in tip
+
+
+def test_debug_max_tip_overpriced_content():
+    """max_personality_tip for an OVERPRICED flight warns the user."""
+    flights = _sorted_flights(
+        [_make_flight(price=700.0, stops=0, score=500.0)]
+        + [_make_flight(price=500.0, stops=0, score=650.0 + i) for i in range(9)]
+    )
+    result = run_decision_engine(flights, debug=True)
+    assert result["deal"]["label"] == "OVERPRICED"
+    tip = result["debug"]["max_personality_tip"].lower()
+    assert "max says" in tip
+    assert any(w in tip for w in ("pricey", "price", "adjust", "alternative"))
