@@ -32,6 +32,14 @@ MAX_STOPS = None
 USE_CACHE = True
 CACHE_FILE = "flight_cache.json"
 
+# ─── Simulation / Mock Mode ───────────────────────────────────────────────────
+# True  = skip real API calls and use mock data generated from the cache
+# False = use real SerpApi (fallback to mock only on API error if MOCK_FALLBACK = True)
+USE_MOCK_DATA = False
+
+# True = automatically fall back to mock data when the live API call fails
+MOCK_FALLBACK = True
+
 # ─── Output ───────────────────────────────────────────────────────────────────
 TOP_N = 5
 EXCEL_OUTPUT_FILE = "flight_results.xlsx"

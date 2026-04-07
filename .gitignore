@@ -55,3 +55,6 @@ vennv/
 # Environment variables (secrets)
 .env
 .env.local
+__pycache__/
+*.py[cod]
+*.pyo

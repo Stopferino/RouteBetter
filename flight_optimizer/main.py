@@ -53,6 +53,7 @@ def main():
     logger.info(f"Airline filter:    {config.AIRLINE_FILTER or 'none'}")
     logger.info(f"Max stops:         {config.MAX_STOPS if config.MAX_STOPS is not None else 'unlimited'}")
     logger.info(f"Cache enabled:     {config.USE_CACHE} ({config.CACHE_FILE})")
+    logger.info(f"Mock mode:         USE_MOCK_DATA={config.USE_MOCK_DATA}  MOCK_FALLBACK={config.MOCK_FALLBACK}")
 
     total_queries = (
         len(config.ORIGIN_AIRPORTS)
@@ -80,6 +81,8 @@ def main():
         delay_seconds=1.0,
         cache=cache,
         cache_file=config.CACHE_FILE if config.USE_CACHE else None,
+        use_mock=config.USE_MOCK_DATA,
+        mock_fallback=config.MOCK_FALLBACK,
     )
 
     if not flights:
